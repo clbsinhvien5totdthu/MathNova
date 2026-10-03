@@ -327,6 +327,7 @@ button {
 
 .screen {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #login {
@@ -686,6 +687,16 @@ header {
   text-align: center;
 }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.arena .btn.go {
+  width: auto;
+  margin: 14px 0 0;
+}
+
 #gmsg {
   min-height: 1.6em;
   margin-top: 12px;
@@ -701,7 +712,7 @@ header {
   position: fixed;
   left: 50%;
   bottom: 28px;
-  z-index: 60;
+  z-index: 80;
   padding: 12px 22px;
   background: var(--navy);
   color: #fff;
