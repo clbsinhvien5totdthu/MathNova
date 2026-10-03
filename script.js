@@ -2,8 +2,8 @@
    Điền 2 giá trị lấy ở Supabase → Project Settings → API.
    Project URL và Publishable key (hoặc anon key) được phép để công khai.
    TUYỆT ĐỐI KHÔNG dán secret key / service_role key vào đây. */
-const SUPABASE_URL='https://YOUR-PROJECT.supabase.co';
-const SUPABASE_KEY='YOUR_PUBLISHABLE_KEY';
+const SUPABASE_URL='https://odyiqvstagtynvbdcxvn.supabase.co/rest/v1/';
+const SUPABASE_KEY='odyiqvstagtynvbdcxvn';
 const EMAIL_SUFFIX='@mathnova.vn'; // phải trùng đuôi email khi tạo user trong Supabase
 const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('YOUR-PROJECT'))
   ?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
