@@ -45,9 +45,10 @@
   <header>
     <div class="wrap bar">
       <a href="#" class="logo" id="goHome"><i>∑</i>Math Nova</a>
-      <div class="me"><span id="meName"></span><span class="xp" id="meXp"></span>
+      <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
       <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
     </div>
+    <div class="wrap rankstrip"><div class="rbar"><i id="rankFill"></i></div><small id="rankTxt"></small></div>
   </header>
 
   <!-- Chọn cấp học -->
@@ -88,10 +89,18 @@
     </div>
   </section>
 </div>
+<div id="quiz" class="quiz hidden" role="dialog" aria-modal="true">
+  <div id="qmain" class="qbox">
+    <div class="qtop"><b id="qtitle"></b><span>⏱ <b id="qtime">15:00</b></span></div>
+    <div class="qprog"><i id="qbar"></i></div>
+    <p class="qlv" id="qlv"></p>
+    <h2 id="qtext"></h2>
+    <div id="qopts" class="qopts"></div>
+    <div class="qnav"><button class="btn ghost" id="qquit" type="button">Thoát</button><button class="btn go" id="qnext" type="button" style="width:auto"></button></div>
+  </div>
+  <div id="qres" class="qbox hidden"></div>
+</div>
 <div id="toast" role="status"></div>
 <script src="assets/js/main.js"></script>
-</body>
-</html>
-
 </body>
 </html>
