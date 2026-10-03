@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -35,9 +36,8 @@
     <label for="p">Mật khẩu</label>
     <input id="p" type="password" placeholder="Mật khẩu thầy cô cấp" required>
     <p id="err" class="err" role="alert"></p>
-    <button class="btn go" type="submit">Vào học</button>
-    <p class="hint">Chưa có tài khoản hoặc quên mật khẩu? Hãy hỏi thầy cô nhé.<br>
-    <small>Thử nghiệm: hs5001 / nova123</small></p>
+    <button class="btn go" id="loginBtn" type="submit">Vào học</button>
+    <p class="hint">Chưa có tài khoản hoặc quên mật khẩu? Hãy hỏi thầy cô nhé.</p>
   </form>
 </main>
 
@@ -105,6 +105,7 @@
 </div>
 <div id="dt" class="quiz hidden" role="dialog" aria-modal="true"><div id="dtbox" class="qbox"></div></div>
 <div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 </body>
 </html>
