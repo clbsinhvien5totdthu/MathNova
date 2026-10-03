@@ -8,7 +8,7 @@ const EMAIL_SUFFIX='@mathnova.vn'; // phải trùng đuôi email khi tạo user 
 const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('YOUR-PROJECT'))
   ?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const DOCS = [
-  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/docs/toan5-tong-on.pdf'},
+  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'},
   {t:'Số thập phân: đọc, viết, so sánh', type:'PDF', topic:'Số thập phân'},
   {t:'Bài giảng: Cộng trừ số thập phân', type:'Video', topic:'Số thập phân'},
   {t:'Sơ đồ tư duy: Nhân chia số thập phân', type:'Sơ đồ', topic:'Số thập phân'},
