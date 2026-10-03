@@ -18,14 +18,6 @@ const DOCS = [
   {t:'Tỉ số phần trăm và bài toán thường gặp', type:'PDF', topic:'Phần trăm'},
   {t:'Sơ đồ tư duy: Chuyển động đều', type:'Sơ đồ', topic:'Chuyển động'}
 ];
-const EXERCISES = [
-  {t:'Luyện tập số thập phân', n:15, m:15},
-  {t:'Phép tính với số thập phân', n:20, m:20},
-  {t:'Hình học: diện tích và thể tích', n:12, m:20},
-  {t:'Đề kiểm tra giữa học kì 1', n:30, m:40},
-  {t:'Tỉ số phần trăm', n:15, m:20},
-  {t:'Chuyển động đều: vận tốc, quãng đường, thời gian', n:10, m:20}
-];
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
 
@@ -114,7 +106,7 @@ $('backLevels').onclick=()=>view('levels');
 /* ---- Toán 5 ---- */
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['docs','ex','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
+  ['docs','ex','test','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
 });
 const TYPES=['Tất cả','PDF','Video','Sơ đồ'];
 function renderDocs(f='Tất cả'){
@@ -213,27 +205,8 @@ function openDoc(i){
   if(!user.doc[d.file]){user.doc[d.file]=1;addXp(5);toast('+5 XP vì mở tài liệu mới')}
 }
 
-/* ===== BÀI KIỂM TRA 15 PHÚT: ÔN TẬP BÀI 1–9 (đáp án đúng luôn ở vị trí đầu, được xáo khi làm) ===== */
-const QUIZ={id:'t15-b1-9',title:'Kiểm tra 15 phút: Ôn tập Bài 1–9',min:15,grade:5,q:[
- {l:'easy',q:'Chữ số 6 trong số 863 749 thuộc hàng nào?',o:['Chục nghìn','Trăm nghìn','Nghìn','Trăm']},
- {l:'easy',q:'Làm tròn số 2 545 000 đến hàng trăm nghìn được số nào?',o:['2 500 000','2 600 000','2 550 000','3 000 000']},
- {l:'easy',q:'Phép chia 47 : 5 có số dư là bao nhiêu?',o:['2','1','3','9']},
- {l:'easy',q:'Phân số nào sau đây là phân số thập phân?',o:['57/100','9/20','3/7','5/8']},
- {l:'easy',q:'Điền số thích hợp: 3/4 = ?/8',o:['6','5','7','8']},
- {l:'easy',q:'1 tạ bằng bao nhiêu ki-lô-gam?',o:['100 kg','10 kg','1 000 kg','50 kg']},
- {l:'mid',q:'Giá trị của biểu thức 36 − 4 × 5 + 8 : 2 là:',o:['20','16','36','4']},
- {l:'mid',q:'Phân số nào lớn nhất trong ba phân số 2/3; 3/4; 5/6?',o:['5/6','2/3','3/4','Cả ba bằng nhau']},
- {l:'mid',q:'1/2 + 1/3 bằng:',o:['5/6','2/5','2/6','1/5']},
- {l:'mid',q:'2/3 : 4/5 bằng:',o:['5/6','8/15','6/5','10/3']},
- {l:'mid',q:'Hỗn số 2 3/4 viết thành phân số là:',o:['11/4','6/4','9/4','5/4']},
- {l:'mid',q:'Phân số 17/5 viết thành hỗn số là:',o:['3 2/5','2 3/5','3 1/5','4 2/5']},
- {l:'hard',q:'Hình chữ nhật dài 12 cm, rộng 7 cm. Chu vi và diện tích lần lượt là:',o:['38 cm và 84 cm²','19 cm và 84 cm²','38 cm và 19 cm²','84 cm và 38 cm²']},
- {l:'hard',q:'Hình thoi có hai đường chéo dài 12 cm và 8 cm. Diện tích hình thoi là:',o:['48 cm²','96 cm²','40 cm²','20 cm²']},
- {l:'hard',q:'Mai có sợi dây dài 3/4 m, cắt đi 1/6 m. Sợi dây còn lại dài:',o:['7/12 m','2/10 m','5/12 m','4/10 m']}
-]};
-
 /* ===== TOÁN 5 – BÀI 10 (đáp án đúng luôn ở vị trí đầu, được xáo khi làm) ===== */
-const Q10_BASIC={id:'t5-b10-cb',title:'TOÁN 5 - BÀI 10 - CƠ BẢN',min:15,grade:5,q:[
+const Q10_BASIC={id:'t5-b10-cb',title:'TOÁN 5 - BÀI 10 - CƠ BẢN',min:0,grade:5,q:[
  {l:'easy',q:'Bài 1a. Điền số thích hợp: 2/10 = …',o:['0,2','0,02','2,10','0,12']},
  {l:'easy',q:'Bài 1b. Điền số thích hợp: 53/100 = …',o:['0,53','5,3','0,053','53,100']},
  {l:'easy',q:'Bài 1c. Điền số thích hợp: 7/1000 = …',o:['0,007','0,07','0,7','7,000']},
@@ -250,7 +223,7 @@ const Q10_BASIC={id:'t5-b10-cb',title:'TOÁN 5 - BÀI 10 - CƠ BẢN',min:15,gra
  {l:'easy',q:'Bài 5. Trong số 9,305, chữ số 3 thuộc hàng nào?',o:['Hàng phần mười','Hàng phần trăm','Hàng phần nghìn','Hàng đơn vị']},
  {l:'easy',q:'Bài 5. Khẳng định nào sau đây đúng?',o:['4/5 = 8/10 = 0,8','0,25 = 25/10','Số 12,07 có phần thập phân là 7','0,5 = 5/100']}
 ]};
-const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG',min:20,grade:5,q:[
+const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG',min:0,grade:5,q:[
  {l:'mid',q:'Bài 6a. Số thập phân gồm 8 đơn vị, 4 phần mười, 6 phần trăm là:',o:['8,46','8,64','8,046','84,6']},
  {l:'mid',q:'Bài 6b. Số thập phân gồm 2 chục, 0 đơn vị, 5 phần mười, 9 phần nghìn là:',o:['20,509','20,59','2,509','20,905']},
  {l:'mid',q:'Bài 6c. Số thập phân gồm 0 đơn vị, 3 phần trăm, 5 phần nghìn là:',o:['0,035','0,35','0,053','0,0035']},
@@ -270,20 +243,17 @@ const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN D
  {l:'hard',q:'Bài 10. Trong các số thập phân lập được từ ba thẻ 2, 5, 0, số lớn nhất là:',o:['5,20','5,02','2,50','0,52']},
  {l:'hard',q:'Bài 10. Số nào sau đây lập được từ ba thẻ 2, 5, 0 (mỗi thẻ dùng một lần)?',o:['5,02','5,22','0,05','2,02']}
 ]};
-const QUIZZES=[QUIZ,Q10_BASIC,Q10_ADV];
-let cur=QUIZ;
+const QUIZZES=[Q10_BASIC,Q10_ADV];
+let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   const best=user.done[Z.id];
-  return `<article class="card"><span class="tag m">Mới · ${Z.min} phút</span><h3>${Z.title}</h3>
+  return `<article class="card"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
   <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
   <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+Z.q.length+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></article>`;
 }).join('');
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
-function renderEx(){
-  $('exList').innerHTML=EXERCISES_LIVE()+dtCard()+EXERCISES.map(x=>
-  `<article class="card soon"><h3>${x.t}</h3><small>${x.n} câu · ${x.m} phút</small><span class="tag">Sắp ra mắt</span></article>`).join('');
-}
+function renderEx(){$('exList').innerHTML=EXERCISES_LIVE();$('testList').innerHTML=dtCard()}
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
 function startQuiz(k){
@@ -291,8 +261,12 @@ function startQuiz(k){
   qz={i:0,sel:[],t:cur.min*60,end:Date.now()+cur.min*60000,qs:cur.q.map(q=>({...q,opts:sh(q.o)}))};
   $('quiz').classList.remove('hidden');$('qres').classList.add('hidden');$('qmain').classList.remove('hidden');
   $('qtitle').textContent=cur.title;document.body.style.overflow='hidden';$('quiz').scrollTop=0;
-  qz.timer=setInterval(()=>{qz.t=Math.max(0,Math.ceil((qz.end-Date.now())/1000));tick();if(qz.t<=0){toast('Hết giờ! Bài đã được nộp.');finishQuiz()}},500);
-  tick();showQ();
+  $('qtime').parentElement.style.display=cur.min?'':'none'; // không giới hạn thời gian thì ẩn đồng hồ
+  if(cur.min){
+    qz.timer=setInterval(()=>{qz.t=Math.max(0,Math.ceil((qz.end-Date.now())/1000));tick();if(qz.t<=0){toast('Hết giờ! Bài đã được nộp.');finishQuiz()}},500);
+    tick();
+  }
+  showQ();
 }
 function tick(){$('qtime').textContent=Math.floor(qz.t/60)+':'+String(qz.t%60).padStart(2,'0')}
 function showQ(){
