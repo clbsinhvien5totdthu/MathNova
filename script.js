@@ -1,7 +1,7 @@
 // Tài khoản thử nghiệm – Giai đoạn 2 sẽ thay bằng database, giáo viên cấp tài khoản trong trang quản trị
 const ACCOUNTS = {
-  hs5001: {pass:'nova123', name:'Bảo An', xp:120},
-  hs5002: {pass:'nova123', name:'Gia Hân', xp:340}
+  hs5001: {pass:'nova123', name:'Bảo An', grade:5, xp:120},
+  hs5002: {pass:'nova123', name:'Gia Hân', grade:5, xp:340}
 };
 const DOCS = [
   {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/docs/toan5-tong-on.pdf'},
@@ -27,7 +27,7 @@ let user = null, uid = null;
 
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
-function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0)}
+function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
 
 /* ---- Màn hình chờ ---- */
 (function splash(){
@@ -74,8 +74,7 @@ $('backLevels').onclick=()=>view('levels');
 /* ---- Toán 5 ---- */
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['docs','ex','games','rank'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
-  if(b.dataset.tab==='rank')renderBoard();
+  ['docs','ex','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
 });
 const TYPES=['Tất cả','PDF','Video','Sơ đồ'];
 function renderDocs(f='Tất cả'){
@@ -249,14 +248,20 @@ const DT_Q=[
 function saved(id){try{return JSON.parse(localStorage.getItem('nova_p_'+id))}catch(_){return null}}
 function xpOf(id){if(id===uid)return user.xp;const s=saved(id);return s&&typeof s.xp==='number'?s.xp:ACCOUNTS[id].xp}
 function doneOf(id){if(id===uid)return Object.keys(user.done).length;const s=saved(id);return s&&s.done?Object.keys(s.done).length:0}
+let boardF='all';
+function setBoard(f){boardF=f;renderBoard()}
 function renderBoard(){
-  const list=Object.keys(ACCOUNTS).map(id=>({id,name:ACCOUNTS[id].name,xp:xpOf(id),n:doneOf(id)})).sort((a,b)=>b.xp-a.xp);
-  const medals=['🥇','🥈','🥉'],me=list.findIndex(x=>x.id===uid),mr=rankOf(user.xp);
-  $('rankBoard').innerHTML=`<div class="honor"><h2>🏆 Bảng vinh danh</h2>
-  <p class="muted">Xếp theo tổng XP. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
-  <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${list.length} · ${mr.i} ${mr.n} · ${user.xp} XP</p>
-  <ol class="hlist">${list.map((x,i)=>{const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${x.name}<small>${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
-  <h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${r.i} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div></div>`;
+  const all=Object.keys(ACCOUNTS).map(id=>({id,name:ACCOUNTS[id].name,g:ACCOUNTS[id].grade||5,xp:xpOf(id),n:doneOf(id)})).sort((a,b)=>b.xp-a.xp);
+  const gs=[...new Set(all.map(x=>x.g))].sort((a,b)=>a-b);
+  if(boardF!=='all'&&!gs.includes(+boardF))boardF='all';
+  const list=boardF==='all'?all:all.filter(x=>String(x.g)===boardF);
+  const medals=['🥇','🥈','🥉'],me=all.findIndex(x=>x.id===uid),mr=rankOf(user.xp);
+  $('rankBoard').innerHTML=`<h2>🏆 Bảng vinh danh</h2>
+  <p class="muted">Xếp theo tổng XP của tất cả các khối. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
+  <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${mr.i} ${mr.n} · ${user.xp} XP</p>
+  <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}</div>
+  <ol class="hlist">${list.map((x,i)=>{const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${x.name}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
+  <h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${r.i} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
 }
 
 /* ===== HÀNH TRÌNH ĐẠI THÁNH: đề test Bài 1–9 (15 câu, chuỗi đúng +2 sao) ===== */
@@ -312,7 +317,10 @@ function dtEnd(){
   <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ⭐ ${dt.xp} sao · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p></div>
   <h3>Bản đồ năng lực</h3>${rows}<p class="muted">${weak.length?'Cần ôn thêm: <b>'+weak.join(', ')+'</b>.':'Bạn đúng ở mọi nội dung. Tuyệt vời!'}</p>
   ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${a.q[2]}<br><span class="bad">Bạn chọn: ${a.pick}</span><br><span class="good">Đáp án: ${a.q[3][a.q[4]]}</span><br><i>${a.q[5]}</i></div>`).join(''):''}
-  <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('grade5');document.querySelector('[data-tab=rank]').click()">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart()">Chơi lại</button></div>`;
+  <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart()">Chơi lại</button></div>`;
+  $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
+}
+renderEx();
   $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
 }
 renderEx();
