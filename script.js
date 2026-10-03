@@ -1,8 +1,12 @@
-// Tài khoản thử nghiệm – Giai đoạn 2 sẽ thay bằng database, giáo viên cấp tài khoản trong trang quản trị
-const ACCOUNTS = {
-  hs5001: {pass:'nova123', name:'Bảo An', grade:5, xp:120},
-  hs5002: {pass:'nova123', name:'Gia Hân', grade:5, xp:340}
-};
+/* ===== KẾT NỐI SUPABASE =====
+   Điền 2 giá trị lấy ở Supabase → Project Settings → API.
+   Project URL và Publishable key (hoặc anon key) được phép để công khai.
+   TUYỆT ĐỐI KHÔNG dán secret key / service_role key vào đây. */
+const SUPABASE_URL='https://YOUR-PROJECT.supabase.co';
+const SUPABASE_KEY='YOUR_PUBLISHABLE_KEY';
+const EMAIL_SUFFIX='@mathnova.vn'; // phải trùng đuôi email khi tạo user trong Supabase
+const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('YOUR-PROJECT'))
+  ?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const DOCS = [
   {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/docs/toan5-tong-on.pdf'},
   {t:'Số thập phân: đọc, viết, so sánh', type:'PDF', topic:'Số thập phân'},
@@ -32,6 +36,7 @@ function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',
 /* ---- Màn hình chờ ---- */
 (function splash(){
   const title=$('splash-title');
+  const boot=restoreSession(); // kiểm tra phiên đăng nhập ngay trong lúc chờ
   [...'MATH NOVA'].forEach((c,i)=>{const s=document.createElement('span');s.textContent=c===' '?'\u00A0':c;s.style.animationDelay=(i*.1)+'s';title.appendChild(s)});
   const syms=['+','−','×','÷','=','π','√','∑','%','²','7','3','9'];
   for(let i=0;i<22;i++){
@@ -46,27 +51,62 @@ function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',
     p+=25;$('loadfill').style.width=p+'%';$('loadmsg').textContent=msgs[Math.min(p/25-1,3)];
     if(p>=100){clearInterval(timer);setTimeout(done,500)}
   },750);
-  function done(){
+  async function done(){
+    const p=await boot;
     $('splash').classList.add('out');
-    const saved=sessionStorage.getItem('nova_user');
-    if(saved&&ACCOUNTS[saved])enter(saved);else show('login');
+    if(p)enter(p);else show('login');
     setTimeout(()=>$('splash').classList.add('hidden'),650);
   }
 })();
 
-/* ---- Đăng nhập (không có đăng ký) ---- */
-$('loginForm').onsubmit=e=>{
+/* ---- Đăng nhập (tài khoản do thầy cô cấp, không có đăng ký) ---- */
+async function fetchProfile(id){
+  const {data,error}=await sb.from('profiles').select('*').eq('id',id).single();
+  if(error)throw error;
+  return data;
+}
+async function restoreSession(){
+  if(!sb)return null;
+  try{const {data}=await sb.auth.getSession();return data.session?await fetchProfile(data.session.user.id):null}
+  catch(_){return null}
+}
+$('loginForm').onsubmit=async e=>{
   e.preventDefault();
-  const id=$('u').value.trim().toLowerCase(),a=ACCOUNTS[id];
-  if(a&&a.pass===$('p').value){$('err').textContent='';try{sessionStorage.setItem('nova_user',id)}catch(_){}enter(id)}
-  else $('err').textContent='Tên đăng nhập hoặc mật khẩu chưa đúng. Hãy kiểm tra lại hoặc hỏi thầy cô.';
+  const name=$('u').value.trim().toLowerCase(),btn=$('loginBtn'),err=$('err');
+  if(!sb){err.textContent='Hệ thống chưa được kết nối. Hãy báo thầy cô nhé.';return}
+  if(!/^[a-z0-9._-]{2,40}$/.test(name)){err.textContent='Tên đăng nhập chỉ gồm chữ không dấu và số. Hãy kiểm tra lại.';return}
+  btn.disabled=true;btn.textContent='Đang đăng nhập…';err.textContent='';
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:name+EMAIL_SUFFIX,password:$('p').value});
+    if(error){
+      err.textContent=/invalid|credentials/i.test(error.message||'')
+        ?'Tên đăng nhập hoặc mật khẩu chưa đúng. Hãy kiểm tra lại hoặc hỏi thầy cô.'
+        :'Chưa đăng nhập được. Hãy thử lại sau ít phút hoặc hỏi thầy cô.';
+      return;
+    }
+    let p;
+    try{p=await fetchProfile(data.user.id)}
+    catch(_){await sb.auth.signOut();err.textContent='Tài khoản này chưa có hồ sơ học sinh. Hãy báo thầy cô nhé.';return}
+    $('p').value='';enter(p);
+  }catch(_){err.textContent='Không kết nối được máy chủ. Hãy kiểm tra mạng rồi thử lại.'}
+  finally{btn.disabled=false;btn.textContent='Vào học'}
 };
-function enter(id){
-  uid=id;user=ACCOUNTS[id];load();show('app');view('levels');refreshMe();renderEx();
+function enter(p){
+  uid=p.id;
+  user={id:p.id,username:p.username,name:p.name,grade:p.grade||5,xp:Number(p.xp)||0,
+    done:p.done&&typeof p.done==='object'?p.done:{},doc:p.doc&&typeof p.doc==='object'?p.doc:{},gd:p.gd||null};
+  show('app');view('levels');refreshMe();renderEx();
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
 }
-$('logout').onclick=()=>{stopGame();$('arena').classList.add('hidden');try{sessionStorage.removeItem('nova_user')}catch(_){}user=null;uid=null;$('u').value='';$('p').value='';show('login')};
+$('logout').onclick=async()=>{
+  const btn=$('logout');btn.disabled=true;
+  stopGame();$('arena').classList.add('hidden');
+  await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
+  try{if(sb)await sb.auth.signOut()}catch(_){}
+  user=null;uid=null;boardRows=null;$('u').value='';$('p').value='';$('err').textContent='';
+  btn.disabled=false;show('login');
+};
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
 $('open5').onclick=()=>view('grade5');
 $('backLevels').onclick=()=>view('levels');
@@ -141,10 +181,14 @@ const GRADE_MULT={1:.5,2:.6,3:.75,4:.9,5:1};
 const LEVEL_XP={easy:4,mid:8,hard:14}, LV_NAME={easy:'Nhận biết',mid:'Thông hiểu',hard:'Vận dụng'};
 const REPLAY=.2; // làm lại chỉ nhận 20% XP để chống cày
 function rankOf(xp){let r=RANKS[0];RANKS.forEach(x=>{if(xp>=x.min)r=x});return r}
-function save(){try{localStorage.setItem('nova_p_'+uid,JSON.stringify({xp:user.xp,done:user.done,doc:user.doc,gd:user.gd}))}catch(_){}}
-function load(){
-  try{const s=JSON.parse(localStorage.getItem('nova_p_'+uid));if(s){user.xp=s.xp;user.done=s.done;user.doc=s.doc;user.gd=s.gd}}catch(_){}
-  user.done=user.done||{};user.doc=user.doc||{};
+let saveQ=Promise.resolve();
+function save(){ // ghi tiến độ lên Supabase, xếp hàng để không bị ghi chồng
+  if(!sb||!user)return;
+  const id=uid,row={xp:user.xp,done:{...user.done},doc:{...user.doc},gd:user.gd?{...user.gd}:null};
+  saveQ=saveQ.then(async()=>{
+    try{const {error}=await sb.from('profiles').update(row).eq('id',id);if(error)throw error}
+    catch(_){toast('⚠️ Chưa lưu được tiến độ. Hãy kiểm tra mạng nhé.')}
+  });
 }
 function refreshMe(){
   const r=rankOf(user.xp),nx=RANKS[RANKS.indexOf(r)+1];
@@ -259,14 +303,31 @@ const DT_Q=[
 ["hh","Bài 8","Hình thoi có hai đường chéo 10 cm và 6 cm. Diện tích là:",["30 cm²","60 cm²","16 cm²","32 cm²"],0,"S = m × n : 2 = 10 × 6 : 2 = 30 (cm²)."]
 ];
 
-/* ===== BẢNG VINH DANH (xếp theo XP; hiện tính trên thiết bị này, Giai đoạn 2 sẽ đồng bộ qua database) ===== */
-function saved(id){try{return JSON.parse(localStorage.getItem('nova_p_'+id))}catch(_){return null}}
-function xpOf(id){if(id===uid)return user.xp;const s=saved(id);return s&&typeof s.xp==='number'?s.xp:ACCOUNTS[id].xp}
-function doneOf(id){if(id===uid)return Object.keys(user.done).length;const s=saved(id);return s&&s.done?Object.keys(s.done).length:0}
-let boardF='all';
-function setBoard(f){boardF=f;renderBoard()}
-function renderBoard(){
-  const all=Object.keys(ACCOUNTS).map(id=>({id,name:ACCOUNTS[id].name,g:ACCOUNTS[id].grade||5,xp:xpOf(id),n:doneOf(id)})).sort((a,b)=>b.xp-a.xp);
+/* ===== BẢNG VINH DANH (xếp theo XP của tất cả học sinh, đọc từ database) ===== */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const countDone=d=>d&&typeof d==='object'?Object.keys(d).length:0;
+let boardF='all',boardRows=null,boardSeq=0;
+function setBoard(f){boardF=f;drawBoard()}
+async function renderBoard(){
+  const seq=++boardSeq;
+  if(!sb)return;
+  if(!boardRows)$('rankBoard').innerHTML='<h2>🏆 Bảng vinh danh</h2><p class="muted">Đang tải bảng xếp hạng…</p>';
+  try{
+    const {data,error}=await sb.from('profiles').select('id,name,grade,xp,done').order('xp',{ascending:false}).limit(500);
+    if(error)throw error;
+    if(seq!==boardSeq||!user)return;
+    boardRows=data||[];
+  }catch(_){
+    if(seq!==boardSeq||!user)return;
+    if(!boardRows){$('rankBoard').innerHTML='<h2>🏆 Bảng vinh danh</h2><p class="muted">Chưa tải được bảng xếp hạng. Hãy kiểm tra mạng rồi thử lại.</p><button class="btn ghost sm" onclick="renderBoard()">↻ Thử lại</button>';return}
+  }
+  drawBoard();
+}
+function drawBoard(){
+  if(!user||!boardRows)return;
+  const all=boardRows.filter(r=>r.id!==uid).map(r=>({id:r.id,name:r.name,g:Number(r.grade)||5,xp:Number(r.xp)||0,n:countDone(r.done)}));
+  all.push({id:uid,name:user.name,g:user.grade||5,xp:user.xp,n:countDone(user.done)}); // dòng của mình luôn dùng số liệu mới nhất
+  all.sort((a,b)=>b.xp-a.xp||String(a.name).localeCompare(String(b.name),'vi'));
   const gs=[...new Set(all.map(x=>x.g))].sort((a,b)=>a-b);
   if(boardF!=='all'&&!gs.includes(+boardF))boardF='all';
   const list=boardF==='all'?all:all.filter(x=>String(x.g)===boardF);
@@ -274,8 +335,8 @@ function renderBoard(){
   $('rankBoard').innerHTML=`<h2>🏆 Bảng vinh danh</h2>
   <p class="muted">Xếp theo tổng XP của tất cả các khối. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
   <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${mr.i} ${mr.n} · ${user.xp} XP</p>
-  <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}</div>
-  <ol class="hlist">${list.map((x,i)=>{const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${x.name}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
+  <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}<button class="btn ghost sm refresh" onclick="renderBoard()">↻ Làm mới</button></div>
+  <ol class="hlist">${list.map((x,i)=>{const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
   <h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${r.i} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
 }
 
