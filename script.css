@@ -965,6 +965,7 @@ header {
 /* =========================
    VINH DANH & ĐẠI THÁNH
    ========================= */
+.honor{margin-top:44px}
 .honor h2{font-size:1.8rem}
 .honor h3{margin:22px 0 10px}
 .mine{margin-bottom:14px;padding:10px 16px;background:var(--sky);border-radius:14px;color:var(--navy)}
