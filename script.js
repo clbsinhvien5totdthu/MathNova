@@ -231,24 +231,66 @@ const QUIZ={id:'t15-b1-9',title:'Kiểm tra 15 phút: Ôn tập Bài 1–9',min:
  {l:'hard',q:'Hình thoi có hai đường chéo dài 12 cm và 8 cm. Diện tích hình thoi là:',o:['48 cm²','96 cm²','40 cm²','20 cm²']},
  {l:'hard',q:'Mai có sợi dây dài 3/4 m, cắt đi 1/6 m. Sợi dây còn lại dài:',o:['7/12 m','2/10 m','5/12 m','4/10 m']}
 ]};
-const EXERCISES_LIVE=()=>{
-  const best=user.done[QUIZ.id];
-  return `<article class="card"><span class="tag m">Mới · ${QUIZ.min} phút</span><h3>${QUIZ.title}</h3>
-  <small>${QUIZ.q.length} câu trắc nghiệm · tối đa ${quizMax()} XP lần đầu</small>
-  <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+QUIZ.q.length+' · làm lại nhận 20% XP'}</small>
-  <button class="btn go" style="width:auto" onclick="startQuiz()">${best===undefined?'Làm bài':'Làm lại'}</button></article>`;
-};
-function quizMax(){return Math.round((QUIZ.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[QUIZ.grade])}
+
+/* ===== TOÁN 5 – BÀI 10 (đáp án đúng luôn ở vị trí đầu, được xáo khi làm) ===== */
+const Q10_BASIC={id:'t5-b10-cb',title:'TOÁN 5 - BÀI 10 - CƠ BẢN',min:15,grade:5,q:[
+ {l:'easy',q:'Bài 1a. Điền số thích hợp: 2/10 = …',o:['0,2','0,02','2,10','0,12']},
+ {l:'easy',q:'Bài 1b. Điền số thích hợp: 53/100 = …',o:['0,53','5,3','0,053','53,100']},
+ {l:'easy',q:'Bài 1c. Điền số thích hợp: 7/1000 = …',o:['0,007','0,07','0,7','7,000']},
+ {l:'easy',q:'Bài 1d. Điền số thích hợp: 5 9/100 = …',o:['5,09','5,9','5,009','59,100']},
+ {l:'easy',q:'Bài 1e. Điền số thích hợp: 12 3/1000 = …',o:['12,003','12,03','12,3','12,0003']},
+ {l:'easy',q:'Bài 2. Số thập phân 0,07 đọc là:',o:['không phẩy không bảy','không phẩy bảy','không phẩy bảy mươi','không phẩy không không bảy']},
+ {l:'easy',q:'Bài 2. Số thập phân 14,125 đọc là:',o:['mười bốn phẩy một trăm hai mươi lăm','mười bốn phẩy một trăm hai mươi','mười bốn phẩy hai mươi lăm','bốn mươi mốt phẩy một trăm hai mươi lăm']},
+ {l:'easy',q:'Bài 3a. Viết số thập phân: Hai phẩy năm.',o:['2,5','2,05','25','0,25']},
+ {l:'easy',q:'Bài 3b. Viết số thập phân: Không phẩy không chín.',o:['0,09','0,9','0,009','0,19']},
+ {l:'easy',q:'Bài 3c. Viết số thập phân: Mười sáu phẩy tám mươi lăm.',o:['16,85','16,085','16,805','60,85']},
+ {l:'easy',q:'Bài 4. Chữ số 5 trong số 5,17 thuộc hàng nào?',o:['Hàng đơn vị (phần nguyên)','Hàng phần mười (phần thập phân)','Hàng phần trăm (phần thập phân)','Hàng chục (phần nguyên)']},
+ {l:'easy',q:'Bài 4. Chữ số 5 trong số 0,853 thuộc hàng nào?',o:['Hàng phần trăm','Hàng phần mười','Hàng phần nghìn','Hàng đơn vị']},
+ {l:'easy',q:'Bài 4. Chữ số 5 trong số 136,005 thuộc hàng nào?',o:['Hàng phần nghìn','Hàng phần trăm','Hàng đơn vị','Hàng trăm']},
+ {l:'easy',q:'Bài 5. Trong số 9,305, chữ số 3 thuộc hàng nào?',o:['Hàng phần mười','Hàng phần trăm','Hàng phần nghìn','Hàng đơn vị']},
+ {l:'easy',q:'Bài 5. Khẳng định nào sau đây đúng?',o:['4/5 = 8/10 = 0,8','0,25 = 25/10','Số 12,07 có phần thập phân là 7','0,5 = 5/100']}
+]};
+const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG',min:20,grade:5,q:[
+ {l:'mid',q:'Bài 6a. Số thập phân gồm 8 đơn vị, 4 phần mười, 6 phần trăm là:',o:['8,46','8,64','8,046','84,6']},
+ {l:'mid',q:'Bài 6b. Số thập phân gồm 2 chục, 0 đơn vị, 5 phần mười, 9 phần nghìn là:',o:['20,509','20,59','2,509','20,905']},
+ {l:'mid',q:'Bài 6c. Số thập phân gồm 0 đơn vị, 3 phần trăm, 5 phần nghìn là:',o:['0,035','0,35','0,053','0,0035']},
+ {l:'mid',q:'Bài 7a. Viết 3/5 thành số thập phân (đưa về phân số thập phân trước):',o:['0,6','0,35','0,3','0,5']},
+ {l:'mid',q:'Bài 7b. Viết 1/4 thành số thập phân:',o:['0,25','0,14','0,4','0,1']},
+ {l:'mid',q:'Bài 7c. Viết 9/20 thành số thập phân:',o:['0,45','0,9','0,2','0,18']},
+ {l:'mid',q:'Bài 7d. Viết 13/25 thành số thập phân:',o:['0,52','0,13','1,325','0,25']},
+ {l:'hard',q:'Bài 7e. Viết 3/8 thành số thập phân (gợi ý: đưa về mẫu số 1 000):',o:['0,375','0,38','0,35','0,125']},
+ {l:'mid',q:'Bài 8a. Điền số thích hợp: 3 dm = … m',o:['0,3','0,03','30','3']},
+ {l:'mid',q:'Bài 8b. Điền số thích hợp: 47 cm = … m',o:['0,47','4,7','0,047','470']},
+ {l:'mid',q:'Bài 8c. Điền số thích hợp: 8 g = … kg',o:['0,008','0,08','0,8','8000']},
+ {l:'mid',q:'Bài 8d. Điền số thích hợp: 920 m = … km',o:['0,92','9,2','0,092','92']},
+ {l:'mid',q:'Bài 8e. Điền số thích hợp: 6 ml = … l',o:['0,006','0,06','0,6','6000']},
+ {l:'hard',q:'Bài 9. Chai nước chứa 1 lít. Mẹ rót ra 250 ml. Mẹ đã rót ra bao nhiêu lít nước?',o:['0,25 lít','2,5 lít','0,025 lít','25 lít']},
+ {l:'hard',q:'Bài 9 (mở rộng). Chai chứa 1 lít, mẹ rót ra 250 ml. Trong chai còn lại bao nhiêu lít?',o:['0,75 lít','0,25 lít','0,65 lít','1,25 lít']},
+ {l:'hard',q:'Bài 10. Từ ba thẻ 2, 5, 0 và dấu phẩy, lập số thập phân có phần nguyên một chữ số, phần thập phân hai chữ số (dùng cả 3 thẻ). Lập được tất cả bao nhiêu số?',o:['6 số','4 số','3 số','9 số']},
+ {l:'hard',q:'Bài 10. Trong các số thập phân lập được từ ba thẻ 2, 5, 0, số lớn nhất là:',o:['5,20','5,02','2,50','0,52']},
+ {l:'hard',q:'Bài 10. Số nào sau đây lập được từ ba thẻ 2, 5, 0 (mỗi thẻ dùng một lần)?',o:['5,02','5,22','0,05','2,02']}
+]};
+const QUIZZES=[QUIZ,Q10_BASIC,Q10_ADV];
+let cur=QUIZ;
+const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
+  const best=user.done[Z.id];
+  return `<article class="card"><span class="tag m">Mới · ${Z.min} phút</span><h3>${Z.title}</h3>
+  <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
+  <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+Z.q.length+' · làm lại nhận 20% XP'}</small>
+  <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></article>`;
+}).join('');
+function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
   $('exList').innerHTML=EXERCISES_LIVE()+dtCard()+EXERCISES.map(x=>
   `<article class="card soon"><h3>${x.t}</h3><small>${x.n} câu · ${x.m} phút</small><span class="tag">Sắp ra mắt</span></article>`).join('');
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
-function startQuiz(){
-  qz={i:0,sel:[],t:QUIZ.min*60,end:Date.now()+QUIZ.min*60000,qs:QUIZ.q.map(q=>({...q,opts:sh(q.o)}))};
+function startQuiz(k){
+  if(k!==undefined)cur=QUIZZES[k];
+  qz={i:0,sel:[],t:cur.min*60,end:Date.now()+cur.min*60000,qs:cur.q.map(q=>({...q,opts:sh(q.o)}))};
   $('quiz').classList.remove('hidden');$('qres').classList.add('hidden');$('qmain').classList.remove('hidden');
-  $('qtitle').textContent=QUIZ.title;document.body.style.overflow='hidden';$('quiz').scrollTop=0;
+  $('qtitle').textContent=cur.title;document.body.style.overflow='hidden';$('quiz').scrollTop=0;
   qz.timer=setInterval(()=>{qz.t=Math.max(0,Math.ceil((qz.end-Date.now())/1000));tick();if(qz.t<=0){toast('Hết giờ! Bài đã được nộp.');finishQuiz()}},500);
   tick();showQ();
 }
@@ -275,8 +317,8 @@ function finishQuiz(){
   let ok=0,raw=0;
   qz.qs.forEach((q,i)=>{if(qz.sel[i]===q.o[0]){ok++;raw+=LEVEL_XP[q.l]}});
   const n=qz.qs.length;if(ok>=Math.ceil(n*.6))raw+=10;if(ok===n)raw+=30;
-  const first=!(QUIZ.id in user.done),gain=Math.round(raw*GRADE_MULT[QUIZ.grade]*(first?1:REPLAY));
-  user.done[QUIZ.id]=Math.max(user.done[QUIZ.id]||0,ok);addXp(gain);
+  const first=!(cur.id in user.done),gain=Math.round(raw*GRADE_MULT[cur.grade]*(first?1:REPLAY));
+  user.done[cur.id]=Math.max(user.done[cur.id]||0,ok);addXp(gain);
   const wrong=qz.qs.map((q,i)=>({q,i})).filter(x=>qz.sel[x.i]!==x.q.o[0]);
   $('qmain').classList.add('hidden');$('qres').classList.remove('hidden');$('quiz').scrollTop=0;
   $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${ok===n?'🏆':ok>=n*.6?'👍':'💪'}</h2>
