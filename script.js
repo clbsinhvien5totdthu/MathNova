@@ -1,115 +1,113 @@
-// Tài khoản thử nghiệm – Giai đoạn 2 sẽ thay bằng database, giáo viên cấp tài khoản trong trang quản trị
-const ACCOUNTS = {
-  hs5001: {pass:'nova123', name:'Bảo An', xp:120},
-  hs5002: {pass:'nova123', name:'Gia Hân', xp:340}
-};
-const DOCS = [
-  {t:'Số thập phân: đọc, viết, so sánh', type:'PDF', topic:'Số thập phân'},
-  {t:'Bài giảng: Cộng trừ số thập phân', type:'Video', topic:'Số thập phân'},
-  {t:'Sơ đồ tư duy: Nhân chia số thập phân', type:'Sơ đồ', topic:'Số thập phân'},
-  {t:'Diện tích hình tam giác, hình thang', type:'PDF', topic:'Hình học'},
-  {t:'Bài giảng: Chu vi và diện tích hình tròn', type:'Video', topic:'Hình học'},
-  {t:'Thể tích hình hộp chữ nhật, hình lập phương', type:'PDF', topic:'Hình học'},
-  {t:'Tỉ số phần trăm và bài toán thường gặp', type:'PDF', topic:'Phần trăm'},
-  {t:'Sơ đồ tư duy: Chuyển động đều', type:'Sơ đồ', topic:'Chuyển động'}
-];
-const EXERCISES = [
-  {t:'Luyện tập số thập phân', n:15, m:15},
-  {t:'Phép tính với số thập phân', n:20, m:20},
-  {t:'Hình học: diện tích và thể tích', n:12, m:20},
-  {t:'Đề kiểm tra giữa học kì 1', n:30, m:40},
-  {t:'Tỉ số phần trăm', n:15, m:20},
-  {t:'Chuyển động đều: vận tốc, quãng đường, thời gian', n:10, m:20}
-];
-const $ = id => document.getElementById(id);
-let user = null;
+:root{--navy:#0B2A5B;--blue:#1E5EFF;--sky:#EAF1FF;--green:#16B364;--yellow:#FFC93C;--paper:#fff;--text:#1D2B45;--muted:#5B6B88;--line:#D6E2FA;--r:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;color:var(--text);background:#F7FAFF;line-height:1.6}
+h1,h2,h3,.logo{font-family:'Baloo 2','Be Vietnam Pro',sans-serif;line-height:1.15;color:var(--navy)}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.hidden{display:none!important}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.btn{display:inline-block;padding:12px 24px;border-radius:999px;font:600 1rem 'Be Vietnam Pro';border:2px solid var(--blue);cursor:pointer}
+.btn.go{background:var(--green);border-color:var(--green);color:#fff;width:100%;margin-top:6px}
+.btn.ghost{background:transparent;color:var(--blue)}
+.btn.sm{padding:6px 14px;font-size:.88rem}
+.logo{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.logo i{width:32px;height:32px;border-radius:10px;background:var(--blue);color:var(--yellow);display:grid;place-items:center;font-style:normal;font-size:1.1rem}
+.logo.big{color:#fff;font-size:2rem}.logo.big i{width:44px;height:44px;font-size:1.5rem}
 
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
-function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
-function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0)}
+/* MÀN HÌNH CHỜ */
+#splash{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 35%,#2F6BFF,var(--navy) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;overflow:hidden;transition:opacity .6s,transform .6s}
+#splash.out{opacity:0;transform:scale(1.15);pointer-events:none}
+.sym{position:absolute;bottom:-60px;font:800 2rem 'Baloo 2';color:rgba(255,255,255,.22);animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-115vh) rotate(360deg)}}
+.nova{position:relative;width:120px;height:120px;background:var(--yellow);clip-path:polygon(50% 0,63% 33%,98% 36%,71% 58%,80% 92%,50% 73%,20% 92%,29% 58%,2% 36%,37% 33%);animation:hop 1.1s ease-in-out infinite;z-index:1}
+.eye{position:absolute;top:46px;width:10px;height:14px;border-radius:50%;background:var(--navy);animation:blink 3s infinite}
+.eye.l{left:40px}.eye.r{right:40px}
+.smile{position:absolute;left:50px;top:66px;width:20px;height:10px;border-bottom:4px solid var(--navy);border-radius:0 0 20px 20px}
+@keyframes hop{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-26px) rotate(6deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+#splash h1{font-size:clamp(2.6rem,9vw,4.5rem);color:#fff;margin-top:18px;font-weight:800;z-index:1}
+#splash h1 span{display:inline-block;animation:wave 1.2s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px);color:var(--yellow)}}
+.slogan{color:#C9D8F5;margin:4px 0 28px;z-index:1}
+.loadbar{width:min(320px,70vw);height:14px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden;z-index:1}
+#loadfill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--yellow));border-radius:99px;transition:width .3s}
+#loadmsg{margin-top:12px;font-size:.95rem;color:#DCE7FF;z-index:1;min-height:1.6em}
 
-/* ---- Màn hình chờ ---- */
-(function splash(){
-  const title=$('splash-title');
-  [...'MATH NOVA'].forEach((c,i)=>{const s=document.createElement('span');s.textContent=c===' '?'\u00A0':c;s.style.animationDelay=(i*.1)+'s';title.appendChild(s)});
-  const syms=['+','−','×','÷','=','π','√','∑','%','²','7','3','9'];
-  for(let i=0;i<22;i++){
-    const s=document.createElement('span');s.className='sym';s.textContent=syms[i%syms.length];
-    s.style.left=Math.random()*100+'%';s.style.fontSize=(1.4+Math.random()*2.4)+'rem';
-    s.style.animationDuration=(6+Math.random()*7)+'s';s.style.animationDelay=(-Math.random()*8)+'s';
-    $('syms').appendChild(s);
-  }
-  const msgs=['Đang khởi động tên lửa Nova…','Đang xếp hàng các con số…','Đang mài bút chì thần kỳ…','Sắp xong rồi, chuẩn bị nhé!'];
-  let p=0;
-  const timer=setInterval(()=>{
-    p+=25;$('loadfill').style.width=p+'%';$('loadmsg').textContent=msgs[Math.min(p/25-1,3)];
-    if(p>=100){clearInterval(timer);setTimeout(done,500)}
-  },750);
-  function done(){
-    $('splash').classList.add('out');
-    const saved=sessionStorage.getItem('nova_user');
-    if(saved&&ACCOUNTS[saved])enter(saved);else show('login');
-    setTimeout(()=>$('splash').classList.add('hidden'),650);
-  }
-})();
+/* ĐĂNG NHẬP */
+.screen{min-height:100vh}
+#login{display:grid;grid-template-columns:1.1fr .9fr;background:var(--navy)}
+.login-art{padding:48px;display:flex;flex-direction:column;justify-content:center;gap:14px;color:#C9D8F5;position:relative;overflow:hidden}
+.login-art h2{color:#fff;font-size:clamp(2rem,4vw,3rem);margin-top:24px}
+.login-art p{max-width:38ch;font-size:1.1rem}
+.login-art::after{content:"π √ ∑ ÷ ×";position:absolute;bottom:-20px;left:30px;font:800 6rem 'Baloo 2';color:rgba(255,255,255,.06)}
+.login-card{background:var(--paper);margin:auto;padding:36px;border-radius:28px;width:min(400px,92%);box-shadow:0 24px 60px rgba(0,0,0,.35);animation:pop .5s}
+@keyframes pop{from{transform:translateY(30px);opacity:0}}
+.login-card h2{font-size:1.8rem;margin-bottom:12px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:14px;font:1rem 'Be Vietnam Pro';background:var(--sky)}
+input:focus{border-color:var(--blue);outline:none}
+.err{color:#D12F35;min-height:1.4em;margin-top:8px;font-weight:500}
+.hint{color:var(--muted);font-size:.88rem;margin-top:16px;text-align:center}
+@media(max-width:800px){#login{grid-template-columns:1fr}.login-art{padding:28px 24px 8px}.login-art h2{margin-top:6px;font-size:1.8rem}}
 
-/* ---- Đăng nhập (không có đăng ký) ---- */
-$('loginForm').onsubmit=e=>{
-  e.preventDefault();
-  const id=$('u').value.trim().toLowerCase(),a=ACCOUNTS[id];
-  if(a&&a.pass===$('p').value){$('err').textContent='';try{sessionStorage.setItem('nova_user',id)}catch(_){}enter(id)}
-  else $('err').textContent='Tên đăng nhập hoặc mật khẩu chưa đúng. Hãy kiểm tra lại hoặc hỏi thầy cô.';
-};
-function enter(id){
-  user=ACCOUNTS[id];show('app');view('levels');refreshMe();
-  toast('Xin chào '+user.name+'! 👋');
-}
-function refreshMe(){$('meName').textContent='👤 '+user.name;$('meXp').textContent=user.xp+' XP'}
-$('logout').onclick=()=>{try{sessionStorage.removeItem('nova_user')}catch(_){}user=null;$('p').value='';show('login')};
-$('goHome').onclick=e=>{e.preventDefault();view('levels')};
-$('open5').onclick=()=>view('grade5');
-$('backLevels').onclick=()=>view('levels');
+/* APP */
+header{background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.bar{display:flex;align-items:center;justify-content:space-between;height:64px}
+.me{display:flex;align-items:center;gap:12px;font-weight:600;color:var(--navy)}
+.xp{background:var(--yellow);padding:2px 12px;border-radius:999px;font-size:.9rem}
+.view{padding-top:36px;padding-bottom:60px}
+.title{font-size:2.2rem;margin-bottom:22px}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.level{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:26px;position:relative}
+.level.on{border-color:var(--blue)}
+.level.soon{opacity:.6}
+.level .ic{font-size:2.2rem}.level h2{font-size:1.5rem;margin-top:6px}.level p{color:var(--muted)}
+.badge{display:inline-block;margin-top:12px;background:var(--sky);color:var(--blue);padding:2px 12px;border-radius:99px;font-size:.85rem;font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.chips span{width:38px;height:38px;border-radius:12px;background:#F0F3F9;color:#9AA7C0;display:grid;place-items:center;font-weight:600}
+.chip5{padding:0 16px;height:38px;border-radius:12px;border:0;background:var(--green);color:#fff;font:600 1rem 'Be Vietnam Pro';cursor:pointer}
+.chip5:hover{background:#0E9C56}
+@media(max-width:760px){.levels{grid-template-columns:1fr}}
+.back{background:none;border:0;color:var(--blue);font:600 1rem 'Be Vietnam Pro';cursor:pointer;margin-bottom:8px}
+.tabs,.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tabs button,.filters button{padding:9px 20px;border-radius:999px;border:2px solid var(--line);background:var(--paper);font:500 1rem 'Be Vietnam Pro';color:var(--muted);cursor:pointer}
+.tabs button.on,.filters button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:6px}
+.card h3{font-size:1.15rem}.card small{color:var(--muted)}
+.tag{align-self:flex-start;font-size:.8rem;font-weight:600;padding:2px 10px;border-radius:99px;background:var(--sky);color:var(--blue)}
+.tag.v{background:#FFF3CC;color:#8A6200}.tag.m{background:#D9F5E6;color:#0B7A43}
+.card .btn{margin-top:auto;padding:8px 16px;font-size:.92rem;align-self:flex-start}
+.card.soon{opacity:.6}
+.arena{margin-top:24px;background:var(--navy);color:#fff;border-radius:24px;padding:28px;text-align:center}
+.arena h2{color:#fff;font-size:3rem;margin:12px 0}
+.arena-top{display:flex;justify-content:space-between;font-weight:600}
+.arena input{max-width:300px;text-align:center;font-size:1.4rem;color:var(--navy)}
+#gmsg{margin-top:12px;min-height:1.6em;color:var(--yellow);font-weight:600}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,100px);background:var(--navy);color:#fff;padding:12px 22px;border-radius:99px;transition:transform .3s;z-index:60}
+#toast.show{transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition:none!important}}
 
-/* ---- Toán 5 ---- */
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
-  ['docs','ex','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
-});
-const TYPES=['Tất cả','PDF','Video','Sơ đồ'];
-function renderDocs(f='Tất cả'){
-  $('filters').innerHTML='';
-  TYPES.forEach(t=>{const b=document.createElement('button');b.textContent=t;b.className=t===f?'on':'';b.onclick=()=>renderDocs(t);$('filters').appendChild(b)});
-  $('docList').innerHTML=DOCS.filter(d=>f==='Tất cả'||d.type===f).map(d=>
-    `<article class="card"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="toast('Tài liệu sẽ được gắn file ở bước sau')">Xem tài liệu</button></article>`).join('');
-}
-$('exList').innerHTML=EXERCISES.map(x=>
-  `<article class="card"><h3>${x.t}</h3><small>${x.n} câu · ${x.m} phút</small><button class="btn ghost" onclick="toast('Giao diện làm bài sẽ làm ở bước tiếp theo')">Làm bài</button></article>`).join('');
-$('gameList').innerHTML=
-  `<article class="card"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" id="startGame">Bắt đầu chơi</button></article>
-   <article class="card soon"><h3>Lật thẻ công thức</h3><small>Ghép công thức với tên hình</small><span class="tag">Sắp ra mắt</span></article>
-   <article class="card soon"><h3>Đua xe phép tính</h3><small>Giải đúng để xe chạy nhanh</small><span class="tag">Sắp ra mắt</span></article>`;
-renderDocs();
-
-/* ---- Game nhẩm nhanh ---- */
-let g;
-$('startGame').onclick=()=>{
-  g={score:0,time:30,ans:0};$('arena').classList.remove('hidden');$('score').textContent=0;$('gmsg').textContent='';
-  $('ga').disabled=false;$('ga').value='';$('ga').focus();next();
-  clearInterval(g.t);g.t=setInterval(()=>{
-    g.time--;$('time').textContent=g.time;
-    if(g.time<=0){clearInterval(g.t);$('ga').disabled=true;const xp=g.score*5;user.xp+=xp;refreshMe();
-      $('gq').textContent='Hết giờ!';$('gmsg').textContent=`Bạn đúng ${g.score} câu và nhận +${xp} XP 🎉`}
-  },1000);$('time').textContent=30;
-};
-function next(){
-  const a=Math.round((Math.random()*20+1)*10)/10,b=Math.round((Math.random()*9+1)*10)/10,op=Math.random()<.5?'+':'−';
-  g.ans=op==='+'?a+b:a-b;g.ans=Math.round(g.ans*10)/10;
-  if(g.ans<0){g.ans=Math.round((b-a)*10)/10;$('gq').textContent=`${b} − ${a} = ?`}else $('gq').textContent=`${a} ${op} ${b} = ?`;
-}
-$('ga').onkeydown=e=>{
-  if(e.key!=='Enter'||!g||g.time<=0)return;
-  const v=parseFloat($('ga').value.replace(',','.'));
-  if(Math.abs(v-g.ans)<0.001){g.score++;$('score').textContent=g.score;$('gmsg').textContent='Đúng rồi! ✔'}
-  else $('gmsg').textContent='Chưa đúng, đáp án là '+g.ans;
-  $('ga').value='';next();
-};
+/* HẠNG & XP */
+.rank{padding:2px 12px;border-radius:999px;font-size:.9rem;color:var(--navy)}
+.rankstrip{display:flex;align-items:center;gap:12px;padding-bottom:8px}
+.rbar{flex:1;height:8px;border-radius:99px;background:var(--sky);overflow:hidden}
+.rbar i{display:block;height:100%;width:0;border-radius:99px;transition:width .6s}
+.rankstrip small{color:var(--muted);font-size:.8rem;white-space:nowrap}
+@media(max-width:640px){.me{gap:6px;font-size:.85rem}#meName{display:none}.rankstrip small{white-space:normal}}
+/* BÀI KIỂM TRA */
+.quiz{position:fixed;inset:0;z-index:70;background:var(--sky);overflow:auto;padding:20px}
+.qbox{max-width:720px;margin:0 auto;background:var(--paper);border:2px solid var(--line);border-radius:24px;padding:28px}
+.qtop{display:flex;justify-content:space-between;font-weight:600;color:var(--navy);margin-bottom:10px}
+.qprog{height:8px;border-radius:99px;background:var(--sky);overflow:hidden}
+.qprog i{display:block;height:100%;width:0;background:var(--green);transition:width .3s}
+.qlv{color:var(--muted);margin:16px 0 4px;font-weight:600}
+#qtext{font-size:1.5rem;margin-bottom:16px}
+.qopts{display:grid;gap:10px}
+.qopts button{text-align:left;padding:14px 18px;border:2px solid var(--line);border-radius:14px;background:var(--paper);font:500 1.05rem 'Be Vietnam Pro';color:var(--text);cursor:pointer}
+.qopts button:hover{border-color:var(--blue)}
+.qopts button.on{border-color:var(--blue);background:var(--sky);color:var(--navy);font-weight:600}
+.qnav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.qnav .btn:disabled{opacity:.45;cursor:not-allowed}
+#qres h2{font-size:2.2rem}.gain{font-size:1.8rem;font-weight:800;color:var(--green)}.muted{color:var(--muted);margin-bottom:12px}
+.rv{padding:12px 0;border-top:1px solid var(--line)}.bad{color:#D12F35}.good{color:#0B7A43;font-weight:600}
