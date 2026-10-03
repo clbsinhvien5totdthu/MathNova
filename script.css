@@ -1003,3 +1003,4 @@ header {
 .dtrow .rbar{flex:1}
 #dtbox h3{margin:18px 0 6px}
 @media (max-width:640px){.dtq{font-size:1.25rem}.dtrow span{width:100px}.hlist li{padding:12px}}
+.honor .filters .refresh{margin-left:auto}
