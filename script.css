@@ -327,7 +327,6 @@ button {
 
 .screen {
   min-height: 100vh;
-  min-height: 100dvh;
 }
 
 #login {
@@ -687,16 +686,6 @@ header {
   text-align: center;
 }
 
-.btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.arena .btn.go {
-  width: auto;
-  margin: 14px 0 0;
-}
-
 #gmsg {
   min-height: 1.6em;
   margin-top: 12px;
@@ -712,7 +701,7 @@ header {
   position: fixed;
   left: 50%;
   bottom: 28px;
-  z-index: 80;
+  z-index: 60;
   padding: 12px 22px;
   background: var(--navy);
   color: #fff;
@@ -972,35 +961,3 @@ header {
     transition: none !important;
   }
 }
-
-/* =========================
-   VINH DANH & ĐẠI THÁNH
-   ========================= */
-.honor{margin-top:44px}
-.honor h2{font-size:1.8rem}
-.honor h3{margin:22px 0 10px}
-.mine{margin-bottom:14px;padding:10px 16px;background:var(--sky);border-radius:14px;color:var(--navy)}
-.hlist{list-style:none;display:grid;gap:10px}
-.hlist li{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--paper);border:2px solid var(--line);border-radius:var(--r)}
-.hlist li:nth-child(1){border-color:var(--yellow);background:#FFFBEA}
-.hlist li.me{border-color:var(--blue);box-shadow:0 0 0 3px var(--sky)}
-.hlist .pos{width:36px;font-size:1.5rem;font-weight:800;text-align:center}
-.hlist .hn{flex:1;font-weight:600;color:var(--navy)}
-.hlist .hn small{display:block;color:var(--muted);font-weight:400;font-size:.8rem}
-.hlist .hr{padding:2px 12px;border-radius:999px;font-size:.88rem;font-weight:600;color:var(--navy)}
-.ladder{display:flex;flex-wrap:wrap;gap:8px}
-.ladder span{display:flex;flex-direction:column;align-items:center;padding:8px 14px;border:2px solid var(--line);border-radius:14px;background:var(--paper);font-weight:600;color:var(--navy);opacity:.7}
-.ladder span small{color:var(--muted);font-weight:400;font-size:.75rem}
-.ladder span.on{opacity:1;border-color:var(--c);background:var(--sky)}
-.dtq{margin:6px 0 16px;font-size:1.5rem}
-.qopts button.ok{border-color:var(--green);background:#D9F5E6;color:#0B7A43}
-.qopts button.no{border-color:#D12F35;background:#FDE0DE;color:#7A1D17}
-.dtfb{margin-top:14px;padding:12px 14px;border-radius:12px}
-.dtfb.ok{background:#D9F5E6;color:#0B7A43}
-.dtfb.no{background:#FDE0DE;color:#7A1D17}
-.dtrow{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:.92rem}
-.dtrow span{width:140px;flex-shrink:0}
-.dtrow .rbar{flex:1}
-#dtbox h3{margin:18px 0 6px}
-@media (max-width:640px){.dtq{font-size:1.25rem}.dtrow span{width:100px}.hlist li{padding:12px}}
-.honor .filters .refresh{margin-left:auto}
