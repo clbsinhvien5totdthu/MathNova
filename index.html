@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Math Nova – Bứt phá tư duy, làm chủ môn Toán</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="script.css">
 </head>
@@ -84,7 +85,8 @@
       <div id="arena" class="arena hidden">
         <div class="arena-top"><span>⏱ <b id="time">30</b>s</span><span>Điểm: <b id="score">0</b></span></div>
         <h2 id="gq"></h2>
-        <input id="ga" inputmode="numeric" placeholder="Nhập đáp án rồi nhấn Enter" autocomplete="off">
+        <input id="ga" inputmode="decimal" aria-label="Đáp án" placeholder="Nhập đáp án (dùng dấu phẩy: 5,5)" autocomplete="off">
+        <button class="btn go" id="gok" type="button">Trả lời</button>
         <p id="gmsg" aria-live="polite"></p>
       </div>
     </div>
