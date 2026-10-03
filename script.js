@@ -25,7 +25,7 @@ const EXERCISES = [
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
 
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
 function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
 
@@ -62,11 +62,11 @@ $('loginForm').onsubmit=e=>{
   else $('err').textContent='Tên đăng nhập hoặc mật khẩu chưa đúng. Hãy kiểm tra lại hoặc hỏi thầy cô.';
 };
 function enter(id){
-  uid=id;user=ACCOUNTS[id];load();show('app');view('levels');refreshMe();
+  uid=id;user=ACCOUNTS[id];load();show('app');view('levels');refreshMe();renderEx();
+  document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
 }
-function refreshMe(){}
-$('logout').onclick=()=>{try{sessionStorage.removeItem('nova_user')}catch(_){}user=null;$('p').value='';show('login')};
+$('logout').onclick=()=>{stopGame();$('arena').classList.add('hidden');try{sessionStorage.removeItem('nova_user')}catch(_){}user=null;uid=null;$('u').value='';$('p').value='';show('login')};
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
 $('open5').onclick=()=>view('grade5');
 $('backLevels').onclick=()=>view('levels');
@@ -91,28 +91,43 @@ $('gameList').innerHTML=
 renderDocs();
 
 /* ---- Game nhẩm nhanh ---- */
-let g;
+let g=null,gTimer=null;
+const vn=n=>String(n).replace('.',','); // số thập phân kiểu Việt Nam: 5,5
+function stopGame(){clearInterval(gTimer);gTimer=null;g=null}
 $('startGame').onclick=()=>{
-  g={score:0,time:30,ans:0};$('arena').classList.remove('hidden');$('score').textContent=0;$('gmsg').textContent='';
-  $('ga').disabled=false;$('ga').value='';$('ga').focus();next();
-  clearInterval(g.t);g.t=setInterval(()=>{
-    g.time--;$('time').textContent=g.time;
-    if(g.time<=0){clearInterval(g.t);$('ga').disabled=true;const xp=gameXp(g.score);
-      $('gq').textContent='Hết giờ!';$('gmsg').textContent=`Bạn đúng ${g.score} câu và nhận +${xp} XP 🎉`}
-  },1000);$('time').textContent=30;
+  clearInterval(gTimer); // dọn đồng hồ cũ, tránh chạy 2 đồng hồ và nhận XP 2 lần
+  const me=g={score:0,time:30,ans:0,end:Date.now()+30000};
+  $('arena').classList.remove('hidden');$('score').textContent=0;$('time').textContent=30;$('gmsg').textContent='';
+  $('ga').disabled=false;$('gok').disabled=false;$('ga').value='';$('ga').focus();next();
+  gTimer=setInterval(()=>{
+    if(g!==me){clearInterval(gTimer);return}
+    g.time=Math.max(0,Math.ceil((g.end-Date.now())/1000));$('time').textContent=g.time;
+    if(g.time<=0){
+      clearInterval(gTimer);gTimer=null;$('ga').disabled=true;$('gok').disabled=true;
+      const xp=gameXp(g.score);
+      $('gq').textContent='Hết giờ!';
+      $('gmsg').textContent=xp>0?`Bạn đúng ${g.score} câu và nhận +${xp} XP 🎉`
+        :g.score>0?`Bạn đúng ${g.score} câu. Hôm nay bạn đã nhận đủ 30 XP từ trò chơi, mai chơi tiếp nhé!`
+        :'Bạn chưa đúng câu nào, thử lại nhé! 💪';
+    }
+  },250);
 };
 function next(){
   const a=Math.round((Math.random()*20+1)*10)/10,b=Math.round((Math.random()*9+1)*10)/10,op=Math.random()<.5?'+':'−';
-  g.ans=op==='+'?a+b:a-b;g.ans=Math.round(g.ans*10)/10;
-  if(g.ans<0){g.ans=Math.round((b-a)*10)/10;$('gq').textContent=`${b} − ${a} = ?`}else $('gq').textContent=`${a} ${op} ${b} = ?`;
+  const r=op==='+'?a+b:a-b;
+  if(r<0){g.ans=Math.round((b-a)*10)/10;$('gq').textContent=`${vn(b)} − ${vn(a)} = ?`}
+  else{g.ans=Math.round(r*10)/10;$('gq').textContent=`${vn(a)} ${op} ${vn(b)} = ?`}
 }
-$('ga').onkeydown=e=>{
-  if(e.key!=='Enter'||!g||g.time<=0)return;
-  const v=parseFloat($('ga').value.replace(',','.'));
-  if(Math.abs(v-g.ans)<0.001){g.score++;$('score').textContent=g.score;$('gmsg').textContent='Đúng rồi! ✔'}
-  else $('gmsg').textContent='Chưa đúng, đáp án là '+g.ans;
-  $('ga').value='';next();
-};
+function submitAns(){
+  if(!g||g.time<=0)return;
+  const raw=$('ga').value.trim().replace(',','.');
+  if(raw===''||isNaN(Number(raw))){$('gmsg').textContent='Hãy nhập một số nhé!';return}
+  if(Math.abs(Number(raw)-g.ans)<0.001){g.score++;$('score').textContent=g.score;$('gmsg').textContent='Đúng rồi! ✔'}
+  else $('gmsg').textContent='Chưa đúng, đáp án là '+vn(g.ans);
+  $('ga').value='';next();$('ga').focus();
+}
+$('ga').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submitAns()}};
+$('gok').onclick=submitAns;
 
 /* ===== HỆ THỐNG XP & HẠNG ===== */
 // Ngưỡng hạng cao dần: Thách đấu cần 24.000 XP (~150 bài kiểm tra làm tốt lần đầu)
@@ -187,10 +202,10 @@ function renderEx(){
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
 function startQuiz(){
-  qz={i:0,sel:[],t:QUIZ.min*60,qs:QUIZ.q.map(q=>({...q,opts:sh(q.o)}))};
+  qz={i:0,sel:[],t:QUIZ.min*60,end:Date.now()+QUIZ.min*60000,qs:QUIZ.q.map(q=>({...q,opts:sh(q.o)}))};
   $('quiz').classList.remove('hidden');$('qres').classList.add('hidden');$('qmain').classList.remove('hidden');
   $('qtitle').textContent=QUIZ.title;document.body.style.overflow='hidden';$('quiz').scrollTop=0;
-  qz.timer=setInterval(()=>{qz.t--;tick();if(qz.t<=0){toast('Hết giờ! Bài đã được nộp.');finishQuiz()}},1000);
+  qz.timer=setInterval(()=>{qz.t=Math.max(0,Math.ceil((qz.end-Date.now())/1000));tick();if(qz.t<=0){toast('Hết giờ! Bài đã được nộp.');finishQuiz()}},500);
   tick();showQ();
 }
 function tick(){$('qtime').textContent=Math.floor(qz.t/60)+':'+String(qz.t%60).padStart(2,'0')}
@@ -320,7 +335,3 @@ function dtEnd(){
   <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart()">Chơi lại</button></div>`;
   $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
 }
-renderEx();
-  $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
-}
-renderEx();
