@@ -1,290 +1,97 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phòng Học Ảo - CLB Sinh viên 5 tốt</title>
-  <!-- Nhúng Tailwind CSS CDN để xem trước giao diện nhanh -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Nova – Bứt phá tư duy, làm chủ môn Toán</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="bg-neutral-950 text-neutral-100 font-sans h-screen w-screen overflow-hidden flex flex-col">
+<body>
 
-  <div class="flex flex-1 h-full w-full overflow-hidden">
-    
-    <!-- ========================================== -->
-    <!-- 1. SIDEBAR BÊN TRÁI (<aside id="left-sidebar">) -->
-    <!-- ========================================== -->
-    <aside id="left-sidebar" class="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col justify-between p-4 z-20">
-      <div>
-        <!-- Logo thương hiệu -->
-        <div class="flex items-center gap-3 px-2 py-3 border-b border-neutral-800 mb-6">
-          <div class="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white shadow-lg">
-            5T
-          </div>
-          <div>
-            <h1 class="font-bold text-sm tracking-wide text-neutral-100">CLB SINH VIÊN 5 TỐT</h1>
-            <p class="text-xs text-neutral-400">Không gian học tập ảo</p>
-          </div>
-        </div>
+<!-- 1. MÀN HÌNH CHỜ -->
+<div id="splash" aria-label="Đang tải">
+  <div id="syms"></div>
+  <div class="nova" aria-hidden="true"><i class="eye l"></i><i class="eye r"></i><i class="smile"></i></div>
+  <h1 id="splash-title" aria-label="Math Nova"></h1>
+  <p class="slogan">Bứt phá tư duy – Làm chủ môn Toán</p>
+  <div class="loadbar"><div id="loadfill"></div></div>
+  <p id="loadmsg">Đang khởi động tên lửa Nova…</p>
+</div>
 
-        <!-- Menu điều hướng chính -->
-        <nav class="space-y-1">
-          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            <span class="text-sm font-medium">Hôm nay</span>
-          </a>
-          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <span class="text-sm font-medium">Lịch</span>
-          </a>
-          <!-- Active Menu Item -->
-          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-neutral-800 text-white font-medium shadow-sm">
-            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span class="text-sm">Tập trung</span>
-          </a>
-          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            <span class="text-sm font-medium">Thống kê</span>
-          </a>
-        </nav>
-      </div>
-
-      <!-- Footer Sidebar (Trợ giúp/Cài đặt) -->
-      <div class="border-t border-neutral-800 pt-3">
-        <button class="w-full text-left px-3 py-2 text-xs text-neutral-400 hover:text-neutral-200">
-          ⚙️ Cài đặt chung
-        </button>
-      </div>
-    </aside>
-
-    <!-- KHU VỰC TRUNG TÂM & BẢNG BÊN PHẢI -->
-    <div class="flex-1 flex flex-col h-full overflow-hidden">
-      
-      <!-- ========================================== -->
-      <!-- 2. HEADER TRÊN CÙNG (<header id="top-bar">) -->
-      <!-- ========================================== -->
-      <header id="top-bar" class="h-14 border-b border-neutral-800 bg-neutral-900/60 backdrop-blur px-6 flex items-center justify-between z-10">
-        <!-- Chuyển đổi phòng học -->
-        <div class="flex items-center gap-2">
-          <button class="px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
-            Phòng học
-          </button>
-          <button class="px-4 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-neutral-200 transition">
-            Xây cùng nhau (chế độ cũ)
-          </button>
-        </div>
-
-        <!-- Trạng thái kết nối Real-time -->
-        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
-          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-          <span class="text-xs text-amber-400 font-medium">Đang kết nối lại...</span>
-        </div>
-
-        <!-- Profile & Nút Mời -->
-        <div class="flex items-center gap-3">
-          <button class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-medium text-white transition">
-            Mời bạn
-          </button>
-          <div class="h-4 w-px bg-neutral-800"></div>
-          <div class="flex items-center gap-2 text-xs">
-            <span class="font-semibold text-neutral-200">Hoctaythiphan</span>
-            <button class="text-neutral-400 hover:text-white underline">Sửa</button>
-          </div>
-        </div>
-      </header>
-
-      <!-- VÙNG CHÍNH (VIEWPORT PHÒNG HỌC + PANEL PHẢI) -->
-      <div class="flex-1 flex overflow-hidden">
-        
-        <!-- ========================================== -->
-        <!-- 3. KHÔNG GIAN PHÒNG HỌC (<main id="room-viewport">) -->
-        <!-- ========================================== -->
-        <main id="room-viewport" class="flex-1 bg-neutral-950 p-6 flex flex-col items-center justify-center relative overflow-hidden">
-          
-          <!-- ROOM CANVAS CONTAINER (Nơi sẽ vẽ Canvas 2D hoặc SVG Render) -->
-          <div class="room-canvas-container relative w-full max-w-4xl aspect-video bg-neutral-900/80 rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden flex items-center justify-center">
-            
-            <!-- [PLACEHOLDER 2D ROOM SCENE] -->
-            <div class="absolute inset-0 bg-gradient-to-b from-amber-950/10 via-neutral-900 to-neutral-950 flex flex-col justify-between p-8">
-              
-              <!-- Ánh đèn trần không gian phòng học -->
-              <div class="flex justify-around opacity-30">
-                <div class="w-12 h-20 bg-amber-200/20 rounded-b-full blur-md"></div>
-                <div class="w-12 h-20 bg-amber-200/20 rounded-b-full blur-md"></div>
-                <div class="w-12 h-20 bg-amber-200/20 rounded-b-full blur-md"></div>
-              </div>
-
-              <!-- Khu vực bàn ghế & Chỗ ngồi (Placeholders) -->
-              <div class="grid grid-cols-3 gap-6 my-auto">
-                
-                <!-- Bàn 1 -->
-                <div class="bg-neutral-800/80 p-4 rounded-xl border border-neutral-700/50 flex flex-col items-center gap-3">
-                  <span class="text-xs text-neutral-400">Bàn Dãy Cửa Sổ</span>
-                  <div class="flex justify-between w-full">
-                    <!-- Ghế 1: Đã có người -->
-                    <div class="px-2 py-1 bg-amber-500/20 border border-amber-500/40 rounded text-[10px] text-amber-300">
-                      👤 Mai
-                    </div>
-                    <!-- Ghế 2: Đang trống -->
-                    <button class="px-2 py-1 bg-neutral-700/50 hover:bg-neutral-700 border border-dashed border-neutral-500 rounded text-[10px] text-neutral-300">
-                      + Trống
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Bàn 2 -->
-                <div class="bg-neutral-800/80 p-4 rounded-xl border border-neutral-700/50 flex flex-col items-center gap-3">
-                  <span class="text-xs text-neutral-400">Bàn Trung Tâm</span>
-                  <div class="flex justify-between w-full">
-                    <div class="px-2 py-1 bg-amber-500/20 border border-amber-500/40 rounded text-[10px] text-amber-300">
-                      👤 Quân
-                    </div>
-                    <div class="px-2 py-1 bg-red-500/20 border border-red-500/40 rounded text-[10px] text-red-300 font-bold">
-                      👤 Bạn
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Bàn 3 -->
-                <div class="bg-neutral-800/80 p-4 rounded-xl border border-neutral-700/50 flex flex-col items-center gap-3">
-                  <span class="text-xs text-neutral-400">Bàn Yên Lặng</span>
-                  <div class="flex justify-between w-full">
-                    <button class="px-2 py-1 bg-neutral-700/50 hover:bg-neutral-700 border border-dashed border-neutral-500 rounded text-[10px] text-neutral-300">
-                      + Trống
-                    </button>
-                    <button class="px-2 py-1 bg-neutral-700/50 hover:bg-neutral-700 border border-dashed border-neutral-500 rounded text-[10px] text-neutral-300">
-                      + Trống
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Đồng hồ treo tường phòng học -->
-              <div class="absolute top-4 right-6 w-10 h-10 rounded-full border-2 border-neutral-600 bg-neutral-800 flex items-center justify-center text-[10px] text-neutral-400">
-                🕒 10:15
-              </div>
-
-            </div>
-          </div>
-          
-        </main>
-
-        <!-- ========================================== -->
-        <!-- 4. BẢNG THÔNG TIN BÊN PHẢI (<aside id="right-panel">) -->
-        <!-- ========================================== -->
-        <aside id="right-panel" class="w-80 bg-neutral-900 border-l border-neutral-800 p-4 flex flex-col gap-6 overflow-y-auto">
-          
-          <!-- Section 1: Mục tiêu dài hạn -->
-          <section class="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-3">
-            <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Mục tiêu dài hạn</h2>
-            <div class="text-sm font-bold text-neutral-100">IELTS 8.0 tháng sau</div>
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded bg-neutral-800 text-[10px] text-neutral-300 border border-neutral-700">Người mới</span>
-              <span class="text-xs text-neutral-400">Tổng 0 phút ở phòng học</span>
-            </div>
-            <div class="pt-1 flex justify-between items-center text-xs text-neutral-400 border-t border-neutral-800">
-              <span>Danh hiệu</span>
-              <span class="text-amber-400 font-medium">Mới</span>
-            </div>
-          </section>
-
-          <!-- Section 2: Bộ đếm thời gian (Pomodoro Timer) -->
-          <section class="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-3">
-            <div class="flex justify-between items-center">
-              <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Bộ đếm tập trung</h2>
-              <button class="text-xs text-red-400 hover:underline">Sửa</button>
-            </div>
-            <div class="text-2xl font-black text-neutral-100 font-mono tracking-tight">
-              25:00
-            </div>
-            <p class="text-xs text-neutral-400">Chế độ: Tập trung tự do</p>
-          </section>
-
-          <!-- Section 3: Vị trí chỗ ngồi -->
-          <section class="space-y-2">
-            <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Chỗ ngồi hiện tại</h2>
-            <div class="space-y-1.5 text-xs">
-              <div class="p-2.5 rounded-lg bg-neutral-800/60 border border-neutral-700/50 flex justify-between items-center">
-                <span class="text-neutral-300">Dãy cửa sổ - W1</span>
-                <span class="text-[10px] px-1.5 py-0.5 bg-neutral-700 text-neutral-300 rounded">Có người</span>
-              </div>
-              <div class="p-2.5 rounded-lg bg-neutral-800/30 border border-neutral-800 flex justify-between items-center text-neutral-500">
-                <span>Dãy cửa sổ - W2</span>
-                <span class="text-[10px]">Trống</span>
-              </div>
-            </div>
-          </section>
-
-          <!-- Section 4: Danh sách người trong phòng -->
-          <section class="space-y-3 flex-1">
-            <h2 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Người trong phòng (2)</h2>
-            <ul class="space-y-2 text-xs">
-              <li class="flex items-center justify-between p-2 rounded-lg bg-neutral-950/50 border border-neutral-800">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span class="font-medium text-neutral-200">Mai</span>
-                </div>
-                <span class="text-neutral-400 text-[11px]">đang tập trung</span>
-              </li>
-              <li class="flex items-center justify-between p-2 rounded-lg bg-neutral-950/50 border border-neutral-800">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span class="font-medium text-neutral-200">Quân</span>
-                </div>
-                <span class="text-neutral-400 text-[11px]">đang tập trung</span>
-              </li>
-            </ul>
-          </section>
-
-        </aside>
-
-      </div>
-
-      <!-- ========================================== -->
-      <!-- 5. THANH ĐIỀU KHIỂN BÊN DƯỚI (<footer id="bottom-player">) -->
-      <!-- ========================================== -->
-      <footer id="bottom-player" class="h-16 border-t border-neutral-800 bg-neutral-900 px-6 flex items-center justify-between z-20">
-        
-        <!-- Nhập Link YouTube Playlist/Video -->
-        <div class="flex items-center gap-3 w-1/3">
-          <span class="text-xs font-medium text-neutral-400 whitespace-nowrap">Nhạc nền (YouTube):</span>
-          <input 
-            type="text" 
-            placeholder="Dán liên kết playlist hoặc video YouTube..." 
-            class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-neutral-600 transition"
-          />
-        </div>
-
-        <!-- Điều khiển Playback -->
-        <div class="flex items-center gap-4">
-          <button class="p-2 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition">
-            ⏮️
-          </button>
-          <button class="w-9 h-9 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center font-bold shadow-md transition">
-            ▶
-          </button>
-          <button class="p-2 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition">
-            ⏭️
-          </button>
-        </div>
-
-        <!-- Âm lượng & Tốc độ phát -->
-        <div class="flex items-center gap-4 w-1/4 justify-end">
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-neutral-400">🔊</span>
-            <input type="range" min="0" max="100" value="50" class="w-20 h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-red-600"/>
-          </div>
-          <button class="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded text-xs font-mono text-neutral-300">
-            1x
-          </button>
-        </div>
-
-      </footer>
-
-    </div>
-
+<!-- 2. ĐĂNG NHẬP (tài khoản do giáo viên cấp) -->
+<main id="login" class="screen hidden">
+  <div class="login-art">
+    <div class="logo big"><i>∑</i>Math Nova</div>
+    <h2>Chào mừng bạn trở lại!</h2>
+    <p>Đăng nhập bằng tài khoản thầy cô đã cấp để tiếp tục hành trình chinh phục môn Toán.</p>
   </div>
+  <form id="loginForm" class="login-card" autocomplete="off">
+    <h2>Đăng nhập</h2>
+    <label for="u">Tên đăng nhập</label>
+    <input id="u" placeholder="Ví dụ: hs5001" required>
+    <label for="p">Mật khẩu</label>
+    <input id="p" type="password" placeholder="Mật khẩu thầy cô cấp" required>
+    <p id="err" class="err" role="alert"></p>
+    <button class="btn go" type="submit">Vào học</button>
+    <p class="hint">Chưa có tài khoản hoặc quên mật khẩu? Hãy hỏi thầy cô nhé.<br>
+    <small>Thử nghiệm: hs5001 / nova123</small></p>
+  </form>
+</main>
+
+<!-- 3. ỨNG DỤNG -->
+<div id="app" class="screen hidden">
+  <header>
+    <div class="wrap bar">
+      <a href="#" class="logo" id="goHome"><i>∑</i>Math Nova</a>
+      <div class="me"><span id="meName"></span><span class="xp" id="meXp"></span>
+      <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
+    </div>
+  </header>
+
+  <!-- Chọn cấp học -->
+  <section id="levels" class="wrap view">
+    <h1 class="title">Chọn cấp học của bạn</h1>
+    <div class="levels">
+      <article class="level on">
+        <div class="ic">🎒</div><h2>Tiểu học</h2><p>Lớp 1 – Lớp 5</p>
+        <div class="chips"><span>1</span><span>2</span><span>3</span><span>4</span><button class="chip5" id="open5">Lớp 5</button></div>
+      </article>
+      <article class="level soon"><div class="ic">📐</div><h2>THCS</h2><p>Lớp 6 – Lớp 9</p><span class="badge">Sắp ra mắt</span></article>
+      <article class="level soon"><div class="ic">🎓</div><h2>THPT</h2><p>Lớp 10 – Lớp 12</p><span class="badge">Sắp ra mắt</span></article>
+    </div>
+  </section>
+
+  <!-- Toán 5 -->
+  <section id="grade5" class="wrap view hidden">
+    <button class="back" id="backLevels">← Chọn cấp học</button>
+    <h1 class="title">Toán lớp 5</h1>
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="docs">Tài liệu</button>
+      <button data-tab="ex">Bài tập</button>
+      <button data-tab="games">Trò chơi</button>
+    </div>
+    <div id="docs" class="panel">
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="docList"></div>
+    </div>
+    <div id="ex" class="panel hidden"><div class="grid" id="exList"></div></div>
+    <div id="games" class="panel hidden">
+      <div class="grid" id="gameList"></div>
+      <div id="arena" class="arena hidden">
+        <div class="arena-top"><span>⏱ <b id="time">30</b>s</span><span>Điểm: <b id="score">0</b></span></div>
+        <h2 id="gq"></h2>
+        <input id="ga" inputmode="numeric" placeholder="Nhập đáp án rồi nhấn Enter" autocomplete="off">
+        <p id="gmsg" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</div>
+<div id="toast" role="status"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
 
 </body>
 </html>
