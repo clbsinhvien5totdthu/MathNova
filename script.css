@@ -1004,3 +1004,70 @@ header {
 #dtbox h3{margin:18px 0 6px}
 @media (max-width:640px){.dtq{font-size:1.25rem}.dtrow span{width:100px}.hlist li{padding:12px}}
 .honor .filters .refresh{margin-left:auto}
+
+
+/* =====================================================
+   GIAO DIỆN V2 – theo bộ nhận diện Math Nova
+   ===================================================== */
+:root{--ink:#323D4B;--navy:#0B3F75;--blue:#0B3F75;--sky:#EAF1F8;--line:#DDE5EF;--green:#2F8F83;--yellow:#FFBE55;--orange:#DC6F2A;--purple:#7D69B0;--text:#323D4B;--muted:#667487;--r:20px;--sh:0 1px 2px rgba(20,40,70,.06),0 8px 24px rgba(20,40,70,.07)}
+body{background:#F5F7FB}
+.btn.go:hover,.chip5:hover{background:#257A6F;border-color:#257A6F}
+.btn.ghost:hover{background:var(--sky)}
+.tabs button.on,.filters button.on{background:var(--navy);border-color:var(--navy)}
+
+/* Logo ảnh */
+.logo{padding:0}
+.logo img{display:block;height:44px;width:auto}
+header{background:rgba(255,255,255,.92);backdrop-filter:blur(10px)}
+.bar{height:68px}
+
+/* Màn hình chờ */
+#splash{background:radial-gradient(circle at 50% 35%,#fff,#E9EFF7 80%);color:var(--ink)}
+.splash-logo{width:min(460px,82vw);height:auto;mix-blend-mode:multiply;z-index:1;animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-8px)}}
+.sym{color:rgba(11,63,117,.09)}
+.slogan{color:var(--muted);margin:8px 0 26px}
+.loadbar{background:#DDE5EF}
+#loadfill{background:linear-gradient(90deg,var(--navy),var(--orange))}
+#loadmsg{color:var(--muted)}
+
+/* Đăng nhập */
+#login{background:linear-gradient(135deg,#0B3F75,#1B2F4A)}
+.login-brand{align-self:flex-start;padding:16px 26px;background:#fff;border-radius:24px;box-shadow:0 16px 40px rgba(0,0,0,.25)}
+.login-brand img{display:block;width:min(280px,60vw);height:auto}
+.login-card{border-radius:28px}
+.login-card .btn.go{padding:14px}
+
+/* Trang chủ */
+.hero{display:grid;grid-template-columns:1.2fr .8fr;align-items:center;gap:28px;padding:40px;background:linear-gradient(135deg,#fff 55%,#EEF3FA);border:1px solid var(--line);border-top:6px solid var(--orange);border-radius:28px;box-shadow:var(--sh)}
+.eyebrow{display:inline-block;padding:4px 14px;background:#FDEBDD;color:#B5551B;border-radius:99px;font-size:.85rem;font-weight:600}
+.hero .title{margin:14px 0 10px;font-size:clamp(2rem,4.6vw,3.1rem);color:var(--ink)}
+.hero p{max-width:46ch;margin-bottom:22px;color:var(--muted);font-size:1.05rem}
+.hero .btn.go{width:auto;padding:14px 28px;margin:0}
+.hero-img{width:100%;max-width:300px;justify-self:center}
+.view{padding-top:32px}
+.back{padding:6px 0}
+#grade5 .title{color:var(--ink)}
+
+/* Thẻ có ảnh bìa */
+.grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.card{gap:0;padding:0;overflow:hidden;border:1px solid var(--line);box-shadow:var(--sh);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(20,40,70,.13)}
+.cover{aspect-ratio:16/10;display:grid;place-items:center;background:linear-gradient(135deg,#F4F7FC,#E6EDF7);border-bottom:1px solid var(--line)}
+.cover img{width:100%;height:100%;object-fit:contain;padding:10px}
+.cbody{display:flex;flex-direction:column;flex:1;gap:6px;padding:18px 20px 20px}
+.tag.m{background:#DDF1EE;color:#1E6F65}
+
+/* Bảng vinh danh */
+.honor{padding:28px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--sh)}
+.hlist li:nth-child(1){border-color:var(--yellow)}
+
+.foot{padding:28px 20px 36px;color:var(--muted);font-size:.88rem;text-align:center}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;padding:26px;text-align:center}
+  .hero p{margin-inline:auto}
+  .hero-img{order:-1;max-width:190px}
+  .logo img{height:36px}
+  .login-brand{align-self:center}
+}
