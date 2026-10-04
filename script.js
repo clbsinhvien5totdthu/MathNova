@@ -39,7 +39,7 @@ new MutationObserver(m=>m.forEach(r=>r.addedNodes.forEach(n=>{if(n.id==='rankup'
 
 const stk=(n,c='')=>`<img class="${c}" src="assets/stk/${n}.webp" alt="">`;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');SFX.play('pop');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
-function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
+function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s==='splash'?$('splash').classList.contains('out'):s!==id))}
 function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
 
 /* ---- Màn hình chờ ---- */
