@@ -15,8 +15,30 @@ const DOCS = [
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
 
+/* ---- Âm thanh: tự tổng hợp bằng Web Audio, không cần file ---- */
+const SFX=(()=>{let ac=null;
+  const muted=()=>{try{return localStorage.getItem('mute')==='1'}catch(_){return false}};
+  const ctx=()=>{try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch(_){return null}};
+  const tone=(f,d,s=0,ty='sine',v=.1,f2)=>{const a=ctx();if(!a)return;const t=a.currentTime+s,o=a.createOscillator(),g=a.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)};
+  const noise=(d,f1,f2,v)=>{const a=ctx();if(!a)return;const n=Math.floor(a.sampleRate*d),b=a.createBuffer(1,n,a.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),t=a.currentTime;s.buffer=b;f.type='bandpass';f.Q.value=.8;f.frequency.setValueAtTime(f1,t);f.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+d*.45);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t)};
+  const P={
+    tap:()=>tone(540,.07,0,'triangle',.08),
+    tab:()=>{tone(440,.08,0,'triangle',.09);tone(660,.1,.06,'triangle',.09)},
+    tick:n=>{tone(400+n*120,.12,0,'square',.045);tone(800+n*240,.1,.05,'triangle',.05)},
+    launch:()=>{noise(1.4,250,5200,.28);tone(120,1.3,0,'sawtooth',.07,900);tone(60,1.2,0,'sine',.12,200)},
+    pop:()=>tone(880,.12,0,'sine',.08,1320),
+    win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.28,i*.12,'triangle',.12))
+  };
+  return{play(k,a){if(muted())return;try{P[k]&&P[k](a)}catch(_){}},unlock(){ctx();document.body.classList.add('sfx-on')},muted,
+    toggle(){const m=!muted();try{localStorage.setItem('mute',m?'1':'0')}catch(_){}try{dtMuted=m}catch(_){}document.getElementById('sfxBtn').textContent=m?'🔇':'🔊';if(!m){this.unlock();this.play('pop')}}}
+})();
+document.addEventListener('DOMContentLoaded',()=>{const b=$('sfxBtn');b.textContent=SFX.muted()?'🔇':'🔊';b.onclick=()=>SFX.toggle()});
+document.addEventListener('pointerdown',e=>{SFX.unlock();const t=e.target.closest&&e.target.closest('button,a,.btn,[onclick]');
+  if(!t||t.id==='sfxBtn'||t.closest('#dt'))return;SFX.play(t.closest('.tabs,.gswitch,.nav,.filters')?'tab':'tap')},true);
+new MutationObserver(m=>m.forEach(r=>r.addedNodes.forEach(n=>{if(n.id==='rankup')SFX.play('win')}))).observe(document.body,{childList:true});
+
 const stk=(n,c='')=>`<img class="${c}" src="assets/stk/${n}.webp" alt="">`;
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');SFX.play('pop');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
 function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
 
@@ -33,12 +55,12 @@ function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v
   const msgs=['Đang khởi động tên lửa Nova…','Đang xếp hàng các con số…','Đang mài bút chì thần kỳ…','Sắp xong rồi, chuẩn bị nhé!'];
   let p=0;
   const timer=setInterval(()=>{
-    p+=25;$('loadfill').style.width=p+'%';$('loadmsg').textContent=msgs[Math.min(p/25-1,3)];
+    p+=25;SFX.play('tick',p/25);$('loadfill').style.width=p+'%';$('loadmsg').textContent=msgs[Math.min(p/25-1,3)];
     if(p>=100){clearInterval(timer);setTimeout(done,500)}
   },750);
   async function done(){
     const p=await boot;
-    $('loadmsg').textContent='Phóng tên lửa Nova!';$('splash').classList.add('launch');
+    $('loadmsg').textContent='Phóng tên lửa Nova!';$('splash').classList.add('launch');SFX.play('launch');
     await new Promise(r=>setTimeout(r,1300));
     $('splash').classList.add('out');
     if(p)enter(p);else show('login');
