@@ -2,11 +2,12 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1B4A">
 <title>Math Nova – Bứt phá tư duy, làm chủ môn Toán</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon.png">
 <link rel="stylesheet" href="script.css">
 </head>
@@ -14,16 +15,22 @@
 
 <!-- 1. MÀN HÌNH CHỜ -->
 <div id="splash" aria-label="Đang tải">
+  <div class="sp-bg"></div><div class="sp-veil"></div>
   <div class="stars s1"></div><div class="stars s2"></div><div class="stars s3"></div>
-  <div class="planet p1"></div><div class="planet p2"></div>
+  <span class="shoot sh1"></span><span class="shoot sh2"></span><span class="shoot sh3"></span>
   <div id="syms"></div>
   <div class="rocket-wrap" aria-hidden="true"><div class="trail"></div>
     <svg class="rocket" viewBox="0 0 64 128"><g class="flame"><path d="M24 92Q32 132 40 92Z" fill="#FFBE55"/><path d="M28 92Q32 118 36 92Z" fill="#FFF6D6"/></g><path d="M18 62L4 94L18 84ZM46 62L60 94L46 84Z" fill="#DC6F2A"/><path d="M32 0C46 18 50 44 46 86H18C14 44 18 18 32 0Z" fill="#fff"/><path d="M32 0C40 10 44 20 46 30H18C20 20 24 10 32 0Z" fill="#DC6F2A"/><circle cx="32" cy="52" r="9" fill="#0B3F75" stroke="#9FD0FF" stroke-width="3"/><rect x="22" y="84" width="20" height="8" rx="2" fill="#667487"/></svg></div>
-  <div class="splash-card"><img class="splash-logo" src="assets/logo.png" alt="Math Nova – CLB Gia sư Toán học"></div>
+  <div class="splash-stage">
+    <div class="orbit o1" aria-hidden="true"><i>π</i><i>√</i><i>∑</i></div>
+    <div class="orbit o2" aria-hidden="true"><i>÷</i><i>×</i><i>%</i></div>
+    <div class="splash-card"><img class="splash-logo" src="assets/logo.png" alt="Math Nova – CLB Gia sư Toán học"></div>
+  </div>
   <p class="slogan">Bứt phá tư duy – Làm chủ môn Toán</p>
   <div class="loadbar"><div id="loadfill"></div></div>
   <p id="loadmsg">Đang khởi động tên lửa Nova…</p>
 </div>
+<button id="sfxBtn" class="sfx-btn" type="button" aria-label="Bật/tắt âm thanh">🔊</button>
 
 <!-- 2. ĐĂNG NHẬP (tài khoản do giáo viên cấp) -->
 <main id="login" class="screen hidden">
@@ -49,7 +56,7 @@
   <header>
     <div class="wrap bar">
       <a href="#" class="logo" id="goHome" aria-label="Math Nova – Trang chủ"><img src="assets/logo.png" alt="Math Nova"></a>
-      <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top">Trang chủ</a><a href="#" data-go="levelsPick">Khối lớp</a><a href="#" data-go="rankBoard">Vinh danh</a></nav>
+      <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top"><span class="ni">🏠</span>Trang chủ</a><a href="#" data-go="levelsPick"><span class="ni">📚</span>Khối lớp</a><a href="#" data-go="rankBoard"><span class="ni">🏆</span>Vinh danh</a></nav>
       <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
       <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
     </div>
