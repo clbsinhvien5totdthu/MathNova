@@ -1071,3 +1071,38 @@ header{background:rgba(255,255,255,.92);backdrop-filter:blur(10px)}
   .logo img{height:36px}
   .login-brand{align-self:center}
 }
+
+/* Phân số & hỗn số */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em;font-size:.92em;font-weight:inherit;line-height:1.2;text-align:center}
+.fr>i{display:block;padding:0 .25em;font-style:normal}
+.fr>i:first-child{border-bottom:.09em solid currentColor}
+.mx{display:inline-flex;align-items:center;gap:.1em;white-space:nowrap}
+.qopts button .fr,#qtext .fr,.dtq .fr{font-size:1em}
+
+/* ===== V3: nền tảng nhiều cấp học ===== */
+.nav{display:flex;gap:4px;margin-left:auto;margin-right:20px}
+.nav a{padding:8px 14px;border-radius:99px;color:var(--ink);font-weight:600;font-size:.95rem}
+.nav a:hover{background:var(--sky);color:var(--navy)}
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+.feats>div{padding:20px;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.feats b{display:grid;place-items:center;width:44px;height:44px;margin-bottom:10px;background:var(--sky);border-radius:14px;font-size:1.4rem}
+.feats h3{font-size:1.1rem}.feats p{color:var(--muted);font-size:.9rem}
+.lvsec{margin-top:44px}.lvsec h2{font-size:1.8rem;color:var(--ink)}.lvsec .muted{margin:4px 0 18px}
+.lvgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.lv{padding:26px;background:#fff;border:1px solid var(--line);border-top:6px solid var(--c);border-radius:var(--r);box-shadow:var(--sh)}
+.lvic{display:grid;place-items:center;width:52px;height:52px;margin-bottom:10px;border-radius:16px;background:color-mix(in srgb,var(--c) 14%,#fff);font-size:1.7rem}
+.lv h3{font-size:1.35rem;color:var(--ink)}.lv p{margin-bottom:14px;color:var(--muted)}
+.gchips{display:flex;flex-wrap:wrap;gap:8px}
+.gchips button,.gswitch button{padding:8px 16px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:600 .95rem "Be Vietnam Pro",sans-serif;cursor:pointer;transition:.2s}
+.gchips button:hover{border-color:var(--c);background:var(--c);color:#fff}
+.crumb{color:var(--orange);font-weight:600;font-size:.9rem;text-transform:uppercase;letter-spacing:.04em}
+#grade .title{margin-bottom:12px}
+.gswitch{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.gswitch button{width:40px;height:40px;padding:0;border-radius:10px}
+.gswitch button:hover{border-color:var(--navy);color:var(--navy)}
+.gswitch button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.empty{grid-column:1/-1;padding:40px 20px;background:#fff;border:2px dashed var(--line);border-radius:var(--r);color:var(--muted);text-align:center}
+.foot{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:20px;padding:36px 20px;background:#fff;border-top:1px solid var(--line)}
+.foot img{height:48px;width:auto}.foot p{color:var(--ink);font-weight:600}
+@media (max-width:900px){.feats{grid-template-columns:repeat(2,1fr)}.lvgrid{grid-template-columns:1fr}.nav{display:none}}
+@media (max-width:480px){.feats{grid-template-columns:1fr}}
