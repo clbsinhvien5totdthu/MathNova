@@ -37,6 +37,8 @@ function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v
   },750);
   async function done(){
     const p=await boot;
+    $('loadmsg').textContent='Phóng tên lửa! 🚀';$('splash').classList.add('launch');
+    await new Promise(r=>setTimeout(r,1300));
     $('splash').classList.add('out');
     if(p)enter(p);else show('login');
     setTimeout(()=>$('splash').classList.add('hidden'),650);
@@ -359,7 +361,7 @@ function drawBoard(){
   <p class="muted">Xếp theo tổng XP của tất cả các khối. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
   <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${mr.i} ${mr.n} · ${user.xp} XP</p>
   <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}<button class="btn ghost sm refresh" onclick="renderBoard()">↻ Làm mới</button></div>
-  <ol class="hlist">${list.map((x,i)=>{const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
+  ${podiumHtml(list,medals)}<ol class="hlist" start="4">${list.slice(3).map((x,j)=>{const i=j+3;const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
   <h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${r.i} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
 }
 
@@ -373,7 +375,7 @@ function dtSfx(k){if(dtMuted)return;try{dtAC=dtAC||new(window.AudioContext||wind
   (S[k]||[]).forEach(([f,s])=>dtTone(f,.25,s,k==='no'?'sawtooth':'triangle',.16))}catch(_){}}
 const dtMax=()=>DT_N*6+(DT_N-2)*2+40;
 function dtCard(){const b=user.done[DT_ID];
-  return `<article class="card">${cov()}<div class="cbody"><span class="tag m">Mới · Trò chơi trắc nghiệm</span><h3>🐵 Hành trình Đại Thánh – Đề test Bài 1–9</h3>
+  return `<article class="card arcade"><div class="cover px-cover"><span>🐵</span><b>PRESS START</b><span>👾</span></div><div class="cbody"><span class="tag m">Mới · Trò chơi pixel</span><h3>🐵 Hành trình Đại Thánh – Đề test Bài 1–9</h3>
   <small>${DT_N} câu · giữ chuỗi đúng để nhận thêm sao · tối đa ${dtMax()} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+DT_N+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="dtStart()">${b===undefined?'Bắt đầu hành trình':'Chơi lại'}</button></div></article>`}
@@ -383,10 +385,11 @@ function dtStart(){
 }
 function dtClose(){$('dt').classList.add('hidden');document.body.style.overflow='';renderEx()}
 function dtShow(){
-  const q=DT_Q[dt.i];dt.cur=sh(q[3].map((t,k)=>({t,c:k===q[4]})));
-  $('dtbox').innerHTML=`<div class="qtop"><b>🐵 Hành trình Đại Thánh</b><span><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button> <button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
-  <div class="qprog"><i style="width:${dt.i/DT_N*100}%"></i></div>
-  <p class="qlv">Câu ${dt.i+1}/${DT_N} · ⭐ ${dt.xp} · 🔥 ${dt.st} · ${DT_Q[dt.i][1]} · ${DT_T[q[0]]}</p>
+  delete $('dtbox').dataset.r;const q=DT_Q[dt.i];dt.cur=sh(q[3].map((t,k)=>({t,c:k===q[4]})));
+  $('dtbox').innerHTML=`<div class="px-hud"><span class="px-t">LV ${String(dt.i+1).padStart(2,'0')}/${DT_N}</span><span class="px-t gold">★ ${dt.xp}</span><span class="px-t fire">x${dt.st} 🔥</span><span class="px-ctl"><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button><button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
+  <div class="px-track">${Array.from({length:DT_N},(_,k)=>`<i class="${k<dt.ans.length?(dt.ans[k].ok?'ok':'no'):k===dt.i?'now':''}"></i>`).join('')}</div>
+  <div class="px-stage"><span class="px-hero">🐵</span><span class="px-foe">👾</span></div>
+  <p class="px-sub">${DT_Q[dt.i][1]} · ${DT_T[q[0]]}</p>
   <h2 class="dtq">${fmt(q[2])}</h2>
   <div class="qopts" id="dtopts">${dt.cur.map((o,k)=>`<button type="button" data-k="${k}">${'ABCD'[k]}. ${fmt(o.t)}</button>`).join('')}</div><div id="dtfb"></div>`;
   document.querySelectorAll('#dtopts button').forEach(b=>b.onclick=()=>dtPick(+b.dataset.k));
@@ -397,7 +400,7 @@ function dtPick(k){
   const q=DT_Q[dt.i],ok=dt.cur[k].c;
   document.querySelectorAll('#dtopts button').forEach((b,j)=>{b.disabled=true;if(dt.cur[j].c)b.classList.add('ok');else if(j===k)b.classList.add('no')});
   if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);dt.xp+=6+(dt.st>=3?2:0)}else dt.st=0;
-  dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'ok':'no');
+  dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'ok':'no');$('dtbox').dataset.r=ok?'ok':'no';
   $('dtfb').innerHTML=`<div class="dtfb ${ok?'ok':'no'}">${ok?(dt.st>=3?`🔥 Chuỗi ${dt.st} câu đúng! `:'✅ Chính xác! '):'❌ Chưa đúng rồi. '}${fmt(q[5])}</div>
   <button type="button" class="btn go" style="width:auto;margin-top:14px" id="dtnx">${dt.i<DT_N-1?'Câu tiếp theo →':'Xem kết quả 🏆'}</button>`;
   $('dtnx').onclick=()=>{dt.i++;dt.i<DT_N?dtShow():dtEnd()};
@@ -412,10 +415,17 @@ function dtEnd(){
   const rows=Object.keys(gr).map(k=>{const r=gr[k][0]/gr[k][1],c=r>=1?'#16B364':r>=.5?'#FFC93C':'#D12F35';return `<div class="dtrow"><span>${DT_T[k]}</span><div class="rbar"><i style="width:${r*100}%;background:${c}"></i></div><b>${gr[k][0]}/${gr[k][1]}</b></div>`}).join('');
   const weak=Object.keys(gr).filter(k=>gr[k][0]<gr[k][1]).map(k=>DT_T[k]);
   const wrong=dt.ans.filter(a=>!a.ok);
-  $('dtbox').innerHTML=`<div style="text-align:center"><div style="font-size:3.5rem">${lv[0]}</div><h2>${lv[1]}</h2><h2>${n}/${DT_N} câu đúng</h2>
+  $('dtbox').innerHTML=`<div style="text-align:center"><p class="px-t clear">${n>=7?'GAME CLEAR!':'GAME OVER'}</p><div style="font-size:3.5rem">${lv[0]}</div><h2>${lv[1]}</h2><h2>${n}/${DT_N} câu đúng</h2>
   <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ⭐ ${dt.xp} sao · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p></div>
   <h3>Bản đồ năng lực</h3>${rows}<p class="muted">${weak.length?'Cần ôn thêm: <b>'+weak.join(', ')+'</b>.':'Bạn đúng ở mọi nội dung. Tuyệt vời!'}</p>
   ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${fmt(a.q[2])}<br><span class="bad">Bạn chọn: ${fmt(a.pick)}</span><br><span class="good">Đáp án: ${fmt(a.q[3][a.q[4]])}</span><br><em>${fmt(a.q[5])}</em></div>`).join(''):''}
   <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart()">Chơi lại</button></div>`;
   $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
+}
+
+/* Bục vinh danh top 3 */
+function podiumHtml(list,medals){
+  const top=list.slice(0,3),crown=['👑','',''];
+  return '<div class="podium">'+[1,0,2].filter(i=>top[i]).map(i=>{const x=top[i],r=rankOf(x.xp);
+    return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${esc((x.name||'?').trim().slice(0,1).toUpperCase())}</div><b class="pn">${esc(x.name)}</b><small>${r.i} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
 }
