@@ -7,16 +7,10 @@ const SUPABASE_KEY='sb_publishable_JNXaQa2vdN12IwLCYuraDg_TgOVtpWB';
 const EMAIL_SUFFIX='@mathnova.vn'; // phải trùng đuôi email khi tạo user trong Supabase
 const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('YOUR-PROJECT'))
   ?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+// Thêm tài liệu mới: {t:'Tên', type:'PDF', topic:'Chủ đề', file:'assets/ten-file.pdf', img:'assets/anh-bia.png'}
+// (không có img thì tự dùng ảnh bìa mặc định)
 const DOCS = [
-  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'},
-  {t:'Số thập phân: đọc, viết, so sánh', type:'PDF', topic:'Số thập phân'},
-  {t:'Bài giảng: Cộng trừ số thập phân', type:'Video', topic:'Số thập phân'},
-  {t:'Sơ đồ tư duy: Nhân chia số thập phân', type:'Sơ đồ', topic:'Số thập phân'},
-  {t:'Diện tích hình tam giác, hình thang', type:'PDF', topic:'Hình học'},
-  {t:'Bài giảng: Chu vi và diện tích hình tròn', type:'Video', topic:'Hình học'},
-  {t:'Thể tích hình hộp chữ nhật, hình lập phương', type:'PDF', topic:'Hình học'},
-  {t:'Tỉ số phần trăm và bài toán thường gặp', type:'PDF', topic:'Phần trăm'},
-  {t:'Sơ đồ tư duy: Chuyển động đều', type:'Sơ đồ', topic:'Chuyển động'}
+  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'}
 ];
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
@@ -27,9 +21,7 @@ function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',
 
 /* ---- Màn hình chờ ---- */
 (function splash(){
-  const title=$('splash-title');
   const boot=restoreSession(); // kiểm tra phiên đăng nhập ngay trong lúc chờ
-  [...'MATH NOVA'].forEach((c,i)=>{const s=document.createElement('span');s.textContent=c===' '?'\u00A0':c;s.style.animationDelay=(i*.1)+'s';title.appendChild(s)});
   const syms=['+','−','×','÷','=','π','√','∑','%','²','7','3','9'];
   for(let i=0;i<22;i++){
     const s=document.createElement('span');s.className='sym';s.textContent=syms[i%syms.length];
@@ -108,18 +100,14 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   ['docs','ex','test','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
 });
-const TYPES=['Tất cả','PDF','Video','Sơ đồ'];
-function renderDocs(f='Tất cả'){
-  $('filters').innerHTML='';
-  TYPES.forEach(t=>{const b=document.createElement('button');b.textContent=t;b.className=t===f?'on':'';b.onclick=()=>renderDocs(t);$('filters').appendChild(b)});
-  $('docList').innerHTML=DOCS.filter(d=>f==='Tất cả'||d.type===f).map(d=>
-    `<article class="card"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${DOCS.indexOf(d)})">Xem tài liệu</button></article>`).join('');
+const COVER='assets/cover.png';
+const cov=s=>`<div class="cover"><img src="${s||COVER}" alt="" loading="lazy"></div>`;
+function renderDocs(){
+  $('docList').innerHTML=DOCS.map((d,i)=>
+    `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${i})">Xem tài liệu</button></div></article>`).join('');
 }
-
 $('gameList').innerHTML=
-  `<article class="card"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" id="startGame">Bắt đầu chơi</button></article>
-   <article class="card soon"><h3>Lật thẻ công thức</h3><small>Ghép công thức với tên hình</small><span class="tag">Sắp ra mắt</span></article>
-   <article class="card soon"><h3>Đua xe phép tính</h3><small>Giải đúng để xe chạy nhanh</small><span class="tag">Sắp ra mắt</span></article>`;
+  `<article class="card">${cov()}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" id="startGame">Bắt đầu chơi</button></div></article>`;
 renderDocs();
 
 /* ---- Game nhẩm nhanh ---- */
@@ -247,10 +235,10 @@ const QUIZZES=[Q10_BASIC,Q10_ADV];
 let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   const best=user.done[Z.id];
-  return `<article class="card"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
+  return `<article class="card">${cov()}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
   <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
   <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+Z.q.length+' · làm lại nhận 20% XP'}</small>
-  <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></article>`;
+  <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></div></article>`;
 }).join('');
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){$('exList').innerHTML=EXERCISES_LIVE();$('testList').innerHTML=dtCard()}
@@ -366,10 +354,10 @@ function dtSfx(k){if(dtMuted)return;try{dtAC=dtAC||new(window.AudioContext||wind
   (S[k]||[]).forEach(([f,s])=>dtTone(f,.25,s,k==='no'?'sawtooth':'triangle',.16))}catch(_){}}
 const dtMax=()=>DT_N*6+(DT_N-2)*2+40;
 function dtCard(){const b=user.done[DT_ID];
-  return `<article class="card"><span class="tag m">Mới · Trò chơi trắc nghiệm</span><h3>🐵 Hành trình Đại Thánh – Đề test Bài 1–9</h3>
+  return `<article class="card">${cov()}<div class="cbody"><span class="tag m">Mới · Trò chơi trắc nghiệm</span><h3>🐵 Hành trình Đại Thánh – Đề test Bài 1–9</h3>
   <small>${DT_N} câu · giữ chuỗi đúng để nhận thêm sao · tối đa ${dtMax()} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+DT_N+' · làm lại nhận 20% XP'}</small>
-  <button class="btn go" style="width:auto" onclick="dtStart()">${b===undefined?'Bắt đầu hành trình':'Chơi lại'}</button></article>`}
+  <button class="btn go" style="width:auto" onclick="dtStart()">${b===undefined?'Bắt đầu hành trình':'Chơi lại'}</button></div></article>`}
 function dtStart(){
   dt={i:0,xp:0,st:0,best:0,ans:[],t0:Date.now()};
   $('dt').classList.remove('hidden');document.body.style.overflow='hidden';$('dt').scrollTop=0;dtSfx('ok');dtShow();
