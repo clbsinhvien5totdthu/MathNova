@@ -78,7 +78,141 @@
     </div>
     <div class="feats">
       <div><b>📚</b><h3>Tài liệu</h3><p>Lý thuyết tổng ôn, sơ đồ tư duy</p></div>
+      <div><b>✏️</b><h3>Bài tập</h3><p>Luyện tập theo mức độ, không giới hạn thời gian</p></div><!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1B4A">
+<title>Math Nova – Bứt phá tư duy, làm chủ môn Toán</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/favicon.png">
+<link rel="stylesheet" href="script.css">
+</head>
+<body>
+
+<!-- 1. MÀN HÌNH CHỜ -->
+<div id="splash" aria-label="Đang tải">
+  <div class="sp-bg"></div><div class="sp-veil"></div>
+  <div class="stars s1"></div><div class="stars s2"></div><div class="stars s3"></div>
+  <span class="shoot sh1"></span><span class="shoot sh2"></span><span class="shoot sh3"></span>
+  <div id="syms"></div>
+  <div class="rocket-wrap" aria-hidden="true"><div class="trail"></div>
+    <svg class="rocket" viewBox="0 0 64 128"><g class="flame"><path d="M24 92Q32 132 40 92Z" fill="#FFBE55"/><path d="M28 92Q32 118 36 92Z" fill="#FFF6D6"/></g><path d="M18 62L4 94L18 84ZM46 62L60 94L46 84Z" fill="#DC6F2A"/><path d="M32 0C46 18 50 44 46 86H18C14 44 18 18 32 0Z" fill="#fff"/><path d="M32 0C40 10 44 20 46 30H18C20 20 24 10 32 0Z" fill="#DC6F2A"/><circle cx="32" cy="52" r="9" fill="#0B3F75" stroke="#9FD0FF" stroke-width="3"/><rect x="22" y="84" width="20" height="8" rx="2" fill="#667487"/></svg></div>
+  <div class="splash-stage">
+    <div class="orbit o1" aria-hidden="true"><i>π</i><i>√</i><i>∑</i></div>
+    <div class="orbit o2" aria-hidden="true"><i>÷</i><i>×</i><i>%</i></div>
+    <div class="splash-card"><img class="splash-logo" src="assets/logo.png" alt="Math Nova – CLB Gia sư Toán học"></div>
+  </div>
+  <p class="slogan">Bứt phá tư duy – Làm chủ môn Toán</p>
+  <div class="loadbar"><div id="loadfill"></div></div>
+  <p id="loadmsg">Đang khởi động tên lửa Nova…</p>
+</div>
+<button id="sfxBtn" class="sfx-btn" type="button" aria-label="Bật/tắt âm thanh">🔊</button>
+
+<!-- 2. ĐĂNG NHẬP (tài khoản do giáo viên cấp) -->
+<main id="login" class="screen hidden">
+  <div class="login-art">
+    <div class="login-brand"><img src="assets/logo.png" alt="Math Nova – CLB Gia sư Toán học"></div>
+    <h2>Chào mừng bạn trở lại!</h2>
+    <p>Đăng nhập bằng tài khoản thầy cô đã cấp để tiếp tục hành trình chinh phục môn Toán.</p>
+  </div>
+  <form id="loginForm" class="login-card" autocomplete="off">
+    <h2>Đăng nhập</h2>
+    <label for="u">Tên đăng nhập</label>
+    <input id="u" placeholder="Ví dụ: hs5001" required>
+    <label for="p">Mật khẩu</label>
+    <input id="p" type="password" placeholder="Mật khẩu thầy cô cấp" required>
+    <p id="err" class="err" role="alert"></p>
+    <button class="btn go" id="loginBtn" type="submit">Vào học</button>
+    <p class="hint">Chưa có tài khoản hoặc quên mật khẩu? Hãy hỏi thầy cô nhé.</p>
+  </form>
+</main>
+
+<!-- 3. ỨNG DỤNG -->
+<div id="app" class="screen hidden">
+  <header>
+    <div class="wrap bar">
+      <a href="#" class="logo" id="goHome" aria-label="Math Nova – Trang chủ"><img src="assets/logo.png" alt="Math Nova"></a>
+      <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top"><span class="ni">🏠</span>Trang chủ</a><a href="#" data-go="levelsPick"><span class="ni">📚</span>Khối lớp</a><a href="#" data-go="rankBoard"><span class="ni">🏆</span>Vinh danh</a></nav>
+      <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
+      <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
+    </div>
+    <div class="wrap rankstrip"><div class="rbar"><i id="rankFill"></i></div><small id="rankTxt"></small></div>
+  </header>
+
+  <!-- Trang chủ -->
+  <section id="levels" class="wrap view">
+    <div class="hero">
+      <div class="hero-sky" aria-hidden="true"><span class="fl" style="left:4%;top:14%;animation-delay:-0s">π</span><span class="fl" style="left:38%;top:8%;animation-delay:-2s">√</span><span class="fl" style="left:52%;top:78%;animation-delay:-4s">÷</span><span class="fl" style="left:8%;top:70%;animation-delay:-1s">∑</span><span class="fl" style="left:60%;top:20%;animation-delay:-3s">×</span><span class="fl" style="left:30%;top:56%;animation-delay:-5s">%</span></div>
+      <div class="hero-text">
+        <span class="eyebrow">🚀 CLB Gia sư Toán học</span>
+        <h1 class="title">Bứt phá tư duy,<br>làm chủ môn Toán</h1>
+        <p>Nền tảng học Toán từ Tiểu học đến THPT: tài liệu, bài tập, bài kiểm tra và trò chơi. Học mỗi ngày, tích lũy XP và leo hạng cùng Math Nova.</p>
+        <div class="hero-cta"><button class="btn go" id="open5" type="button">Chọn khối lớp →</button><a href="#" class="btn ghost" data-go="rankBoard">🏆 Bảng vinh danh</a></div>
+        <ul class="hero-stats"><li><b>12</b>khối lớp</li><li><b>7</b>hạng để leo</li><li><b>XP</b>mỗi ngày</li></ul>
+      </div>
+      <div class="hero-art"><span class="orb"></span><img src="assets/cover.png" alt="" class="hero-img"><span class="chip c1">π</span><span class="chip c2">+</span><span class="chip c3">√</span></div>
+    </div>
+    <div class="feats">
+      <div><b>📚</b><h3>Tài liệu</h3><p>Lý thuyết tổng ôn, sơ đồ tư duy</p></div>
       <div><b>✏️</b><h3>Bài tập</h3><p>Luyện tập theo mức độ, không giới hạn thời gian</p></div>
+      <div><b>📝</b><h3>Kiểm tra</h3><p>Đề test, bản đồ năng lực cá nhân</p></div>
+      <div><b>🎮</b><h3>Trò chơi</h3><p>Vừa chơi vừa học, nhận XP mỗi ngày</p></div>
+    </div>
+    <section id="levelsPick" class="lvsec"><h2>Chọn khối lớp của bạn</h2><p class="muted">Từ Tiểu học đến THPT, chọn đúng lớp để vào học.</p><div id="levelGrid" class="lvgrid"></div></section>
+    <section id="rankBoard" class="honor" aria-label="Bảng vinh danh"></section>
+  </section>
+
+  <!-- Toán 5 -->
+  <section id="grade" class="wrap view hidden">
+    <button class="back" id="backLevels">← Trang chủ</button>
+    <p class="crumb" id="crumb"></p>
+    <h1 class="title" id="gTitle">Toán</h1>
+    <div class="gswitch" id="gswitch" aria-label="Đổi lớp"></div>
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="docs">Tài liệu</button>
+      <button data-tab="ex">Bài tập</button>
+      <button data-tab="test">Kiểm tra</button>
+      <button data-tab="games">Trò chơi</button>
+    </div>
+    <div id="docs" class="panel">
+      <div class="grid" id="docList"></div>
+    </div>
+    <div id="ex" class="panel hidden"><div class="grid" id="exList"></div></div>
+    <div id="test" class="panel hidden"><div class="grid" id="testList"></div></div>
+    <div id="games" class="panel hidden">
+      <div class="grid" id="gameList"></div>
+      <div id="arena" class="arena hidden">
+        <div class="arena-top"><span>⏱ <b id="time">30</b>s</span><span>Điểm: <b id="score">0</b></span></div>
+        <h2 id="gq"></h2>
+        <input id="ga" inputmode="decimal" aria-label="Đáp án" placeholder="Nhập đáp án (dùng dấu phẩy: 5,5)" autocomplete="off">
+        <button class="btn go" id="gok" type="button">Trả lời</button>
+        <p id="gmsg" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+  <footer class="foot"><img src="assets/logo.png" alt="Math Nova"><p>Bứt phá tư duy – Làm chủ môn Toán</p><small>© Math Nova – CLB Gia sư Toán học</small></footer>
+</div>
+<div id="quiz" class="quiz hidden" role="dialog" aria-modal="true">
+  <div id="qmain" class="qbox">
+    <div class="qtop"><b id="qtitle"></b><span>⏱ <b id="qtime">15:00</b></span></div>
+    <div class="qprog"><i id="qbar"></i></div>
+    <p class="qlv" id="qlv"></p>
+    <h2 id="qtext"></h2>
+    <div id="qopts" class="qopts"></div>
+    <div class="qnav"><button class="btn ghost" id="qquit" type="button">Thoát</button><button class="btn go" id="qnext" type="button" style="width:auto"></button></div>
+  </div>
+  <div id="qres" class="qbox hidden"></div>
+</div>
+<div id="dt" class="quiz hidden" role="dialog" aria-modal="true"><div id="dtbox" class="qbox"></div></div>
+<div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+</body>
+</html>
       <div><b>📝</b><h3>Kiểm tra</h3><p>Đề test, bản đồ năng lực cá nhân</p></div>
       <div><b>🎮</b><h3>Trò chơi</h3><p>Vừa chơi vừa học, nhận XP mỗi ngày</p></div>
     </div>
