@@ -1497,3 +1497,105 @@ img.fl{height:auto;opacity:.16}
 .ladder{display:grid;grid-template-columns:repeat(7,1fr)}
 .ladder span{min-width:0;padding:8px 4px;text-align:center}
 @media (max-width:760px){.ladder{grid-template-columns:repeat(4,1fr)}}
+
+
+/* =====================================================
+   V7 – THIẾT KẾ LẠI: MÀN HÌNH CHỜ ĐỘNG · MOBILE-FIRST · FONT DỄ ĐỌC · ÂM THANH
+   ===================================================== */
+:root{--px:"Baloo 2","Be Vietnam Pro",system-ui,sans-serif;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
+html{-webkit-text-size-adjust:100%}
+body{overscroll-behavior-y:none;touch-action:manipulation}
+input,select,textarea{font-size:16px}
+.btn,.tabs button,.gswitch button,.gchips button,.qopts button{min-height:44px}
+
+/* ---- Nút âm thanh ---- */
+.sfx-btn{position:fixed;right:12px;bottom:calc(84px + var(--safe-b));z-index:100;display:flex;align-items:center;gap:8px;height:44px;min-width:44px;padding:0 12px;border:1px solid rgba(255,255,255,.35);border-radius:99px;background:rgba(11,27,74,.82);backdrop-filter:blur(8px);color:#fff;font:600 .85rem var(--px);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+#splash:not(.hidden)~.sfx-btn{top:calc(12px + var(--safe-t));bottom:auto}
+body:not(.sfx-on) #splash:not(.hidden)~.sfx-btn::after{content:"Chạm để bật âm thanh";animation:blinkpx 1.4s ease-in-out infinite}
+@media(min-width:901px){.sfx-btn{bottom:20px}}
+
+/* ---- Màn hình chờ: ảnh vũ trụ + motion graphic ---- */
+#splash{background:#070B1F;padding:calc(20px + var(--safe-t)) 20px calc(20px + var(--safe-b))}
+.sp-bg{position:absolute;inset:-6%;background:url(assets/splash-space.jpg) center/cover no-repeat;animation:kenburns 22s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1) translate(0,0)}to{transform:scale(1.12) translate(-2%,1.5%)}}
+.sp-veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(7,11,31,0) 0,rgba(7,11,31,.45) 70%),linear-gradient(180deg,rgba(7,11,31,.25),rgba(7,11,31,.7))}
+.stars{opacity:.55}
+.shoot{position:absolute;right:-10%;height:2px;width:150px;border-radius:2px;background:linear-gradient(90deg,#fff,rgba(190,150,255,.6) 40%,transparent);filter:drop-shadow(0 0 6px #c9a8ff);opacity:0;transform:rotate(-35deg);animation:shoot 6s ease-in infinite}
+.sh1{top:6%;animation-delay:.6s}.sh2{top:22%;width:110px;animation-delay:2.8s;animation-duration:7s}.sh3{top:40%;width:90px;animation-delay:4.6s;animation-duration:8s}
+@keyframes shoot{0%{opacity:0;transform:translate(0,0) rotate(-35deg)}3%{opacity:1}22%{opacity:1;transform:translate(-95vw,67vh) rotate(-35deg)}26%,100%{opacity:0;transform:translate(-100vw,70vh) rotate(-35deg)}}
+.sym{opacity:.4}
+.splash-stage{position:relative;z-index:1;display:grid;place-items:center;width:min(86vw,520px);aspect-ratio:1.15}
+.splash-card{position:relative;overflow:hidden;padding:14px 26px;background:rgba(255,255,255,.95);border-radius:28px;box-shadow:0 0 0 1px rgba(255,255,255,.5),0 0 80px rgba(150,120,255,.5),0 24px 50px rgba(0,0,0,.45);animation:float 3.4s ease-in-out infinite}
+.splash-card::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.9) 50%,transparent 60%);transform:translateX(-120%);animation:shine 4s ease-in-out 1s infinite}
+@keyframes shine{40%,100%{transform:translateX(120%)}}
+.splash-logo{width:min(340px,64vw)}
+.orbit{position:absolute;left:50%;top:50%;border:1px dashed rgba(255,255,255,.28);border-radius:50%;aspect-ratio:1;animation:spin 20s linear infinite}
+.o1{width:100%;margin:calc(-50%) 0 0 calc(-50%)}.o2{width:78%;margin:calc(-39%) 0 0 calc(-39%);animation-duration:14s;animation-direction:reverse;border-color:rgba(255,190,85,.35)}
+.orbit i{position:absolute;display:grid;place-items:center;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(4px);color:#fff;font:800 1.1rem var(--px);font-style:normal;animation:spin 20s linear infinite reverse}
+.o2 i{animation-direction:normal;animation-duration:14s;color:var(--yellow)}
+.orbit i:nth-child(1){left:50%;top:0}.orbit i:nth-child(2){left:93%;top:75%}.orbit i:nth-child(3){left:7%;top:75%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.slogan{position:relative;color:#fff;font:600 clamp(.95rem,3.8vw,1.2rem) var(--px);letter-spacing:.02em;text-shadow:0 2px 12px rgba(0,0,0,.6);text-align:center;margin:6px 0 18px}
+.loadbar{position:relative;height:12px;width:min(340px,76vw);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);box-shadow:0 0 18px rgba(150,120,255,.35)}
+#loadfill{box-shadow:0 0 14px rgba(95,224,210,.8)}
+#loadmsg{position:relative;color:#E4ECFF;text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.rocket-wrap{left:auto;right:8%;bottom:6%;width:clamp(56px,16vw,92px)}
+#splash.launch .splash-stage{opacity:.5;transition:opacity .8s}
+@media(max-height:620px){.splash-stage{width:min(62vw,360px)}.rocket-wrap{display:none}}
+
+/* ---- Nền vũ trụ cho Đăng nhập & Hero ---- */
+#login{background:#0B1B4A}
+.login-art{background:linear-gradient(180deg,rgba(7,11,31,.45),rgba(7,11,31,.78)),url(assets/splash-space.jpg) center/cover}
+.hero{background:radial-gradient(circle at 82% 18%,rgba(47,85,208,.55) 0,transparent 46%),linear-gradient(135deg,rgba(11,27,74,.86),rgba(11,63,117,.72) 60%,rgba(27,47,122,.85)),url(assets/splash-space.jpg) center/cover}
+
+/* ---- FONT PIXEL: bỏ Press Start 2P / VT323 (không có chữ Việt) → font có dấu, kiểu pixel bằng viền & bóng cứng ---- */
+.arcade h3,.arcade small,#dt,#dtbox h2,#dtbox h3,#dtbox .qopts button,#dtbox .dtq{font-family:var(--px)}
+.arcade h3{font-size:1.3rem;font-weight:800;line-height:1.2}
+.arcade small{font-size:.95rem;font-weight:500}
+.arcade .tag,.px-cover b,.arcade .btn.go,.px-t,.px-sub,#dt .btn,#dtbox .gain,.dg-boom{font-family:var(--px);font-weight:800;letter-spacing:.02em}
+.arcade .tag{font-size:.78rem;padding:4px 10px}
+.px-cover b{font-size:1.1rem;animation:none;text-shadow:3px 3px 0 #120f33}
+.arcade .btn.go{font-size:.95rem;padding:12px 16px}
+.px-t{font-size:.95rem;text-shadow:2px 2px 0 #120f33}.px-t.clear{font-size:1.25rem}
+.px-sub{font-size:.9rem}
+#dt .btn{font-size:.95rem;line-height:1.3;padding:12px 16px;min-height:44px}#dt .btn.sm{font-size:.85rem;padding:8px 12px}
+#dtbox{font-size:1.1rem;line-height:1.5}
+#dtbox h3{font-size:1.4rem;font-weight:800}
+#dtbox .dtq,#dtbox .dg-q .dtq{font-size:1.35rem;font-weight:700;line-height:1.35}
+#dtbox .qopts button{font-size:1.1rem;font-weight:600;line-height:1.35;padding:14px 16px;text-align:left}
+#dtbox .dtfb{font-size:1.05rem;line-height:1.5}
+#dtbox .gain{font-size:1.3rem}
+.dg-boom{font-size:1.05rem}
+@media(max-width:640px){#dtbox{padding:16px;font-size:1.02rem}#dtbox .dtq,#dtbox .dg-q .dtq{font-size:1.15rem}#dtbox .qopts button{font-size:1rem}.dg-boom{font-size:.8rem}.px-t{font-size:.85rem}.arcade h3{font-size:1.2rem}}
+
+/* ---- MOBILE: thanh điều hướng dưới, thao tác một tay ---- */
+@media(max-width:900px){
+  #app{padding-bottom:calc(76px + var(--safe-b))}
+  header{backdrop-filter:none;background:#fff}
+  .nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;padding:6px 8px calc(6px + var(--safe-b));justify-content:space-around;background:rgba(255,255,255,.97);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(20,40,70,.1)}
+  .nav a{flex-direction:column;gap:1px;min-width:78px;padding:6px 12px;font-size:.74rem;border-radius:14px}
+  .nav .ni{font-size:1.35rem;line-height:1}
+  #toast{bottom:calc(88px + var(--safe-b));max-width:90vw;text-align:center}
+}
+.nav .ni{font-size:1.1rem}
+@media(max-width:640px){
+  .wrap{padding-left:14px;padding-right:14px}
+  .hero{padding:22px 18px;border-radius:26px}
+  .hero .title{font-size:2rem}.hero p{font-size:.98rem;margin-bottom:16px}
+  .hero-cta{flex-direction:column;align-items:stretch}.hero-cta .btn{text-align:center}
+  .hero-stats{gap:20px}
+  .feats{grid-template-columns:repeat(2,1fr);gap:12px}.feats>div{padding:14px}.feats b{width:52px;height:52px}.feats b img{width:38px;height:38px}
+  .feats p{font-size:.82rem}
+  .lv{padding:20px}.lvsec h2,.honor h2{font-size:1.5rem}
+  .honor{padding:20px 14px;border-radius:22px}
+  .tabs{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 16px;padding:0 14px 4px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}.tabs button{flex:none;padding:9px 18px}
+  .gswitch button{width:44px;height:44px}
+  .grid{grid-template-columns:1fr;gap:14px}
+  .title{font-size:1.7rem}
+  .login-card{padding:26px 20px;border-radius:24px;margin-bottom:24px}
+  .quiz{padding:10px}.qbox{padding:18px;border-radius:20px}
+  .arena{padding:20px 14px}.arena h2{font-size:2.2rem}
+  .foot{margin-top:50px}
+}
+@media(hover:none){.card:hover,.lv:hover,.feats>div:hover{transform:none}}
