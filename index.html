@@ -45,6 +45,7 @@
   <header>
     <div class="wrap bar">
       <a href="#" class="logo" id="goHome" aria-label="Math Nova – Trang chủ"><img src="assets/logo.png" alt="Math Nova"></a>
+      <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top">Trang chủ</a><a href="#" data-go="levelsPick">Khối lớp</a><a href="#" data-go="rankBoard">Vinh danh</a></nav>
       <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
       <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
     </div>
@@ -57,18 +58,27 @@
       <div>
         <span class="eyebrow">CLB Gia sư Toán học</span>
         <h1 class="title">Bứt phá tư duy,<br>làm chủ môn Toán</h1>
-        <p>Tài liệu, bài tập, bài kiểm tra và trò chơi – học mỗi ngày, tích lũy XP và leo hạng cùng Math Nova.</p>
-        <button class="btn go" id="open5" type="button">Vào học Toán lớp 5 →</button>
+        <p>Nền tảng học Toán từ Tiểu học đến THPT: tài liệu, bài tập, bài kiểm tra và trò chơi. Học mỗi ngày, tích lũy XP và leo hạng cùng Math Nova.</p>
+        <button class="btn go" id="open5" type="button">Chọn khối lớp →</button>
       </div>
       <img src="assets/cover.png" alt="" class="hero-img">
     </div>
+    <div class="feats">
+      <div><b>📚</b><h3>Tài liệu</h3><p>Lý thuyết tổng ôn, sơ đồ tư duy</p></div>
+      <div><b>✏️</b><h3>Bài tập</h3><p>Luyện tập theo mức độ, không giới hạn thời gian</p></div>
+      <div><b>📝</b><h3>Kiểm tra</h3><p>Đề test, bản đồ năng lực cá nhân</p></div>
+      <div><b>🎮</b><h3>Trò chơi</h3><p>Vừa chơi vừa học, nhận XP mỗi ngày</p></div>
+    </div>
+    <section id="levelsPick" class="lvsec"><h2>Chọn khối lớp của bạn</h2><p class="muted">Từ Tiểu học đến THPT, chọn đúng lớp để vào học.</p><div id="levelGrid" class="lvgrid"></div></section>
     <section id="rankBoard" class="honor" aria-label="Bảng vinh danh"></section>
   </section>
 
   <!-- Toán 5 -->
-  <section id="grade5" class="wrap view hidden">
+  <section id="grade" class="wrap view hidden">
     <button class="back" id="backLevels">← Trang chủ</button>
-    <h1 class="title">Toán lớp 5</h1>
+    <p class="crumb" id="crumb"></p>
+    <h1 class="title" id="gTitle">Toán</h1>
+    <div class="gswitch" id="gswitch" aria-label="Đổi lớp"></div>
     <div class="tabs" role="tablist">
       <button class="on" data-tab="docs">Tài liệu</button>
       <button data-tab="ex">Bài tập</button>
@@ -91,7 +101,7 @@
       </div>
     </div>
   </section>
-  <footer class="foot"><span>© Math Nova – CLB Gia sư Toán học</span></footer>
+  <footer class="foot"><img src="assets/logo.png" alt="Math Nova"><p>Bứt phá tư duy – Làm chủ môn Toán</p><small>© Math Nova – CLB Gia sư Toán học</small></footer>
 </div>
 <div id="quiz" class="quiz hidden" role="dialog" aria-modal="true">
   <div id="qmain" class="qbox">
