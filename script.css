@@ -1621,3 +1621,15 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 @media(max-width:640px){.tabs{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}}
 #toast{opacity:0;visibility:hidden;transition:transform .3s,opacity .3s,visibility .3s}
 #toast.show{opacity:1;visibility:visible}
+
+/* ---- V7.2: tab vừa khít màn hình điện thoại, không phải cuộn ngang ---- */
+@media(max-width:640px){
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;overflow:visible;margin:0 0 16px;padding:0;-webkit-mask-image:none;mask-image:none}
+  .tabs button{flex:none;width:100%;padding:10px 2px;font-size:.88rem;text-align:center;white-space:nowrap}
+  .arena input::placeholder{font-size:.85rem}
+  .arena input{font-size:1.2rem}
+}
+
+/* ---- V7.3: màn hình chờ biến mất hẳn sau khi vào web ---- */
+#splash.out{visibility:hidden;z-index:-1;pointer-events:none;transition:opacity .6s,transform .6s,visibility 0s .65s}
+#splash.out *,#splash.out *::before,#splash.out *::after{animation-play-state:paused!important}
