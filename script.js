@@ -10,14 +10,14 @@ const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.in
 // Thêm tài liệu mới: {t:'Tên', type:'PDF', topic:'Chủ đề', file:'assets/ten-file.pdf', img:'assets/anh-bia.png'}
 // (không có img thì tự dùng ảnh bìa mặc định)
 const DOCS = [
-  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'}
+  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', grade:5, topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'}
 ];
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
 
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
-function view(id){['levels','grade5'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
+function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
 
 /* ---- Màn hình chờ ---- */
 (function splash(){
@@ -92,7 +92,8 @@ $('logout').onclick=async()=>{
   btn.disabled=false;show('login');
 };
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
-$('open5').onclick=()=>view('grade5');
+$('open5').onclick=()=>$('levelsPick').scrollIntoView({behavior:'smooth'});
+document.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();view('levels');const t=a.dataset.go;setTimeout(()=>t==='top'?window.scrollTo(0,0):$(t).scrollIntoView({behavior:'smooth'}),60)});
 $('backLevels').onclick=()=>view('levels');
 
 /* ---- Toán 5 ---- */
@@ -102,19 +103,28 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
 });
 const COVER='assets/cover.png';
 const cov=s=>`<div class="cover"><img src="${s||COVER}" alt="" loading="lazy"></div>`;
-function renderDocs(){
-  $('docList').innerHTML=DOCS.map((d,i)=>
-    `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${i})">Xem tài liệu</button></div></article>`).join('');
+let curG=5;
+const LEVELS=[
+ {n:'Tiểu học',r:'Lớp 1 – Lớp 5',ic:'🎒',c:'#2F8F83',g:[1,2,3,4,5]},
+ {n:'Trung học cơ sở',r:'Lớp 6 – Lớp 9',ic:'📐',c:'#DC6F2A',g:[6,7,8,9]},
+ {n:'Trung học phổ thông',r:'Lớp 10 – Lớp 12',ic:'🎓',c:'#7D69B0',g:[10,11,12]}];
+$('levelGrid').innerHTML=LEVELS.map(L=>`<article class="lv" style="--c:${L.c}"><div class="lvic">${L.ic}</div><h3>${L.n}</h3><p>${L.r}</p><div class="gchips">${L.g.map(g=>`<button type="button" onclick="openGrade(${g})">Lớp ${g}</button>`).join('')}</div></article>`).join('');
+function openGrade(g){
+  curG=g;stopGame();$('arena').classList.add('hidden');
+  $('crumb').textContent=LEVELS.find(x=>x.g.includes(g)).n;$('gTitle').textContent='Toán lớp '+g;
+  $('gswitch').innerHTML=LEVELS.flatMap(x=>x.g).map(n=>`<button type="button" class="${n===g?'on':''}" onclick="openGrade(${n})">${n}</button>`).join('');
+  renderEx();view('grade');document.querySelector('.tabs button').click();
 }
-$('gameList').innerHTML=
-  `<article class="card">${cov()}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" id="startGame">Bắt đầu chơi</button></div></article>`;
-renderDocs();
+const docsHtml=()=>DOCS.filter(d=>d.grade===curG).map(d=>
+  `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${DOCS.indexOf(d)})">Xem tài liệu</button></div></article>`).join('');
+const gameCard=()=>`<article class="card">${cov()}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" onclick="startGame()">Bắt đầu chơi</button></div></article>`;
+const emp=h=>h.trim()?h:`<p class="empty">Nội dung lớp ${curG} đang được thầy cô biên soạn và sẽ sớm có tại đây.</p>`;
 
 /* ---- Game nhẩm nhanh ---- */
 let g=null,gTimer=null;
 const vn=n=>String(n).replace('.',','); // số thập phân kiểu Việt Nam: 5,5
 function stopGame(){clearInterval(gTimer);gTimer=null;g=null}
-$('startGame').onclick=()=>{
+function startGame(){
   clearInterval(gTimer); // dọn đồng hồ cũ, tránh chạy 2 đồng hồ và nhận XP 2 lần
   const me=g={score:0,time:30,ans:0,end:Date.now()+30000};
   $('arena').classList.remove('hidden');$('score').textContent=0;$('time').textContent=30;$('gmsg').textContent='';
@@ -131,7 +141,7 @@ $('startGame').onclick=()=>{
         :'Bạn chưa đúng câu nào, thử lại nhé! 💪';
     }
   },250);
-};
+}
 function next(){
   const a=Math.round((Math.random()*20+1)*10)/10,b=Math.round((Math.random()*9+1)*10)/10,op=Math.random()<.5?'+':'−';
   const r=op==='+'?a+b:a-b;
@@ -234,6 +244,7 @@ const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN D
 const QUIZZES=[Q10_BASIC,Q10_ADV];
 let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
+  if(Z.grade!==curG)return '';
   const best=user.done[Z.id];
   return `<article class="card">${cov()}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
   <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
@@ -241,7 +252,10 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></div></article>`;
 }).join('');
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
-function renderEx(){$('exList').innerHTML=EXERCISES_LIVE();$('testList').innerHTML=dtCard()}
+function renderEx(){
+  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=emp(EXERCISES_LIVE());
+  $('testList').innerHTML=emp(curG===5?dtCard():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');
+}
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
 function startQuiz(k){
@@ -261,9 +275,9 @@ function showQ(){
   const q=qz.qs[qz.i],n=qz.qs.length;
   $('qbar').style.width=(qz.i/n*100)+'%';
   $('qlv').textContent=`Câu ${qz.i+1}/${n} · ${LV_NAME[q.l]}`;
-  $('qtext').textContent=q.q;$('qopts').innerHTML='';
+  $('qtext').innerHTML=fmt(q.q);$('qopts').innerHTML='';
   q.opts.forEach((o,k)=>{
-    const b=document.createElement('button');b.type='button';b.textContent=String.fromCharCode(65+k)+'. '+o;
+    const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+k)+'. '+fmt(o);
     b.className=qz.sel[qz.i]===o?'on':'';
     b.onclick=()=>{qz.sel[qz.i]=o;[...$('qopts').children].forEach(x=>x.classList.toggle('on',x===b));$('qnext').disabled=false};
     $('qopts').appendChild(b);
@@ -285,7 +299,7 @@ function finishQuiz(){
   $('qmain').classList.add('hidden');$('qres').classList.remove('hidden');$('quiz').scrollTop=0;
   $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${ok===n?'🏆':ok>=n*.6?'👍':'💪'}</h2>
   <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
-  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(x=>`<div class="rv"><b>Câu ${x.i+1}.</b> ${x.q.q}<br><span class="bad">Bạn chọn: ${qz.sel[x.i]??'(bỏ trống)'}</span><br><span class="good">Đáp án: ${x.q.o[0]}</span></div>`).join(''):'<p>Bạn trả lời đúng tất cả!</p>'}
+  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(x=>`<div class="rv"><b>Câu ${x.i+1}.</b> ${fmt(x.q.q)}<br><span class="bad">Bạn chọn: ${fmt(qz.sel[x.i]??'(bỏ trống)')}</span><br><span class="good">Đáp án: ${fmt(x.q.o[0])}</span></div>`).join(''):'<p>Bạn trả lời đúng tất cả!</p>'}
   <div class="qnav"><button class="btn ghost" onclick="closeQuiz()">Đóng</button><button class="btn go" style="width:auto" onclick="startQuiz()">Làm lại</button></div>`;
 }
 const DT_T={tn:"Số tự nhiên",pt:"Phép tính",ps:"Phân số",tp:"Phân số thập phân",pp:"Phép tính phân số",hs:"Hỗn số",hh:"Hình học & đo lường"};
@@ -309,6 +323,11 @@ const DT_Q=[
 
 /* ===== BẢNG VINH DANH (xếp theo XP của tất cả học sinh, đọc từ database) ===== */
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fr=(n,d)=>`<span class="fr"><i>${n}</i><i>${d}</i></span>`;
+// Chuyển "2 3/4" thành hỗn số và "3/5" thành phân số xếp chồng (đã escape HTML)
+const fmt=s=>esc(s)
+  .replace(/(?<![\d,])(\d+) (\d+)\/(\d+)(?![\d])/g,(_,w,n,d)=>`<span class="mx">${w}${fr(n,d)}</span>`)
+  .replace(/(?<![\d,])(\d+)\/(\d+)(?![\d])/g,(_,n,d)=>fr(n,d));
 const countDone=d=>d&&typeof d==='object'?Object.keys(d).length:0;
 let boardF='all',boardRows=null,boardSeq=0;
 function setBoard(f){boardF=f;drawBoard()}
@@ -368,8 +387,8 @@ function dtShow(){
   $('dtbox').innerHTML=`<div class="qtop"><b>🐵 Hành trình Đại Thánh</b><span><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button> <button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
   <div class="qprog"><i style="width:${dt.i/DT_N*100}%"></i></div>
   <p class="qlv">Câu ${dt.i+1}/${DT_N} · ⭐ ${dt.xp} · 🔥 ${dt.st} · ${DT_Q[dt.i][1]} · ${DT_T[q[0]]}</p>
-  <h2 class="dtq">${q[2]}</h2>
-  <div class="qopts" id="dtopts">${dt.cur.map((o,k)=>`<button type="button" data-k="${k}">${'ABCD'[k]}. ${o.t}</button>`).join('')}</div><div id="dtfb"></div>`;
+  <h2 class="dtq">${fmt(q[2])}</h2>
+  <div class="qopts" id="dtopts">${dt.cur.map((o,k)=>`<button type="button" data-k="${k}">${'ABCD'[k]}. ${fmt(o.t)}</button>`).join('')}</div><div id="dtfb"></div>`;
   document.querySelectorAll('#dtopts button').forEach(b=>b.onclick=()=>dtPick(+b.dataset.k));
   $('dtmute').onclick=()=>{dtMuted=!dtMuted;try{localStorage.setItem('mute',dtMuted?'1':'0')}catch(_){}$('dtmute').textContent=dtMuted?'🔇':'🔊'};
   $('dtquit').onclick=()=>{if(confirm('Thoát bây giờ sẽ không được tính điểm. Bạn chắc chứ?'))dtClose()};
@@ -379,7 +398,7 @@ function dtPick(k){
   document.querySelectorAll('#dtopts button').forEach((b,j)=>{b.disabled=true;if(dt.cur[j].c)b.classList.add('ok');else if(j===k)b.classList.add('no')});
   if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);dt.xp+=6+(dt.st>=3?2:0)}else dt.st=0;
   dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'ok':'no');
-  $('dtfb').innerHTML=`<div class="dtfb ${ok?'ok':'no'}">${ok?(dt.st>=3?`🔥 Chuỗi ${dt.st} câu đúng! `:'✅ Chính xác! '):'❌ Chưa đúng rồi. '}${q[5]}</div>
+  $('dtfb').innerHTML=`<div class="dtfb ${ok?'ok':'no'}">${ok?(dt.st>=3?`🔥 Chuỗi ${dt.st} câu đúng! `:'✅ Chính xác! '):'❌ Chưa đúng rồi. '}${fmt(q[5])}</div>
   <button type="button" class="btn go" style="width:auto;margin-top:14px" id="dtnx">${dt.i<DT_N-1?'Câu tiếp theo →':'Xem kết quả 🏆'}</button>`;
   $('dtnx').onclick=()=>{dt.i++;dt.i<DT_N?dtShow():dtEnd()};
 }
@@ -396,7 +415,7 @@ function dtEnd(){
   $('dtbox').innerHTML=`<div style="text-align:center"><div style="font-size:3.5rem">${lv[0]}</div><h2>${lv[1]}</h2><h2>${n}/${DT_N} câu đúng</h2>
   <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ⭐ ${dt.xp} sao · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p></div>
   <h3>Bản đồ năng lực</h3>${rows}<p class="muted">${weak.length?'Cần ôn thêm: <b>'+weak.join(', ')+'</b>.':'Bạn đúng ở mọi nội dung. Tuyệt vời!'}</p>
-  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${a.q[2]}<br><span class="bad">Bạn chọn: ${a.pick}</span><br><span class="good">Đáp án: ${a.q[3][a.q[4]]}</span><br><i>${a.q[5]}</i></div>`).join(''):''}
+  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${fmt(a.q[2])}<br><span class="bad">Bạn chọn: ${fmt(a.pick)}</span><br><span class="good">Đáp án: ${fmt(a.q[3][a.q[4]])}</span><br><em>${fmt(a.q[5])}</em></div>`).join(''):''}
   <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart()">Chơi lại</button></div>`;
   $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
 }
