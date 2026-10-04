@@ -1510,8 +1510,8 @@ input,select,textarea{font-size:16px}
 
 /* ---- Nút âm thanh ---- */
 .sfx-btn{position:fixed;right:12px;bottom:calc(84px + var(--safe-b));z-index:100;display:flex;align-items:center;gap:8px;height:44px;min-width:44px;padding:0 12px;border:1px solid rgba(255,255,255,.35);border-radius:99px;background:rgba(11,27,74,.82);backdrop-filter:blur(8px);color:#fff;font:600 .85rem var(--px);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3)}
-#splash:not(.hidden)~.sfx-btn{top:calc(12px + var(--safe-t));bottom:auto}
-body:not(.sfx-on) #splash:not(.hidden)~.sfx-btn::after{content:"Chạm để bật âm thanh";animation:blinkpx 1.4s ease-in-out infinite}
+#splash:not(.hidden):not(.out)~.sfx-btn{top:calc(12px + var(--safe-t));bottom:auto}
+body:not(.sfx-on) #splash:not(.hidden):not(.out)~.sfx-btn::after{content:"Chạm để bật âm thanh";animation:blinkpx 1.4s ease-in-out infinite}
 @media(min-width:901px){.sfx-btn{bottom:20px}}
 
 /* ---- Màn hình chờ: ảnh vũ trụ + motion graphic ---- */
@@ -1599,3 +1599,25 @@ body:not(.sfx-on) #splash:not(.hidden)~.sfx-btn::after{content:"Chạm để b�
   .foot{margin-top:50px}
 }
 @media(hover:none){.card:hover,.lv:hover,.feats>div:hover{transform:none}}
+
+/* ---- V7.1: sửa lỗi hiển thị trên điện thoại ---- */
+/* nút âm thanh: lên góc trên ở trang đăng nhập; ẩn khi đang làm bài / chơi game (game có nút riêng) */
+body:has(#login:not(.hidden)) .sfx-btn{top:calc(12px + var(--safe-t));bottom:auto}
+body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{display:none}
+.sfx-btn{opacity:.92}
+/* đăng nhập: gọn phần trên để thấy ngay ô nhập và nút "Vào học" */
+@media(max-width:800px){
+  #login{min-height:100dvh;align-content:start}
+  .login-art{padding:calc(18px + var(--safe-t)) 20px 6px;gap:4px}
+  .login-brand{padding:10px 18px;border-radius:18px}
+  .login-brand img{width:min(170px,46vw)}
+  .login-art h2{margin-top:10px;font-size:1.45rem}
+  .login-art p{font-size:.92rem;max-width:none}
+  .login-card{margin:10px auto 24px}
+  .la-st,.la-alien{display:none}
+}
+@media(max-width:800px) and (max-height:700px){.login-art p{display:none}}
+/* tab cuộn ngang: gợi ý còn tab phía sau */
+@media(max-width:640px){.tabs{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}}
+#toast{opacity:0;visibility:hidden;transition:transform .3s,opacity .3s,visibility .3s}
+#toast.show{opacity:1;visibility:visible}
