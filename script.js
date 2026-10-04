@@ -15,6 +15,7 @@ const DOCS = [
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
 
+const stk=(n,c='')=>`<img class="${c}" src="assets/stk/${n}.webp" alt="">`;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['splash','login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id&&s!=='splash'))}
 function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
@@ -22,11 +23,11 @@ function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v
 /* ---- Màn hình chờ ---- */
 (function splash(){
   const boot=restoreSession(); // kiểm tra phiên đăng nhập ngay trong lúc chờ
-  const syms=['+','−','×','÷','=','π','√','∑','%','²','7','3','9'];
-  for(let i=0;i<22;i++){
-    const s=document.createElement('span');s.className='sym';s.textContent=syms[i%syms.length];
-    s.style.left=Math.random()*100+'%';s.style.fontSize=(1.4+Math.random()*2.4)+'rem';
-    s.style.animationDuration=(6+Math.random()*7)+'s';s.style.animationDelay=(-Math.random()*8)+'s';
+  const STK=['op-plus','op-minus','op-times','op-div','num-1','num-2','num-3','pi','sqrt','star-sm'];
+  for(let i=0;i<16;i++){
+    const s=document.createElement('img');s.className='sym';s.alt='';s.src='assets/stk/'+STK[i%STK.length]+'.webp';
+    s.style.left=Math.random()*100+'%';s.style.width=(30+Math.random()*34)+'px';
+    s.style.animationDuration=(7+Math.random()*7)+'s';s.style.animationDelay=(-Math.random()*8)+'s';
     $('syms').appendChild(s);
   }
   const msgs=['Đang khởi động tên lửa Nova…','Đang xếp hàng các con số…','Đang mài bút chì thần kỳ…','Sắp xong rồi, chuẩn bị nhé!'];
@@ -37,7 +38,7 @@ function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v
   },750);
   async function done(){
     const p=await boot;
-    $('loadmsg').textContent='Phóng tên lửa! 🚀';$('splash').classList.add('launch');
+    $('loadmsg').textContent='Phóng tên lửa Nova!';$('splash').classList.add('launch');
     await new Promise(r=>setTimeout(r,1300));
     $('splash').classList.add('out');
     if(p)enter(p);else show('login');
@@ -103,14 +104,14 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   ['docs','ex','test','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
 });
-const COVER='assets/cover.png';
-const cov=s=>`<div class="cover"><img src="${s||COVER}" alt="" loading="lazy"></div>`;
+const COV={doc:'formula',ex:'al-pencil',test:'board',game:'rk-blue'}; // ảnh bìa mặc định theo loại thẻ
+const cov=(s,k='doc')=>`<div class="cover${s?'':' stk-cover'}"><img src="${s||'assets/stk/'+COV[k]+'.webp'}" alt="" loading="lazy"></div>`;
 let curG=5;
 const LEVELS=[
- {n:'Tiểu học',r:'Lớp 1 – Lớp 5',ic:'🎒',c:'#2F8F83',g:[1,2,3,4,5]},
- {n:'Trung học cơ sở',r:'Lớp 6 – Lớp 9',ic:'📐',c:'#DC6F2A',g:[6,7,8,9]},
- {n:'Trung học phổ thông',r:'Lớp 10 – Lớp 12',ic:'🎓',c:'#7D69B0',g:[10,11,12]}];
-$('levelGrid').innerHTML=LEVELS.map(L=>`<article class="lv" style="--c:${L.c}"><div class="lvic">${L.ic}</div><h3>${L.n}</h3><p>${L.r}</p><div class="gchips">${L.g.map(g=>`<button type="button" onclick="openGrade(${g})">Lớp ${g}</button>`).join('')}</div></article>`).join('');
+ {n:'Tiểu học',r:'Lớp 1 – Lớp 5',ic:'al-idea',c:'#2F8F83',g:[1,2,3,4,5]},
+ {n:'Trung học cơ sở',r:'Lớp 6 – Lớp 9',ic:'protractor',c:'#DC6F2A',g:[6,7,8,9]},
+ {n:'Trung học phổ thông',r:'Lớp 10 – Lớp 12',ic:'pi',c:'#7D69B0',g:[10,11,12]}];
+$('levelGrid').innerHTML=LEVELS.map(L=>`<article class="lv" style="--c:${L.c}"><div class="lvic">${stk(L.ic)}</div><h3>${L.n}</h3><p>${L.r}</p><div class="gchips">${L.g.map(g=>`<button type="button" onclick="openGrade(${g})">Lớp ${g}</button>`).join('')}</div></article>`).join('');
 function openGrade(g){
   curG=g;stopGame();$('arena').classList.add('hidden');
   $('crumb').textContent=LEVELS.find(x=>x.g.includes(g)).n;$('gTitle').textContent='Toán lớp '+g;
@@ -119,7 +120,7 @@ function openGrade(g){
 }
 const docsHtml=()=>DOCS.filter(d=>d.grade===curG).map(d=>
   `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${DOCS.indexOf(d)})">Xem tài liệu</button></div></article>`).join('');
-const gameCard=()=>`<article class="card">${cov()}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" onclick="startGame()">Bắt đầu chơi</button></div></article>`;
+const gameCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" onclick="startGame()">${stk('ic-play','bi')} Bắt đầu chơi</button></div></article>`;
 const emp=h=>h.trim()?h:`<p class="empty">Nội dung lớp ${curG} đang được thầy cô biên soạn và sẽ sớm có tại đây.</p>`;
 
 /* ---- Game nhẩm nhanh ---- */
@@ -164,14 +165,15 @@ $('gok').onclick=submitAns;
 /* ===== HỆ THỐNG XP & HẠNG ===== */
 // Ngưỡng hạng cao dần: Thách đấu cần 24.000 XP (~150 bài kiểm tra làm tốt lần đầu)
 const RANKS=[
- {n:'Đồng',min:0,c:'#E0A56B',i:'🥉'},{n:'Bạc',min:600,c:'#C5CEDC',i:'🥈'},
- {n:'Vàng',min:1800,c:'#FFC93C',i:'🥇'},{n:'Bạch kim',min:4000,c:'#5FE0D2',i:'💠'},
- {n:'Kim cương',min:8000,c:'#8FB2FF',i:'💎'},{n:'Tinh anh',min:14000,c:'#C99BFF',i:'🔮'},
- {n:'Thách đấu',min:24000,c:'#FF7B7B',i:'👑'}];
+ {n:'Đồng',k:'dong',min:0,c:'#E0A56B',i:'🥉'},{n:'Bạc',k:'bac',min:600,c:'#C5CEDC',i:'🥈'},
+ {n:'Vàng',k:'vang',min:1800,c:'#FFC93C',i:'🥇'},{n:'Bạch kim',k:'bachkim',min:4000,c:'#7FD6FF',i:'💠'},
+ {n:'Kim cương',k:'kimcuong',min:8000,c:'#6FA8FF',i:'💎'},{n:'Tinh anh',k:'tinhanh',min:14000,c:'#C99BFF',i:'🔮'},
+ {n:'Thách đấu',k:'thachdau',min:24000,c:'#FF7B7B',i:'👑'}];
 // Hệ số XP theo lớp: lớp càng cao, bài càng khó, XP càng nhiều
 const GRADE_MULT={1:.5,2:.6,3:.75,4:.9,5:1};
 const LEVEL_XP={easy:4,mid:8,hard:14}, LV_NAME={easy:'Nhận biết',mid:'Thông hiểu',hard:'Vận dụng'};
 const REPLAY=.2; // làm lại chỉ nhận 20% XP để chống cày
+const rkImg=(r,c='rk')=>`<img class="${c}" src="assets/rank/${r.k}.webp" alt="Hạng ${r.n}">`;
 function rankOf(xp){let r=RANKS[0];RANKS.forEach(x=>{if(xp>=x.min)r=x});return r}
 let saveQ=Promise.resolve();
 function save(){ // ghi tiến độ lên Supabase, xếp hàng để không bị ghi chồng
@@ -184,15 +186,22 @@ function save(){ // ghi tiến độ lên Supabase, xếp hàng để không b�
 }
 function refreshMe(){
   const r=rankOf(user.xp),nx=RANKS[RANKS.indexOf(r)+1];
-  $('meName').textContent='👤 '+user.name;$('meXp').textContent=user.xp+' XP';
-  $('meRank').textContent=r.i+' '+r.n;$('meRank').style.background=r.c;
+  $('meName').innerHTML=stk('ic-user','rk')+' '+esc(user.name);$('meXp').textContent=user.xp+' XP';
+  $('meRank').innerHTML=rkImg(r)+' '+esc(r.n);$('meRank').style.background=r.c;
   $('rankFill').style.width=(nx?(user.xp-r.min)/(nx.min-r.min)*100:100)+'%';
   $('rankFill').style.background=r.c;
   $('rankTxt').textContent=nx?`Còn ${nx.min-user.xp} XP để lên ${nx.n}`:'Bạn đã đạt hạng cao nhất!';
 }
 function addXp(n){
   const b=rankOf(user.xp);user.xp+=n;save();refreshMe();
-  const a=rankOf(user.xp);if(a.n!==b.n)setTimeout(()=>toast('🎉 Chúc mừng! Bạn lên hạng '+a.n+' '+a.i),600);
+  const a=rankOf(user.xp);if(a.n!==b.n)setTimeout(()=>showRankUp(a),700);
+}
+function showRankUp(r){ // màn chúc mừng lên hạng với huy hiệu lớn
+  const old=$('rankup');if(old)old.remove();
+  const d=document.createElement('div');d.id='rankup';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.style.setProperty('--c',r.c);
+  d.innerHTML=`<div class="ru"><small>LÊN HẠNG!</small>${rkImg(r,'ru-img')}<h2>${r.n}</h2><p>Chúc mừng ${esc(user.name)}! Bạn đã đạt hạng <b>${r.n}</b> với ${user.xp} XP.</p><button type="button" class="btn go" style="width:auto">Tiếp tục</button></div>`;
+  d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};
+  document.body.appendChild(d);dtSfx('win');d.querySelector('button').focus({preventScroll:true});
 }
 function gameXp(s){ // trò chơi: 2 XP/câu, tối đa 30 XP mỗi ngày
   const d=new Date().toDateString();if(!user.gd||user.gd.d!==d)user.gd={d,x:0};
@@ -248,7 +257,7 @@ let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   if(Z.grade!==curG)return '';
   const best=user.done[Z.id];
-  return `<article class="card">${cov()}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
+  return `<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
   <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
   <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+Z.q.length+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></div></article>`;
@@ -256,7 +265,7 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
   $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=emp(EXERCISES_LIVE());
-  $('testList').innerHTML=emp(curG===5?dtCard():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');
+  $('testList').innerHTML=emp(curG===5?dtCards():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
@@ -299,7 +308,7 @@ function finishQuiz(){
   user.done[cur.id]=Math.max(user.done[cur.id]||0,ok);addXp(gain);
   const wrong=qz.qs.map((q,i)=>({q,i})).filter(x=>qz.sel[x.i]!==x.q.o[0]);
   $('qmain').classList.add('hidden');$('qres').classList.remove('hidden');$('quiz').scrollTop=0;
-  $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${ok===n?'🏆':ok>=n*.6?'👍':'💪'}</h2>
+  $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${stk(ok===n?'star-gold':ok>=n*.6?'al-idea':'al-pencil','res-ic')}</h2>
   <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
   ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(x=>`<div class="rv"><b>Câu ${x.i+1}.</b> ${fmt(x.q.q)}<br><span class="bad">Bạn chọn: ${fmt(qz.sel[x.i]??'(bỏ trống)')}</span><br><span class="good">Đáp án: ${fmt(x.q.o[0])}</span></div>`).join(''):'<p>Bạn trả lời đúng tất cả!</p>'}
   <div class="qnav"><button class="btn ghost" onclick="closeQuiz()">Đóng</button><button class="btn go" style="width:auto" onclick="startQuiz()">Làm lại</button></div>`;
@@ -323,6 +332,62 @@ const DT_Q=[
 ["hh","Bài 8","Hình thoi có hai đường chéo 10 cm và 6 cm. Diện tích là:",["30 cm²","60 cm²","16 cm²","32 cm²"],0,"S = m × n : 2 = 10 × 6 : 2 = 30 (cm²)."]
 ];
 
+/* ===== ĐỀ TEST BÀI 10, 11, 12 (đáp án đúng luôn ở vị trí đầu, được xáo khi chơi) ===== */
+const T10={ct:"Cấu tạo & hàng",dv:"Đọc – viết số",cd:"Phân số, hỗn số → số thập phân",sd:"Số đo",vd:"Vận dụng"};
+const Q10=[
+["ct","Bài 10","Số thập phân 63,28 có phần nguyên và phần thập phân lần lượt là:",["63 và 28","6 và 328","63,2 và 8","28 và 63"],0,"Bên trái dấu phẩy là phần nguyên (63), bên phải dấu phẩy là phần thập phân (28)."],
+["ct","Bài 10","Trong số 63,28, chữ số 2 thuộc hàng nào?",["Hàng phần mười","Hàng phần trăm","Hàng chục","Hàng đơn vị"],0,"Chữ số đứng ngay sau dấu phẩy là hàng phần mười (giá trị 2/10); chữ số 8 là hàng phần trăm."],
+["ct","Bài 10","Chữ số 7 trong số 9,257 thuộc hàng nào?",["Hàng phần nghìn","Hàng phần trăm","Hàng phần mười","Hàng đơn vị"],0,"Sau dấu phẩy: 2 là hàng phần mười, 5 là hàng phần trăm, 7 là hàng phần nghìn."],
+["dv","Bài 10","Số thập phân 4,05 đọc là:",["bốn phẩy không năm","bốn phẩy năm","bốn phẩy năm mươi","bốn không phẩy năm"],0,"Chữ số 0 ngay sau dấu phẩy phải đọc là “không”: 4,05 đọc là bốn phẩy không năm."],
+["dv","Bài 10","Số thập phân 6,015 đọc là:",["sáu phẩy không mười lăm","sáu phẩy mười lăm","sáu phẩy một trăm năm mươi","sáu phẩy không một năm"],0,"Phần thập phân bắt đầu bằng chữ số 0 nên đọc “không”, rồi đọc phần còn lại: sáu phẩy không mười lăm."],
+["dv","Bài 10","Viết số thập phân: không phẩy không bốn mươi ba.",["0,043","0,43","0,0043","0,403"],0,"“Không” là chữ số 0 ở hàng phần mười, rồi “bốn mươi ba” là 43: 0,043."],
+["dv","Bài 10","Số thập phân gồm 4 chục, 6 đơn vị, 2 phần mười, 5 phần trăm là:",["46,25","46,52","4,625","64,25"],0,"Phần nguyên: 4 chục 6 đơn vị = 46. Phần thập phân: 2 phần mười 5 phần trăm = 25. Vậy 46,25."],
+["cd","Bài 10","Viết 25/1000 thành số thập phân:",["0,025","0,25","2,5","0,0025"],0,"Mẫu số 1000 nên có 3 chữ số thập phân. Tử số 25 chỉ có 2 chữ số, thêm 0 vào đầu: 0,025."],
+["cd","Bài 10","Viết hỗn số 4 57/100 thành số thập phân:",["4,57","45,7","4,057","457,100"],0,"Phần nguyên là 4, phần thập phân là 57/100 nên bằng 4,57."],
+["cd","Bài 10","Viết 149/10 thành số thập phân:",["14,9","1,49","149,10","0,149"],0,"Tách thành hỗn số: 149/10 = 14 9/10 = 14,9 (vì 149 = 14 × 10 + 9)."],
+["cd","Bài 10","Viết 7/125 thành số thập phân:",["0,056","0,56","0,175","0,07"],0,"Nhân cả tử và mẫu với 8: 7×8 / 125×8 = 56/1000 = 0,056."],
+["sd","Bài 10","Điền số thích hợp: 564 m = … km",["0,564","5,64","56,4","0,0564"],0,"564 m = 564/1000 km = 0,564 km."],
+["sd","Bài 10","Điền số thích hợp: 3,2 m = … mm",["3 200","320","32","3 020"],0,"3,2 m = 3 2/10 m = 3 m 2 dm = 3 200 mm."],
+["vd","Bài 10","Phần cầu dẫn của cầu Nhật Tân dài 5,27 km. Đổi ra mét ta được:",["5 270 m","527 m","5 027 m","52 700 m"],0,"5,27 km = 5 27/100 km = 5 km 270 m = 5 270 m."],
+["vd","Bài 10","Từ ba thẻ chữ số 1; 0; 4 và một thẻ dấu phẩy, lập số thập phân có phần nguyên một chữ số, phần thập phân hai chữ số (dùng đủ các thẻ). Lập được bao nhiêu số?",["6 số","3 số","4 số","9 số"],0,"Có 3 cách chọn phần nguyên, hai chữ số còn lại xếp theo 2 cách: 3 × 2 = 6 số (1,04; 1,40; 0,14; 0,41; 4,01; 4,10)."]
+];
+const T11={ss:"So sánh",bg:"Số thập phân bằng nhau",sx:"Sắp xếp",ch:"Tìm chữ số",vd:"Vận dụng"};
+const Q11=[
+["ss","Bài 11","So sánh 15,2 và 9,87. Kết quả đúng là:",["15,2 > 9,87","15,2 < 9,87","15,2 = 9,87","Không so sánh được"],0,"Phần nguyên khác nhau: 15 > 9 nên 15,2 > 9,87, không cần xét phần thập phân."],
+["ss","Bài 11","Chọn kết quả đúng:",["7,28 < 7,3","7,28 > 7,3","7,28 = 7,3","7,3 < 7,28"],0,"Phần nguyên bằng nhau (7). Viết 7,3 = 7,30; hàng phần mười 2 < 3 nên 7,28 < 7,3."],
+["bg","Bài 11","Số nào dưới đây bằng 0,6?",["0,60","0,06","6,0","0,606"],0,"Thêm chữ số 0 vào tận cùng bên phải phần thập phân thì giá trị không đổi: 0,6 = 0,60."],
+["bg","Bài 11","Bỏ các chữ số 0 ở tận cùng phần thập phân, số 50,6030 viết gọn là:",["50,603","50,63","5,0603","56,03"],0,"Chỉ bỏ chữ số 0 nằm sát cuối: 50,6030 = 50,603. Chữ số 0 ở giữa phải giữ lại."],
+["bg","Bài 11","Khẳng định nào sau đây đúng?",["8,3000 = 8,3","8,05 = 8,5","10,507 = 10,57","0,50 = 0,05"],0,"Chỉ được thêm hoặc bỏ chữ số 0 ở tận cùng bên phải phần thập phân. Chữ số 0 ở giữa hoặc ở đầu phần thập phân thì không được bỏ."],
+["ss","Bài 11","Số có nhiều chữ số hơn chưa chắc đã lớn hơn. Chọn kết quả đúng:",["0,5 > 0,45","0,5 < 0,45","0,5 = 0,45","0,5 = 0,045"],0,"Viết 0,5 = 0,50; vì 50 > 45 nên 0,5 > 0,45."],
+["ss","Bài 11","So sánh 3,405 và 3,45:",["3,405 < 3,45","3,405 > 3,45","3,405 = 3,45","Không so sánh được"],0,"Phần nguyên 3 = 3; hàng phần mười 4 = 4; hàng phần trăm 0 < 5. Vậy 3,405 < 3,45."],
+["ss","Bài 11","So sánh 24,8 và 24,79:",["24,8 > 24,79","24,8 < 24,79","24,8 = 24,79","Không so sánh được"],0,"Viết 24,8 = 24,80; hàng phần mười 8 > 7 nên 24,8 > 24,79."],
+["sx","Bài 11","Số lớn nhất trong các số 6,38; 6,8; 6,083; 6,83 là:",["6,83","6,8","6,38","6,083"],0,"Cả bốn số đều có phần nguyên 6. Hàng phần mười: 8 là lớn nhất (6,8 và 6,83). Viết 6,8 = 6,80, so hàng phần trăm: 3 > 0 nên 6,83 lớn nhất."],
+["sx","Bài 11","Sắp xếp các số 2,35; 2,5; 2,05; 3,2; 2,305 theo thứ tự từ bé đến lớn:",["2,05; 2,305; 2,35; 2,5; 3,2","2,05; 2,35; 2,305; 2,5; 3,2","3,2; 2,5; 2,35; 2,305; 2,05","2,05; 2,305; 2,5; 2,35; 3,2"],0,"3,2 có phần nguyên lớn nhất. Với phần nguyên 2, hàng phần mười: 0 < 3 < 5. So 2,305 và 2,35: hàng phần trăm 0 < 5. Vậy 2,05 < 2,305 < 2,35 < 2,5 < 3,2."],
+["sx","Bài 11","Sắp xếp các số 0,4; 0,44; 0,404; 0,04 theo thứ tự từ lớn đến bé:",["0,44; 0,404; 0,4; 0,04","0,404; 0,44; 0,4; 0,04","0,44; 0,4; 0,404; 0,04","0,04; 0,4; 0,404; 0,44"],0,"Viết 0,4 = 0,400; 0,44 = 0,440; 0,04 = 0,040. Vậy 0,44 > 0,404 > 0,4 > 0,04."],
+["ch","Bài 11","Chữ số nào có thể thay cho □ để 2,7□ > 2,75?",["8","5","4","0"],0,"Phần nguyên và hàng phần mười đều bằng nhau (2 và 7). Hàng phần trăm phải có □ > 5, nên □ là 6; 7; 8 hoặc 9."],
+["ch","Bài 11","Có bao nhiêu chữ số thay được cho □ để 4,□5 < 4,25?",["2 chữ số (0 và 1)","1 chữ số","3 chữ số","Nhiều hơn 3 chữ số"],0,"Hàng phần mười phải có □ < 2. Nếu □ = 2 thì hai số bằng nhau (không thỏa mãn). Vậy □ = 0 hoặc 1: có 2 chữ số."],
+["vd","Bài 11","Nhảy xa: An 2,35 m; Bình 2,4 m; Chi 2,305 m. Bạn nào nhảy xa nhất?",["Bình","An","Chi","An và Chi bằng nhau"],0,"Viết 2,4 = 2,40. Ta có 2,40 > 2,35 > 2,305. Vậy Bình nhảy xa nhất."],
+["vd","Bài 11","Chạy 50 m: Nam 9,8 giây; Hùng 9,75 giây; Tuấn 9,08 giây. Bạn nào chạy nhanh nhất?",["Tuấn","Hùng","Nam","Hùng và Nam"],0,"Chạy càng nhanh thì thời gian càng ít. Viết 9,8 = 9,80: ta có 9,08 < 9,75 < 9,80. Tuấn có thời gian ít nhất nên nhanh nhất."]
+];
+const T12={dd:"Độ dài",kl:"Khối lượng",dg:"Dung tích",ds:"Diện tích",vd:"Vận dụng"};
+const Q12=[
+["dd","Bài 12","Điền số thích hợp: 6 dm = … m",["0,6","0,06","6","60"],0,"1 dm = 1/10 m nên 6 dm = 6/10 m = 0,6 m."],
+["dd","Bài 12","Điền số thích hợp: 245 cm = … m",["2,45","24,5","0,245","2 045"],0,"245 cm = 245/100 m = 2 45/100 m = 2,45 m."],
+["dd","Bài 12","Điền số thích hợp: 35 mm = … cm",["3,5","0,35","35","350"],0,"1 mm = 1/10 cm nên 35 mm = 35/10 cm = 3,5 cm."],
+["dd","Bài 12","Điền số thích hợp: 750 m = … km",["0,75","7,5","0,075","75"],0,"750 m = 750/1000 km = 0,750 km = 0,75 km."],
+["dd","Bài 12","Điền số thích hợp: 3,2 m = … cm",["320","32","3 200","302"],0,"3,2 m = 3 m 2 dm = 300 cm + 20 cm = 320 cm."],
+["dd","Bài 12","Viết 2 m 5 dm dưới dạng số đo có đơn vị là mét:",["2,5 m","2,05 m","25 m","0,25 m"],0,"5 dm = 5/10 m = 0,5 m nên 2 m 5 dm = 2,5 m."],
+["dd","Bài 12","Viết 4 m 7 cm dưới dạng số đo có đơn vị là mét:",["4,07 m","4,7 m","47 m","4,007 m"],0,"7 cm = 7/100 m = 0,07 m nên 4 m 7 cm = 4,07 m. Nhớ giữ chữ số 0 ở hàng phần mười!"],
+["kl","Bài 12","Viết 2 kg 50 g dưới dạng số đo có đơn vị là ki-lô-gam:",["2,05 kg","2,5 kg","2,005 kg","250 kg"],0,"50 g = 50/1000 kg = 0,05 kg nên 2 kg 50 g = 2,05 kg."],
+["kl","Bài 12","Điền số thích hợp: 35 kg = … tấn",["0,035","0,35","3,5","0,0035"],0,"1 kg = 1/1000 tấn nên 35 kg = 35/1000 tấn = 0,035 tấn."],
+["kl","Bài 12","Điền số thích hợp: 0,5 kg = … g",["500","50","5","5 000"],0,"0,5 kg = 5/10 kg = 500/1000 kg = 500 g."],
+["dg","Bài 12","Điền số thích hợp: 148 ml = … l",["0,148","1,48","14,8","0,0148"],0,"1 ml = 1/1000 l nên 148 ml = 148/1000 l = 0,148 l."],
+["dg","Bài 12","Điền số thích hợp: 2,5 l = … ml",["2 500","250","25","2 050"],0,"2,5 l = 2 5/10 l = 2 l 500 ml = 2 500 ml."],
+["ds","Bài 12","Điền số thích hợp: 35 dm² = … m²",["0,35","3,5","0,035","35"],0,"1 m² = 100 dm² nên 1 dm² = 1/100 m². Vậy 35 dm² = 35/100 m² = 0,35 m²."],
+["ds","Bài 12","Viết 5 m² 8 dm² dưới dạng số đo có đơn vị là mét vuông:",["5,08 m²","5,8 m²","58 m²","5,008 m²"],0,"8 dm² = 8/100 m² = 0,08 m² nên 5 m² 8 dm² = 5,08 m²."],
+["vd","Bài 12","Bình có sợi dây dài 100 cm, cắt đi 35 cm. Đoạn dây còn lại dài bao nhiêu mét?",["0,65 m","0,35 m","6,5 m","65 m"],0,"Còn lại 100 − 35 = 65 (cm) = 65/100 m = 0,65 m."]
+];
+
 /* ===== BẢNG VINH DANH (xếp theo XP của tất cả học sinh, đọc từ database) ===== */
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fr=(n,d)=>`<span class="fr"><i>${n}</i><i>${d}</i></span>`;
@@ -336,7 +401,7 @@ function setBoard(f){boardF=f;drawBoard()}
 async function renderBoard(){
   const seq=++boardSeq;
   if(!sb)return;
-  if(!boardRows)$('rankBoard').innerHTML='<h2>🏆 Bảng vinh danh</h2><p class="muted">Đang tải bảng xếp hạng…</p>';
+  if(!boardRows)$('rankBoard').innerHTML='<h2>'+stk('star-gold','h-ic')+' Bảng vinh danh</h2><p class="muted">Đang tải bảng xếp hạng…</p>';
   try{
     const {data,error}=await sb.from('profiles').select('id,name,grade,xp,done').order('xp',{ascending:false}).limit(500);
     if(error)throw error;
@@ -344,7 +409,7 @@ async function renderBoard(){
     boardRows=data||[];
   }catch(_){
     if(seq!==boardSeq||!user)return;
-    if(!boardRows){$('rankBoard').innerHTML='<h2>🏆 Bảng vinh danh</h2><p class="muted">Chưa tải được bảng xếp hạng. Hãy kiểm tra mạng rồi thử lại.</p><button class="btn ghost sm" onclick="renderBoard()">↻ Thử lại</button>';return}
+    if(!boardRows){$('rankBoard').innerHTML='<h2>'+stk('star-gold','h-ic')+' Bảng vinh danh</h2><p class="muted">Chưa tải được bảng xếp hạng. Hãy kiểm tra mạng rồi thử lại.</p><button class="btn ghost sm" onclick="renderBoard()">↻ Thử lại</button>';return}
   }
   drawBoard();
 }
@@ -357,75 +422,114 @@ function drawBoard(){
   if(boardF!=='all'&&!gs.includes(+boardF))boardF='all';
   const list=boardF==='all'?all:all.filter(x=>String(x.g)===boardF);
   const medals=['🥇','🥈','🥉'],me=all.findIndex(x=>x.id===uid),mr=rankOf(user.xp);
-  $('rankBoard').innerHTML=`<h2>🏆 Bảng vinh danh</h2>
+  $('rankBoard').innerHTML=`<h2>${stk('star-gold','h-ic')} Bảng vinh danh</h2>
   <p class="muted">Xếp theo tổng XP của tất cả các khối. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
-  <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${mr.i} ${mr.n} · ${user.xp} XP</p>
+  <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${rkImg(mr)} ${mr.n} · ${user.xp} XP</p>
   <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}<button class="btn ghost sm refresh" onclick="renderBoard()">↻ Làm mới</button></div>
-  ${podiumHtml(list,medals)}<ol class="hlist" start="4">${list.slice(3).map((x,j)=>{const i=j+3;const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${r.i} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
-  <h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${r.i} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
+  ${podiumHtml(list,medals)}<ol class="hlist" start="4">${list.slice(3).map((x,j)=>{const i=j+3;const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${rkImg(r)} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
+  ${myRankHtml(mr)}<h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${rkImg(r)} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
 }
 
-/* ===== HÀNH TRÌNH ĐẠI THÁNH: đề test Bài 1–9 (15 câu, chuỗi đúng +2 sao) ===== */
-const DT_ID='dt-b1-9',DT_N=DT_Q.length;
+/* ===== HÀNH TRÌNH ĐẠI THÁNH v2: Tôn Ngộ Không đại chiến yêu quái (pixel) ===== */
+const PXD='assets/px/';
+const pimg=(n,c='')=>`<img class="${c}" src="${PXD}${n}.webp" alt="" draggable="false">`;
+// Mỗi đề test = một chặng đường. id cũ 'dt-b1-9' được giữ nguyên để không mất tiến độ.
+const DT_SETS=[
+ {id:'dt-b1-9',name:'Bài 1–9',desc:'Ôn tập & bổ sung',T:DT_T,Q:DT_Q,cover:'dm-1'},
+ {id:'dt-b10',name:'Bài 10',desc:'Khái niệm số thập phân',T:T10,Q:Q10,cover:'dm-2'},
+ {id:'dt-b11',name:'Bài 11',desc:'So sánh các số thập phân',T:T11,Q:Q11,cover:'dm-3'},
+ {id:'dt-b12',name:'Bài 12',desc:'Viết số đo dưới dạng số thập phân',T:T12,Q:Q12,cover:'ds-2'}
+];
 let dt=null,dtMuted=false,dtAC=null;
 try{dtMuted=localStorage.getItem('mute')==='1'}catch(_){}
 function dtTone(f,d,s,ty,v){const t=dtAC.currentTime+s,o=dtAC.createOscillator(),g=dtAC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(dtAC.destination);o.start(t);o.stop(t+d+.05)}
 function dtSfx(k){if(dtMuted)return;try{dtAC=dtAC||new(window.AudioContext||window.webkitAudioContext)();if(dtAC.state==='suspended')dtAC.resume();
-  const S={ok:[[660,0],[880,.1]],no:[[220,0],[165,.14]],win:[[523,0],[659,.14],[784,.28],[1047,.42]],lose:[[392,0],[349,.16],[330,.32],[262,.48]]};
+  const S={ok:[[660,0],[880,.1]],no:[[220,0],[165,.14]],hit:[[330,0],[520,.06],[780,.12]],win:[[523,0],[659,.14],[784,.28],[1047,.42]],lose:[[392,0],[349,.16],[330,.32],[262,.48]]};
   (S[k]||[]).forEach(([f,s])=>dtTone(f,.25,s,k==='no'?'sawtooth':'triangle',.16))}catch(_){}}
-const dtMax=()=>DT_N*6+(DT_N-2)*2+40;
-function dtCard(){const b=user.done[DT_ID];
-  return `<article class="card arcade"><div class="cover px-cover"><span>🐵</span><b>PRESS START</b><span>👾</span></div><div class="cbody"><span class="tag m">Mới · Trò chơi pixel</span><h3>🐵 Hành trình Đại Thánh – Đề test Bài 1–9</h3>
-  <small>${DT_N} câu · giữ chuỗi đúng để nhận thêm sao · tối đa ${dtMax()} XP lần đầu</small>
-  <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+DT_N+' · làm lại nhận 20% XP'}</small>
-  <button class="btn go" style="width:auto" onclick="dtStart()">${b===undefined?'Bắt đầu hành trình':'Chơi lại'}</button></div></article>`}
-function dtStart(){
-  dt={i:0,xp:0,st:0,best:0,ans:[],t0:Date.now()};
+const FOE_S=['ds-1','ds-2','ds-3','ds-4'],FOE_B=['dm-2','dm-3'];
+function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cuối)
+  if(i===n-1)return{s:'dm-1',k:'boss',nm:'Yêu vương'};
+  if(i%3===2)return{s:FOE_B[Math.floor(i/3)%2],k:'big',nm:'Yêu tướng'};
+  return{s:FOE_S[i%4],k:'sml',nm:'Tiểu yêu'};
+}
+const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
+function dtCards(){
+  return DT_SETS.map((S,k)=>{const b=user.done[S.id],n=S.Q.length;
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span><h3>Hành trình Đại Thánh – Đề test ${S.name}</h3>
+  <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
+  <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
+  <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu hành trình':'Chơi lại'}</button></div></article>`}).join('');
+}
+function dtStart(k){
+  dt={k,S:DT_SETS[k],i:0,xp:0,st:0,best:0,ans:[],t0:Date.now()};
   $('dt').classList.remove('hidden');document.body.style.overflow='hidden';$('dt').scrollTop=0;dtSfx('ok');dtShow();
 }
 function dtClose(){$('dt').classList.add('hidden');document.body.style.overflow='';renderEx()}
 function dtShow(){
-  delete $('dtbox').dataset.r;const q=DT_Q[dt.i];dt.cur=sh(q[3].map((t,k)=>({t,c:k===q[4]})));
-  $('dtbox').innerHTML=`<div class="px-hud"><span class="px-t">LV ${String(dt.i+1).padStart(2,'0')}/${DT_N}</span><span class="px-t gold">★ ${dt.xp}</span><span class="px-t fire">x${dt.st} 🔥</span><span class="px-ctl"><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button><button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
-  <div class="px-track">${Array.from({length:DT_N},(_,k)=>`<i class="${k<dt.ans.length?(dt.ans[k].ok?'ok':'no'):k===dt.i?'now':''}"></i>`).join('')}</div>
-  <div class="px-stage"><span class="px-hero">🐵</span><span class="px-foe">👾</span></div>
-  <p class="px-sub">${DT_Q[dt.i][1]} · ${DT_T[q[0]]}</p>
-  <h2 class="dtq">${fmt(q[2])}</h2>
+  delete $('dtbox').dataset.r;
+  const S=dt.S,N=S.Q.length,q=S.Q[dt.i],foe=dtFoe(dt.i,N);
+  dt.cur=sh(q[3].map((t,k)=>({t,c:k===q[4]})));
+  $('dtbox').innerHTML=`<div class="px-hud"><span class="px-t">LV ${String(dt.i+1).padStart(2,'0')}/${N}</span><span class="px-t gold" id="dtxp">${pimg('coin','hud-ic')} ${dt.xp}</span><span class="px-t fire" id="dtst">${pimg('qblock','hud-ic')} x${dt.st}</span><span class="px-ctl"><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button><button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
+  <div class="px-track" style="grid-template-columns:repeat(${N},1fr)">${Array.from({length:N},(_,k)=>`<i class="${k<dt.ans.length?(dt.ans[k].ok?'ok':'no'):k===dt.i?'now':''}"></i>`).join('')}</div>
+  <div class="dg-stage">${pimg('cloud','dg-cloud dgc1')}${pimg('cloud','dg-cloud dgc2')}
+    <div class="dg-hero">${pimg('mk-front')}</div>
+    <div class="dg-foe ${foe.k}"><div class="dg-hp"><i></i></div>${pimg(foe.s)}</div>
+    <span class="dg-spark ok"></span><span class="dg-spark no"></span><span class="dg-boom" id="dgpop"></span></div>
+  <div class="dg-q">${pimg('scroll','dg-sc')}<div><p class="px-sub">${foe.nm} chặn đường · ${q[1]} · ${S.T[q[0]]}</p><h2 class="dtq">${fmt(q[2])}</h2></div></div>
   <div class="qopts" id="dtopts">${dt.cur.map((o,k)=>`<button type="button" data-k="${k}">${'ABCD'[k]}. ${fmt(o.t)}</button>`).join('')}</div><div id="dtfb"></div>`;
   document.querySelectorAll('#dtopts button').forEach(b=>b.onclick=()=>dtPick(+b.dataset.k));
   $('dtmute').onclick=()=>{dtMuted=!dtMuted;try{localStorage.setItem('mute',dtMuted?'1':'0')}catch(_){}$('dtmute').textContent=dtMuted?'🔇':'🔊'};
   $('dtquit').onclick=()=>{if(confirm('Thoát bây giờ sẽ không được tính điểm. Bạn chắc chứ?'))dtClose()};
 }
 function dtPick(k){
-  const q=DT_Q[dt.i],ok=dt.cur[k].c;
+  if(!dt||$('dtbox').dataset.r)return; // chỉ chọn một lần mỗi câu
+  const S=dt.S,N=S.Q.length,q=S.Q[dt.i],ok=dt.cur[k].c;
   document.querySelectorAll('#dtopts button').forEach((b,j)=>{b.disabled=true;if(dt.cur[j].c)b.classList.add('ok');else if(j===k)b.classList.add('no')});
-  if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);dt.xp+=6+(dt.st>=3?2:0)}else dt.st=0;
-  dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'ok':'no');$('dtbox').dataset.r=ok?'ok':'no';
+  let gain=0;
+  if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);gain=6+(dt.st>=3?2:0);dt.xp+=gain}else dt.st=0;
+  dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'hit':'no');
+  $('dtxp').innerHTML=pimg('coin','hud-ic')+' '+dt.xp;$('dtst').innerHTML=pimg('qblock','hud-ic')+' x'+dt.st;
+  document.querySelectorAll('.px-track i')[dt.i].className=ok?'ok':'no';
+  const hero=document.querySelector('.dg-hero img'),pop=$('dgpop');
+  if(ok&&hero)hero.src=PXD+'mk-act.webp'; // Ngộ Không lao lên vung gậy
+  pop.textContent=ok?`+${gain}${dt.st>=3?' COMBO!':''}`:'Ái chà!';pop.className='dg-boom '+(ok?'ok':'no');
+  $('dtbox').dataset.r=ok?'ok':'no';
   $('dtfb').innerHTML=`<div class="dtfb ${ok?'ok':'no'}">${ok?(dt.st>=3?`🔥 Chuỗi ${dt.st} câu đúng! `:'✅ Chính xác! '):'❌ Chưa đúng rồi. '}${fmt(q[5])}</div>
-  <button type="button" class="btn go" style="width:auto;margin-top:14px" id="dtnx">${dt.i<DT_N-1?'Câu tiếp theo →':'Xem kết quả 🏆'}</button>`;
-  $('dtnx').onclick=()=>{dt.i++;dt.i<DT_N?dtShow():dtEnd()};
+  <button type="button" class="btn go" style="width:auto;margin-top:14px" id="dtnx">${dt.i<N-1?'Câu tiếp theo →':'Xem kết quả 🏆'}</button>`;
+  $('dtnx').onclick=()=>{dt.i++;dt.i<N?dtShow():dtEnd()};$('dtnx').focus({preventScroll:true});
 }
+// phím tắt: A–D hoặc 1–4 để chọn đáp án
+document.addEventListener('keydown',e=>{
+  if(!dt||$('dt').classList.contains('hidden')||e.ctrlKey||e.metaKey||e.altKey)return;
+  const i='abcd'.indexOf(e.key.toLowerCase()),j='1234'.indexOf(e.key),k=i>=0?i:j;
+  if(k>=0&&document.querySelector('#dtopts button:not(:disabled)')&&!(document.activeElement||{}).matches?.('input,textarea'))dtPick(k);
+});
 function dtEnd(){
-  const n=dt.ans.filter(a=>a.ok).length,sec=Math.round((Date.now()-dt.t0)/1000);
-  let raw=dt.xp;if(n>=Math.ceil(DT_N*.6))raw+=10;if(n===DT_N)raw+=30;
-  const first=!(DT_ID in user.done),gain=Math.round(raw*(first?1:REPLAY));
-  user.done[DT_ID]=Math.max(user.done[DT_ID]||0,n);addXp(gain);
-  const lv=n>=13?['🏆','Đại Thánh Toán học']:n>=10?['🥇','Chiến binh Giỏi']:n>=7?['🥈','Thám hiểm Khá']:['🌱','Mầm non Cố gắng'];
+  const S=dt.S,N=S.Q.length,n=dt.ans.filter(a=>a.ok).length,sec=Math.round((Date.now()-dt.t0)/1000),ratio=n/N;
+  let raw=dt.xp;if(n>=Math.ceil(N*.6))raw+=10;if(n===N)raw+=30;
+  const first=!(S.id in user.done),gain=Math.round(raw*(first?1:REPLAY));
+  user.done[S.id]=Math.max(user.done[S.id]||0,n);addXp(gain);
+  const lv=ratio>=.87?'Đại Thánh Toán học':ratio>=.67?'Chiến binh Giỏi':ratio>=.47?'Thám hiểm Khá':'Mầm non Cố gắng';
   const gr={};dt.ans.forEach(a=>{const k=a.q[0];gr[k]=gr[k]||[0,0];gr[k][1]++;if(a.ok)gr[k][0]++});
-  const rows=Object.keys(gr).map(k=>{const r=gr[k][0]/gr[k][1],c=r>=1?'#16B364':r>=.5?'#FFC93C':'#D12F35';return `<div class="dtrow"><span>${DT_T[k]}</span><div class="rbar"><i style="width:${r*100}%;background:${c}"></i></div><b>${gr[k][0]}/${gr[k][1]}</b></div>`}).join('');
-  const weak=Object.keys(gr).filter(k=>gr[k][0]<gr[k][1]).map(k=>DT_T[k]);
-  const wrong=dt.ans.filter(a=>!a.ok);
-  $('dtbox').innerHTML=`<div style="text-align:center"><p class="px-t clear">${n>=7?'GAME CLEAR!':'GAME OVER'}</p><div style="font-size:3.5rem">${lv[0]}</div><h2>${lv[1]}</h2><h2>${n}/${DT_N} câu đúng</h2>
-  <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ⭐ ${dt.xp} sao · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p></div>
+  const rows=Object.keys(gr).map(k=>{const r=gr[k][0]/gr[k][1],c=r>=1?'#16B364':r>=.5?'#FFC93C':'#D12F35';return `<div class="dtrow"><span>${S.T[k]}</span><div class="rbar"><i style="width:${r*100}%;background:${c}"></i></div><b>${gr[k][0]}/${gr[k][1]}</b></div>`}).join('');
+  const weak=Object.keys(gr).filter(k=>gr[k][0]<gr[k][1]).map(k=>S.T[k]);
+  const wrong=dt.ans.filter(a=>!a.ok),mr=rankOf(user.xp);
+  $('dtbox').innerHTML=`<div style="text-align:center"><p class="px-t clear">${ratio>=.47?'GAME CLEAR!':'GAME OVER'}</p>
+  <div class="px-res dg-res">${pimg('mk-pose')}${pimg('scroll')}${rkImg(mr,'res-rk')}</div><h2>${lv}</h2><h2>${n}/${N} câu đúng</h2>
+  <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ${pimg('coin','hud-ic')} ${dt.xp} điểm · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${mr.n}</p></div>
   <h3>Bản đồ năng lực</h3>${rows}<p class="muted">${weak.length?'Cần ôn thêm: <b>'+weak.join(', ')+'</b>.':'Bạn đúng ở mọi nội dung. Tuyệt vời!'}</p>
   ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${fmt(a.q[2])}<br><span class="bad">Bạn chọn: ${fmt(a.pick)}</span><br><span class="good">Đáp án: ${fmt(a.q[3][a.q[4]])}</span><br><em>${fmt(a.q[5])}</em></div>`).join(''):''}
-  <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart()">Chơi lại</button></div>`;
-  $('dt').scrollTop=0;dtSfx(n>=7?'win':'lose');
+  <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart(${dt.k})">Chơi lại</button></div>`;
+  $('dt').scrollTop=0;dtSfx(ratio>=.47?'win':'lose');
 }
 
+function myRankHtml(mr){
+  const nx=RANKS[RANKS.indexOf(mr)+1],pct=nx?(user.xp-mr.min)/(nx.min-mr.min)*100:100;
+  return `<div class="myrank" style="--c:${mr.c}">${rkImg(mr,'mr-img')}<div><small>Hạng hiện tại của bạn</small><h3>${mr.n}</h3><div class="rbar"><i style="width:${pct}%;background:${mr.c}"></i></div><small>${nx?`Còn ${nx.min-user.xp} XP để lên ${nx.n}`:'Bạn đã đạt hạng cao nhất!'}</small></div></div>`;
+}
 /* Bục vinh danh top 3 */
 function podiumHtml(list,medals){
-  const top=list.slice(0,3),crown=['👑','',''];
+  const top=list.slice(0,3),crown=[stk('math-star','crown-img'),'',''];
   return '<div class="podium">'+[1,0,2].filter(i=>top[i]).map(i=>{const x=top[i],r=rankOf(x.xp);
-    return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${esc((x.name||'?').trim().slice(0,1).toUpperCase())}</div><b class="pn">${esc(x.name)}</b><small>${r.i} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
+    return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${esc((x.name||'?').trim().slice(0,1).toUpperCase())}</div><b class="pn">${esc(x.name)}</b><small>${rkImg(r)} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
 }
