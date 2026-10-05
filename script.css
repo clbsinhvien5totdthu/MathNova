@@ -1717,3 +1717,4 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 #remind .qbox h2{margin-bottom:6px}
 #remind .st-box{margin:12px 0}
 @media(max-width:560px){.asg-row{grid-template-columns:1fr}.asg-row .btn{grid-column:1;grid-row:auto;margin-top:6px}}
+.remind-poster{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px;margin-bottom:12px}
