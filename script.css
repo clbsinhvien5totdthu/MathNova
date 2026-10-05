@@ -1655,3 +1655,17 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 .av-opt.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 22%,#fff);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 40%,transparent)}
 .hlist li .av-frame.sm{margin-right:10px}
 @media (max-width:520px){.av-grid{grid-template-columns:repeat(4,1fr)}.av-frame{width:76px;height:76px}}
+
+/* ===== Thương hiệu chữ: Phần mềm hỗ trợ học tập MathNova ===== */
+.brand-mark{display:flex;flex-direction:column;align-items:center;line-height:1.1;text-align:center;font-family:"Baloo 2","Be Vietnam Pro",sans-serif;color:#0B1B4A}
+.brand-mark small{font-family:"Be Vietnam Pro",sans-serif;font-weight:600;font-size:.82rem;letter-spacing:.04em;color:#4b5a8a}
+.brand-mark b{font-weight:800;font-size:2.4rem;background:linear-gradient(90deg,#3b4cca,#7a4df0 55%,#14b8a6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.splash-card .brand-mark{padding:6px 16px}
+.splash-card .brand-mark b{font-size:clamp(2.4rem,11vw,3.6rem)}
+.splash-card .brand-mark small{font-size:clamp(.8rem,3.4vw,1.05rem)}
+.login-brand .brand-mark{align-items:flex-start;text-align:left}
+.brand-mark.sm{align-items:flex-start;text-align:left}
+.brand-mark.sm small{font-size:.62rem;letter-spacing:.02em;white-space:nowrap}
+.brand-mark.sm b{font-size:1.35rem}
+.foot p{font-size:1rem}
+@media (max-width:640px){.brand-mark.sm small{font-size:.5rem}.brand-mark.sm b{font-size:1.1rem}.login-brand .brand-mark b{font-size:1.8rem}}
