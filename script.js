@@ -40,7 +40,7 @@ new MutationObserver(m=>m.forEach(r=>r.addedNodes.forEach(n=>{if(n.id==='rankup'
 const stk=(n,c='')=>`<img class="${c}" src="assets/stk/${n}.webp" alt="">`;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');SFX.play('pop');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id))}
-function view(id){['levels','grade'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard()}
+function view(id){['levels','grade','stats'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard();if(id==='stats')renderStats()}
 
 /* ---- Màn hình chờ ---- */
 (function splash(){
@@ -105,6 +105,7 @@ function enter(p){
   user={id:p.id,username:p.username,name:p.name,grade:p.grade||5,xp:Number(p.xp)||0,
     done:p.done&&typeof p.done==='object'?p.done:{},doc:p.doc&&typeof p.doc==='object'?p.doc:{},gd:p.gd||null,av:avNum(p.avatar)||avLocalGet(p.id)};
   show('app');view('levels');refreshMe();renderEx();
+  loadAtt().then(()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats()});
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
 }
@@ -113,7 +114,7 @@ $('logout').onclick=async()=>{
   stopGame();$('arena').classList.add('hidden');
   await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
   try{if(sb)await sb.auth.signOut()}catch(_){}
-  user=null;uid=null;boardRows=null;$('u').value='';$('p').value='';$('err').textContent='';
+  user=null;uid=null;boardRows=null;ATT=[];$('u').value='';$('p').value='';$('err').textContent='';
   btn.disabled=false;show('login');
 };
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
@@ -151,7 +152,7 @@ const vn=n=>String(n).replace('.',','); // số thập phân kiểu Việt Nam: 
 function stopGame(){clearInterval(gTimer);gTimer=null;g=null}
 function startGame(){
   clearInterval(gTimer); // dọn đồng hồ cũ, tránh chạy 2 đồng hồ và nhận XP 2 lần
-  const me=g={score:0,time:30,ans:0,end:Date.now()+30000};
+  const me=g={score:0,tot:0,time:30,ans:0,end:Date.now()+30000};
   $('arena').classList.remove('hidden');$('score').textContent=0;$('time').textContent=30;$('gmsg').textContent='';
   $('ga').disabled=false;$('gok').disabled=false;$('ga').value='';$('ga').focus();next();
   gTimer=setInterval(()=>{
@@ -160,6 +161,7 @@ function startGame(){
     if(g.time<=0){
       clearInterval(gTimer);gTimer=null;$('ga').disabled=true;$('gok').disabled=true;
       const xp=gameXp(g.score);
+      if(g.tot>0)logAttempt({k:'game',id:'game-nham',t:'Nhẩm nhanh 30 giây',g:curG,ok:g.score,n:g.tot,s:30,xp,tp:{'Cộng trừ số thập phân':[g.score,g.tot]}});
       $('gq').textContent='Hết giờ!';
       $('gmsg').textContent=xp>0?`Bạn đúng ${g.score} câu và nhận +${xp} XP 🎉`
         :g.score>0?`Bạn đúng ${g.score} câu. Hôm nay bạn đã nhận đủ 30 XP từ trò chơi, mai chơi tiếp nhé!`
@@ -177,6 +179,7 @@ function submitAns(){
   if(!g||g.time<=0)return;
   const raw=$('ga').value.trim().replace(',','.');
   if(raw===''||isNaN(Number(raw))){$('gmsg').textContent='Hãy nhập một số nhé!';return}
+  g.tot++;
   if(Math.abs(Number(raw)-g.ans)<0.001){g.score++;$('score').textContent=g.score;$('gmsg').textContent='Đúng rồi! ✔'}
   else $('gmsg').textContent='Chưa đúng, đáp án là '+vn(g.ans);
   $('ga').value='';next();$('ga').focus();
@@ -274,7 +277,7 @@ function openDoc(i){
   const d=DOCS[i];
   if(!d.file){toast('Tài liệu sẽ được gắn file ở bước sau');return}
   window.open(d.file,'_blank');
-  if(!user.doc[d.file]){user.doc[d.file]=1;addXp(5);toast('+5 XP vì mở tài liệu mới')}
+  if(!user.doc[d.file]){user.doc[d.file]=1;addXp(5);logAttempt({k:'doc',id:d.file,t:d.t,g:d.grade,xp:5});toast('+5 XP vì mở tài liệu mới')}
 }
 
 /* ===== TOÁN 5 – BÀI 10 (đáp án đúng luôn ở vị trí đầu, được xáo khi làm) ===== */
@@ -327,14 +330,14 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 }).join('');
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
-  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=emp(EXERCISES_LIVE());
+  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE());
   $('testList').innerHTML=emp(curG===5?dtCards():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
 function startQuiz(k){
   if(k!==undefined)cur=QUIZZES[k];
-  qz={i:0,sel:[],t:cur.min*60,end:Date.now()+cur.min*60000,qs:cur.q.map(q=>({...q,opts:sh(q.o)}))};
+  qz={i:0,sel:[],t0:Date.now(),t:cur.min*60,end:Date.now()+cur.min*60000,qs:cur.q.map(q=>({...q,opts:sh(q.o)}))};
   $('quiz').classList.remove('hidden');$('qres').classList.add('hidden');$('qmain').classList.remove('hidden');
   $('qtitle').textContent=cur.title;document.body.style.overflow='hidden';$('quiz').scrollTop=0;
   $('qtime').parentElement.style.display=cur.min?'':'none'; // không giới hạn thời gian thì ẩn đồng hồ
@@ -367,12 +370,14 @@ function finishQuiz(){
   let ok=0,raw=0;
   qz.qs.forEach((q,i)=>{if(qz.sel[i]===q.o[0]){ok++;raw+=LEVEL_XP[q.l]}});
   const n=qz.qs.length;if(ok>=Math.ceil(n*.6))raw+=10;if(ok===n)raw+=30;
-  const first=!(cur.id in user.done),gain=Math.round(raw*GRADE_MULT[cur.grade]*(first?1:REPLAY));
-  user.done[cur.id]=Math.max(user.done[cur.id]||0,ok);addXp(gain);
+  const rv=!!cur.review,first=!rv&&!(cur.id in user.done),gain=rv?0:Math.round(raw*GRADE_MULT[cur.grade]*(first?1:REPLAY));
+  if(!rv)user.done[cur.id]=Math.max(user.done[cur.id]||0,ok);if(gain)addXp(gain);
+  {const tp={},w=[],r=[];qz.qs.forEach((q,i)=>{const t=topicOf(q.q),c=qz.sel[i]===q.o[0];(tp[t]=tp[t]||[0,0])[1]++;if(c){tp[t][0]++;r.push(q.q)}else w.push({q:q.q,o:q.o,t})});
+   logAttempt({k:rv?'review':'quiz',id:cur.id,t:cur.title,g:cur.grade,ok,n,s:Math.round((Date.now()-qz.t0)/1000),xp:gain,tp,w,r})}
   const wrong=qz.qs.map((q,i)=>({q,i})).filter(x=>qz.sel[x.i]!==x.q.o[0]);
   $('qmain').classList.add('hidden');$('qres').classList.remove('hidden');$('quiz').scrollTop=0;
   $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${stk(ok===n?'star-gold':ok>=n*.6?'al-idea':'al-pencil','res-ic')}</h2>
-  <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
+  <p class="gain">+${gain} XP</p><p class="muted">${rv?'Bài ôn tập không tính XP.':first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
   ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(x=>`<div class="rv"><b>Câu ${x.i+1}.</b> ${fmt(x.q.q)}<br><span class="bad">Bạn chọn: ${fmt(qz.sel[x.i]??'(bỏ trống)')}</span><br><span class="good">Đáp án: ${fmt(x.q.o[0])}</span></div>`).join(''):'<p>Bạn trả lời đúng tất cả!</p>'}
   <div class="qnav"><button class="btn ghost" onclick="closeQuiz()">Đóng</button><button class="btn go" style="width:auto" onclick="startQuiz()">Làm lại</button></div>`;
 }
@@ -578,6 +583,9 @@ function dtEnd(){
   const rows=Object.keys(gr).map(k=>{const r=gr[k][0]/gr[k][1],c=r>=1?'#16B364':r>=.5?'#FFC93C':'#D12F35';return `<div class="dtrow"><span>${S.T[k]}</span><div class="rbar"><i style="width:${r*100}%;background:${c}"></i></div><b>${gr[k][0]}/${gr[k][1]}</b></div>`}).join('');
   const weak=Object.keys(gr).filter(k=>gr[k][0]<gr[k][1]).map(k=>S.T[k]);
   const wrong=dt.ans.filter(a=>!a.ok),mr=rankOf(user.xp);
+  {const tp={};dt.ans.forEach(a=>{const t=S.T[a.q[0]];(tp[t]=tp[t]||[0,0])[1]++;if(a.ok)tp[t][0]++});
+   const co=a=>[a.q[3][a.q[4]],...a.q[3].filter((_,i)=>i!==a.q[4])];
+   logAttempt({k:'test',id:S.id,t:'Đề test '+S.name,g:curG,ok:n,n:N,s:sec,xp:gain,tp,w:wrong.map(a=>({q:a.q[2],o:co(a),t:S.T[a.q[0]]})),r:dt.ans.filter(a=>a.ok).map(a=>a.q[2])})}
   $('dtbox').innerHTML=`<div style="text-align:center"><p class="px-t clear">${ratio>=.47?'GAME CLEAR!':'GAME OVER'}</p>
   <div class="px-res dg-res">${pimg('mk-pose')}${pimg('scroll')}${rkImg(mr,'res-rk')}</div><h2>${lv}</h2><h2>${n}/${N} câu đúng</h2>
   <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ${pimg('coin','hud-ic')} ${dt.xp} điểm · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${mr.n}</p></div>
@@ -597,3 +605,93 @@ function podiumHtml(list,medals){
   return '<div class="podium">'+[1,0,2].filter(i=>top[i]).map(i=>{const x=top[i],r=rankOf(x.xp);
     return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${avImg(x.av,x.id)}</div><b class="pn">${esc(x.name)}</b><small>${rkImg(r)} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
 }
+
+/* ===== THỐNG KÊ HỌC TẬP (nhật ký từng lượt làm bài → Supabase bảng "attempts", có dự phòng localStorage) ===== */
+const GOAL=20,KIND={quiz:'✏️',test:'🎮',game:'⚡',doc:'📖',review:'🔁'};
+let ATT=[],attErr=false,attBusy=false;
+const attKey=()=>'att:'+uid;
+const attSave=()=>{try{localStorage.setItem(attKey(),JSON.stringify(ATT.slice(0,300)))}catch(_){}};
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const topicOf=q=>(String(q).match(/^(Bài \d+)/)||[])[1]||'Khác';
+const pc=(a,b)=>b?Math.round(a/b*100):0;
+const clr=p=>p>=80?'#16B364':p>=50?'#FFC93C':'#D12F35';
+const dur=s=>s>=3600?Math.floor(s/3600)+'g '+Math.round(s%3600/60)+'p':s>=60?Math.round(s/60)+' phút':s+' giây';
+const fd=d=>d===dayKey(Date.now())?'Hôm nay':d===dayKey(Date.now()-864e5)?'Hôm qua':d.split('-').reverse().join('/');
+const mastGet=()=>{try{return new Set(JSON.parse(localStorage.getItem('mast:'+uid)||'[]'))}catch(_){return new Set()}};
+const mastSet=s=>{try{localStorage.setItem('mast:'+uid,JSON.stringify([...s].slice(-500)))}catch(_){}};
+async function syncAtt(){
+  if(!sb||!user||attBusy)return;attBusy=true;
+  try{for(const a of ATT.filter(x=>x.p)){
+    const {error}=await sb.from('attempts').insert({user_id:uid,kind:a.k,item_id:a.id,item_title:a.t,grade:a.g,correct:a.ok,total:a.n,secs:a.s,xp:a.xp,topics:a.tp,wrong:a.w,created_at:a.at});
+    if(error)throw error;delete a.p}attErr=false}
+  catch(_){attErr=true}
+  attBusy=false;attSave();
+}
+function logAttempt(o){ // o: {k,id,t,g,ok,n,s,xp,tp,w:[câu sai],r:[câu đúng]}
+  if(!user)return;
+  const M=mastGet(),known=q=>ATT.some(a=>(a.w||[]).some(w=>w.q===q));
+  (o.w||[]).forEach(w=>M.delete(w.q));(o.r||[]).filter(known).forEach(q=>M.add(q));mastSet(M);
+  ATT.unshift({k:o.k,id:o.id,t:o.t,g:o.g||curG,ok:o.ok||0,n:o.n||0,s:o.s||0,xp:o.xp||0,tp:o.tp||{},w:(o.w||[]).slice(0,20),at:new Date().toISOString(),p:1});
+  attSave();syncAtt();
+}
+async function loadAtt(){
+  let loc=[];try{loc=JSON.parse(localStorage.getItem(attKey())||'[]')}catch(_){}
+  ATT=loc;if(!sb)return;
+  try{
+    const {data,error}=await sb.from('attempts').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(300);
+    if(error)throw error;
+    ATT=[...loc.filter(a=>a.p),...data.map(r=>({k:r.kind,id:r.item_id,t:r.item_title,g:r.grade,ok:r.correct,n:r.total,s:r.secs,xp:r.xp,tp:r.topics||{},w:r.wrong||[],at:r.created_at}))]
+      .sort((a,b)=>b.at.localeCompare(a.at));
+    attErr=false;attSave();syncAtt();
+  }catch(_){attErr=true}
+}
+function wrongBank(g){
+  const M=mastGet(),seen=new Set(),out=[];
+  ATT.forEach(a=>(a.w||[]).forEach(w=>{if((g&&a.g!==g)||seen.has(w.q)||M.has(w.q))return;seen.add(w.q);out.push(w)}));
+  return out;
+}
+const reviewCard=()=>{const n=wrongBank(curG).length;
+  return n?`<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Ôn tập thông minh</span><h3>Ôn lại câu đã sai</h3><small>${n} câu bạn từng làm sai · không tính XP</small><button class="btn go" style="width:auto" onclick="startReview(curG)">Ôn ngay</button></div></article>`:''};
+function startReview(g){
+  const b=sh(wrongBank(g)).slice(0,10);
+  if(!b.length){toast('Bạn chưa có câu sai nào cần ôn 🎉');return}
+  cur={id:'review',title:'ÔN CÂU ĐÃ SAI',min:0,grade:g||curG,review:true,q:b.map(w=>({l:'mid',q:w.q,o:w.o}))};
+  startQuiz();
+}
+function renderStats(){
+  if(!user)return;
+  const days={};
+  ATT.forEach(a=>{const d=dayKey(a.at),x=days[d]=days[d]||{l:[],ok:0,n:0,s:0,xp:0};x.l.push(a);x.ok+=a.ok;x.n+=a.n;x.s+=a.s;x.xp+=a.xp});
+  const keys=Object.keys(days).sort().reverse(),T=ATT.reduce((t,a)=>(t.ok+=a.ok,t.n+=a.n,t.s+=a.s,t),{ok:0,n:0,s:0});
+  const td=days[dayKey(Date.now())]||{n:0,ok:0,s:0,xp:0};
+  let streak=0;for(let t=new Date();;t.setDate(t.getDate()-1)){if(days[dayKey(t)])streak++;else if(streak||dayKey(t)!==dayKey(Date.now()))break}
+  const rng=(a,b)=>{let ok=0,n=0;for(let i=a;i<b;i++){const t=new Date();t.setDate(t.getDate()-i);const x=days[dayKey(t)];if(x){ok+=x.ok;n+=x.n}}return[ok,n]};
+  const w1=rng(0,7),w0=rng(7,14),dl=w1[1]&&w0[1]?pc(...w1)-pc(...w0):null;
+  const bars=Array.from({length:14},(_,i)=>{const t=new Date();t.setDate(t.getDate()-13+i);return{x:days[dayKey(t)],l:t.getDate()+'/'+(t.getMonth()+1)}});
+  const mx=Math.max(GOAL,...bars.map(b=>b.x?b.x.n:0));
+  const tp={};ATT.forEach(a=>Object.entries(a.tp||{}).forEach(([k,v])=>{const x=tp[k]=tp[k]||[0,0];x[0]+=v[0];x[1]+=v[1]}));
+  const tl=Object.entries(tp).filter(([,v])=>v[1]>=2).sort((a,b)=>pc(...a[1])-pc(...b[1]));
+  const weak=tl.filter(([,v])=>pc(...v)<70).slice(0,3).map(([k])=>k),wb=wrongBank().length;
+  const gp=Math.min(100,pc(td.n,GOAL));
+  $('statsBody').innerHTML=`
+  ${attErr||ATT.some(a=>a.p)?'<p class="st-tip warn">⚠️ Một số kết quả chưa đồng bộ lên hệ thống nên thầy cô chưa xem được. Dữ liệu vẫn được giữ trên máy này và tự gửi lại khi có mạng.</p>':''}
+  <div class="kpis">
+    <div class="kpi"><b>🔥 ${streak}</b><small>ngày học liên tiếp</small></div>
+    <div class="kpi"><b>${pc(T.ok,T.n)}%</b><small>độ chính xác chung (${T.ok}/${T.n} câu)</small></div>
+    <div class="kpi"><b>${dur(T.s)}</b><small>tổng thời gian làm bài</small></div>
+    <div class="kpi"><b>${w1[1]?pc(...w1)+'%':'—'}</b><small>chính xác 7 ngày qua ${dl===null?'':`<em style="color:${dl>=0?'#0B7A43':'#D12F35'}">${dl>=0?'▲ +':'▼ '}${dl}%</em>`}</small></div>
+  </div>
+  <div class="st-box goal"><h3>🎯 Mục tiêu hôm nay: ${GOAL} câu</h3>
+    <div class="rbar"><i style="width:${gp}%;background:${gp>=100?'#16B364':'#1E5EFF'}"></i></div>
+    <small class="muted">${td.n>=GOAL?'Đã hoàn thành mục tiêu! 🎉':'Đã làm '+td.n+' câu, còn '+(GOAL-td.n)+' câu nữa.'} Hôm nay: ${td.ok}/${td.n} đúng · ${dur(td.s)} · +${td.xp} XP</small></div>
+  <div class="st-box"><h3>📈 14 ngày gần đây <small class="muted">(số câu làm, màu = độ chính xác)</small></h3>
+    <div class="sc">${bars.map(b=>`<div class="sc-col" title="${b.x?b.x.n+' câu · '+pc(b.x.ok,b.x.n)+'% đúng':'Không học'}"><i style="height:${b.x?Math.max(5,b.x.n/mx*100):2}%;background:${b.x?clr(pc(b.x.ok,b.x.n)):''}"></i><small>${b.l}</small></div>`).join('')}</div></div>
+  <div class="st-box"><h3>🧭 Mức nắm vững theo nội dung</h3>
+    ${tl.length?tl.map(([k,v])=>{const p=pc(...v);return `<div class="tprow"><span>${esc(k)}</span><div class="rbar"><i style="width:${p}%;background:${clr(p)}"></i></div><b>${v[0]}/${v[1]}</b></div>`}).join(''):'<p class="muted">Làm vài bài để xem bản đồ năng lực của bạn.</p>'}
+    ${weak.length?`<p class="st-tip">💡 Gợi ý: nên ôn thêm <b>${weak.map(esc).join(', ')}</b>.</p>`:''}
+    ${wb?`<button class="btn go" style="width:auto" onclick="startReview()">🔁 Ôn ${Math.min(wb,10)} câu đã sai</button>`:''}</div>
+  <div class="st-box"><h3>🗓️ Lịch sử từng buổi học</h3>
+    ${keys.length?keys.slice(0,10).map((d,i)=>{const x=days[d];return `<details class="dayc"${i===0?' open':''}><summary><b>${fd(d)}</b><span>${x.l.length} lượt · ${x.ok}/${x.n} đúng (${pc(x.ok,x.n)}%) · ${dur(x.s)} · +${x.xp} XP</span></summary>${x.l.map(a=>`<div class="att"><span>${new Date(a.at).toTimeString().slice(0,5)}</span><span>${KIND[a.k]||'•'} ${esc(a.t)}</span><b style="color:${a.n?clr(pc(a.ok,a.n)):'inherit'}">${a.n?a.ok+'/'+a.n:'—'}</b><small>${a.s?dur(a.s)+' · ':''}+${a.xp} XP</small></div>`).join('')}</details>`}).join(''):'<p class="muted">Chưa có buổi học nào. Hãy làm một bài tập nhé!</p>'}</div>`;
+}
+$('navStats').onclick=e=>{e.preventDefault();view('stats')};
+$('backStats').onclick=()=>view('levels');
