@@ -1669,3 +1669,9 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 .brand-mark.sm b{font-size:1.35rem}
 .foot p{font-size:1rem}
 @media (max-width:640px){.brand-mark.sm small{font-size:.5rem}.brand-mark.sm b{font-size:1.1rem}.login-brand .brand-mark b{font-size:1.8rem}}
+
+/* Splash: bỏ khung trắng/logo, chỉ hiện chữ thương hiệu */
+#splash .splash-card{background:none;box-shadow:none;border-radius:0;padding:0;overflow:visible}
+#splash .splash-card::after{display:none}
+#splash .brand-mark small{color:#cfd8ff}
+#splash .brand-mark b{background:linear-gradient(90deg,#9fd0ff,#c9b6ff 55%,#5fe0d2);-webkit-background-clip:text;background-clip:text;color:transparent}
