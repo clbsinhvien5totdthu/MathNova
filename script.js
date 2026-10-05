@@ -221,9 +221,13 @@ async function saveAvatar(n){
   if(typeof boardRows!=='undefined'&&boardRows){const r=boardRows.find(x=>x.id===uid);if(r)r.avatar=n}
   if(typeof drawBoard==='function')drawBoard();
   if(!sb)return;
-  const {error}=await sb.from('profiles').update({avatar:n}).eq('id',uid);
-  if(error)toast('⚠️ Ảnh đã đổi trên máy này, nhưng chưa lưu lên hệ thống. Hãy báo thầy cô nhé.');
-  else toast('Đã đổi ảnh đại diện! ✨');
+  try{
+    const {data,error}=await sb.from('profiles').update({avatar:n}).eq('id',uid).select('id');
+    if(error){console.error('avatar',error);
+      toast(/column|schema|avatar/i.test(error.message||'')?'⚠️ Supabase chưa có cột "avatar". Hãy chạy lệnh SQL tạo cột rồi thử lại.':'⚠️ Chưa lưu được ảnh lên hệ thống: '+(error.message||'lỗi không rõ'));return}
+    if(!data||!data.length){toast('⚠️ Supabase từ chối ghi ảnh (thiếu quyền cập nhật). Hãy kiểm tra chính sách RLS của bảng profiles.');return}
+    toast('Đã lưu ảnh đại diện lên hệ thống! ✨');
+  }catch(e){console.error(e);toast('⚠️ Không kết nối được máy chủ. Ảnh mới chỉ lưu trên máy này.')}
 }
 function openAvatarPicker(){
   const old=$('avpick');if(old)old.remove();
