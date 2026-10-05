@@ -105,6 +105,8 @@ function enter(p){
   user={id:p.id,username:p.username,name:p.name,grade:p.grade||5,xp:Number(p.xp)||0,
     done:p.done&&typeof p.done==='object'?p.done:{},doc:p.doc&&typeof p.doc==='object'?p.doc:{},gd:p.gd||null,av:avNum(p.avatar)||avLocalGet(p.id)};
   show('app');view('levels');refreshMe();renderEx();
+  $('navTeacher').classList.add('hidden');
+  if(sb)sb.from('teachers').select('user_id').eq('user_id',uid).maybeSingle().then(({data})=>{if(data&&user)$('navTeacher').classList.remove('hidden')},()=>{});
   loadAtt().then(()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats()});
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
@@ -114,7 +116,7 @@ $('logout').onclick=async()=>{
   stopGame();$('arena').classList.add('hidden');
   await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
   try{if(sb)await sb.auth.signOut()}catch(_){}
-  user=null;uid=null;boardRows=null;ATT=[];$('u').value='';$('p').value='';$('err').textContent='';
+  user=null;uid=null;boardRows=null;ATT=[];$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
   btn.disabled=false;show('login');
 };
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
