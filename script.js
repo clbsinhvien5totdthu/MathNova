@@ -519,10 +519,10 @@ function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cu�
 const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
 function dtCards(){
   return DT_SETS.map((S,k)=>{const b=user.done[S.id],n=S.Q.length;
-  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span><h3>Hành trình Đại Thánh – Đề test ${S.name}</h3>
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span><h3>${(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
   <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
-  <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu hành trình':'Chơi lại'}</button></div></article>`}).join('');
+  <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu':'Chơi lại'}</button></div></article>`}).join('');
 }
 function dtStart(k){
   dt={k,S:DT_SETS[k],i:0,xp:0,st:0,best:0,ans:[],t0:Date.now()};
