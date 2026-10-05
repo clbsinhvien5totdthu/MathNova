@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>MathNova – Trang giáo viên</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0B2A5B;--blue:#1E5EFF;--sky:#EAF1FF;--green:#16B364;--yellow:#FFC93C;--red:#D12F35;--text:#1D2B45;--muted:#5B6B88;--line:#D6E2FA}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:400 15px/1.55 "Be Vietnam Pro",system-ui,sans-serif;color:var(--text);background:#F7FAFF}
+h1,h2,h3{font-family:"Baloo 2","Be Vietnam Pro",sans-serif;color:var(--navy);line-height:1.15}
+.hidden{display:none!important}.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+button,input,select{font:inherit}
+.btn{padding:8px 18px;border-radius:99px;border:2px solid var(--blue);background:var(--blue);color:#fff;font-weight:600;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--blue)}.btn:disabled{opacity:.6}
+input,select{padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--text)}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lc{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;width:min(380px,100%);box-shadow:0 10px 30px rgba(20,40,70,.1)}
+.lc label{display:block;margin:12px 0 4px;font-weight:600}.lc input{width:100%}.lc .btn{width:100%;margin-top:16px}
+.err{color:var(--red);min-height:1.3em;margin-top:8px;font-size:.9rem}
+header{background:var(--navy);color:#fff;padding:12px 0;position:sticky;top:0;z-index:5}
+header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}header h1{color:#fff;font-size:1.4rem;margin-right:auto}
+header .btn.ghost{background:transparent;color:#fff;border-color:#ffffff66}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.tools input{flex:1;min-width:160px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.kpi,.box{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 18px rgba(20,40,70,.06)}
+.kpi{padding:12px 16px}.kpi b{display:block;font:800 1.7rem "Baloo 2";color:var(--navy);line-height:1.1}.kpi small{color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}@media(max-width:800px){.cols{grid-template-columns:1fr}}
+.box{padding:14px 18px;margin-bottom:14px}.cols .box{margin:0}.box h2{font-size:1.15rem;margin-bottom:8px}
+.sc{display:flex;align-items:flex-end;gap:4px;height:110px}.sc div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.sc i{display:block;width:100%;max-width:26px;background:var(--blue);border-radius:5px 5px 0 0;min-height:2px}.sc small{font-size:.58rem;color:var(--muted)}
+.tp{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:.9rem}.tp span{width:130px;flex-shrink:0}.tp b{width:62px;text-align:right}
+.bar{flex:1;height:10px;background:var(--sky);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{cursor:pointer;color:var(--muted);font-size:.82rem;user-select:none}tbody tr{cursor:pointer}tbody tr:hover{background:var(--sky)}
+.chip{padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600}
+.c-idle{background:#FDE3E4;color:var(--red)}.c-weak{background:#FFF1CC;color:#8A5A00}.c-good{background:#D8F5E5;color:#0B7A43}.c-ok{background:var(--sky);color:var(--blue)}
+.alert{display:flex;flex-wrap:wrap;gap:8px}.alert button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 12px;cursor:pointer}
+dialog{border:0;border-radius:20px;padding:22px;width:min(640px,94vw);max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.3)}dialog::backdrop{background:rgba(11,42,91,.5)}
+.att{display:grid;grid-template-columns:90px 1fr auto;gap:2px 10px;padding:6px 0;border-top:1px solid var(--line);font-size:.88rem}.att small{grid-column:2/-1;color:var(--muted)}
+.muted{color:var(--muted)}
+</style></head><body>
+<main id="login"><form class="lc" id="lf"><h1>MathNova · Giáo viên</h1><p class="muted">Đăng nhập để theo dõi việc học của học sinh.</p>
+<label for="u">Tên đăng nhập</label><input id="u" required><label for="p">Mật khẩu</label><input id="p" type="password" required>
+<p class="err" id="err"></p><button class="btn" id="lb">Đăng nhập</button></form></main>
+
+<div id="app" class="hidden">
+<header><div class="wrap"><h1>📊 Theo dõi học tập</h1><span id="who"></span><button class="btn ghost" id="rf">↻ Làm mới</button><button class="btn ghost" id="ex">⬇ Xuất CSV</button><button class="btn ghost" id="lo">Đăng xuất</button></div></header>
+<div class="wrap">
+<div class="tools"><select id="fg"></select><select id="fd"><option value="7">7 ngày qua</option><option value="14">14 ngày qua</option><option value="30">30 ngày qua</option></select><input id="fs" placeholder="Tìm tên / tên đăng nhập…"></div>
+<p id="load" class="muted">Đang tải dữ liệu…</p>
+<div id="body" class="hidden">
+<div class="kpis" id="kpis"></div>
+<div class="box"><h2>⚠️ Cần chú ý</h2><div id="alerts" class="alert"></div></div>
+<div class="cols"><div class="box"><h2>Số học sinh học mỗi ngày (14 ngày)</h2><div class="sc" id="chart"></div></div>
+<div class="box"><h2>Nội dung cả lớp còn yếu</h2><div id="topics"></div></div></div>
+<div class="box"><h2>Danh sách học sinh <small class="muted">(bấm tiêu đề để sắp xếp, bấm dòng để xem chi tiết)</small></h2><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
+</div></div></div>
+<dialog id="dlg"></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=supabase.createClient('https://odyiqvstagtynvbdcxvn.supabase.co','sb_publishable_JNXaQa2vdN12IwLCYuraDg_TgOVtpWB'),SUF='@mathnova.vn';
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pc=(a,b)=>b?Math.round(a/b*100):0,clr=p=>p>=80?'#16B364':p>=50?'#FFC93C':'#D12F35';
+const dur=s=>s>=3600?Math.floor(s/3600)+'g '+Math.round(s%3600/60)+'p':s>=60?Math.round(s/60)+' phút':s+' giây';
+const sod=t=>{const d=new Date(t);d.setHours(0,0,0,0);return+d},dk=t=>{const d=new Date(t);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()};
+const ST={idle:['Không học','c-idle'],weak:['Cần hỗ trợ','c-weak'],good:['Tốt','c-good'],ok:['Ổn định','c-ok']};
+let P=[],A=[],T=new Set(),by={},S=[],sortK='st',sortD=1,me=null;
+
+$('lf').onsubmit=async e=>{e.preventDefault();const b=$('lb');b.disabled=true;$('err').textContent='';
+  try{const {data,error}=await sb.auth.signInWithPassword({email:$('u').value.trim().toLowerCase()+SUF,password:$('p').value});
+    if(error){$('err').textContent='Sai tên đăng nhập hoặc mật khẩu.';return}
+    await enter(data.user)}catch(_){$('err').textContent='Không kết nối được máy chủ.'}finally{b.disabled=false}};
+async function enter(u){
+  const {data}=await sb.from('teachers').select('user_id');
+  if(!data||!data.some(r=>r.user_id===u.id)){await sb.auth.signOut();$('login').classList.remove('hidden');$('app').classList.add('hidden');$('err').textContent='Tài khoản này không có quyền giáo viên.';return}
+  me=u;T=new Set(data.map(r=>r.user_id));$('who').textContent=u.email.replace(SUF,'');
+  $('login').classList.add('hidden');$('app').classList.remove('hidden');load();
+}
+$('lo').onclick=async()=>{await sb.auth.signOut();location.reload()};
+(async()=>{const {data}=await sb.auth.getSession();if(data.session)enter(data.session.user)})();
+
+async function all(q){let out=[],f=0;for(;;){const {data,error}=await q().range(f,f+999);if(error)throw error;out=out.concat(data);if(data.length<1000)break;f+=1000}return out}
+async function load(){
+  $('load').textContent='Đang tải dữ liệu…';$('load').classList.remove('hidden');
+  try{
+    const since=new Date(Date.now()-60*864e5).toISOString();
+    P=await all(()=>sb.from('profiles').select('id,username,name,grade').order('id'));
+    A=await all(()=>sb.from('attempts').select('id,user_id,kind,item_title,correct,total,secs,xp,topics,created_at').gte('created_at',since).order('created_at',{ascending:false}).order('id'));
+  }catch(e){$('load').textContent='Không tải được dữ liệu: '+(e.message||'lỗi')+'. Kiểm tra đã chạy SQL phân quyền giáo viên chưa.';return}
+  by={};A.forEach(a=>(by[a.user_id]=by[a.user_id]||[]).push(a));
+  const gs=[...new Set(P.filter(p=>!T.has(p.id)).map(p=>p.grade))].sort((a,b)=>a-b),cg=$('fg').value||'all';
+  $('fg').innerHTML='<option value="all">Tất cả các lớp</option>'+gs.map(g=>`<option value="${g}">Lớp ${g}</option>`).join('');$('fg').value=gs.includes(+cg)?cg:'all';
+  $('load').classList.add('hidden');$('body').classList.remove('hidden');draw();
+}
+function calc(){
+  const D=+$('fd').value,lim=Date.now()-D*864e5,g=$('fg').value,q=$('fs').value.trim().toLowerCase(),today=sod(Date.now());
+  S=P.filter(p=>!T.has(p.id)&&(g==='all'||String(p.grade)===g)&&(!q||(p.name||'').toLowerCase().includes(q)||(p.username||'').toLowerCase().includes(q))).map(p=>{
+    const l=by[p.id]||[],r=l.filter(a=>+new Date(a.created_at)>=lim),n=r.reduce((s,a)=>s+a.total,0),ok=r.reduce((s,a)=>s+a.correct,0);
+    const idle=l[0]?Math.round((today-sod(l[0].created_at))/864e5):null,acc=n?ok/n:null;
+    const st=idle===null||idle>=3?'idle':n>=10&&acc<.5?'weak':n>=10&&acc>=.8?'good':'ok';
+    return{...p,l,r,n,ok,s:r.reduce((x,a)=>x+a.secs,0),xp:r.reduce((x,a)=>x+a.xp,0),idle,acc,st,days:new Set(r.map(a=>dk(a.created_at))).size};
+  });
+}
+const idleTxt=i=>i===null?'Chưa học':i===0?'Hôm nay':i===1?'Hôm qua':i+' ngày trước';
+const COLS=[['name','Học sinh'],['grade','Lớp'],['idle','Học gần nhất'],['days','Số ngày học'],['n','Số câu'],['acc','Chính xác'],['s','Thời gian'],['xp','XP'],['st','Trạng thái']];
+function draw(){
+  calc();const D=+$('fd').value,today=S.filter(s=>s.idle===0).length,tn=S.reduce((a,s)=>a+s.n,0),tok=S.reduce((a,s)=>a+s.ok,0),warn=S.filter(s=>s.st==='idle'||s.st==='weak');
+  $('kpis').innerHTML=[[S.length,'học sinh'],[today,'đã học hôm nay'],[S.filter(s=>s.n>0).length,`có học trong ${D} ngày`],[tn?pc(tok,tn)+'%':'—','chính xác trung bình'],[warn.length,'cần chú ý']].map(k=>`<div class="kpi"><b>${k[0]}</b><small>${k[1]}</small></div>`).join('');
+  $('alerts').innerHTML=warn.length?warn.sort((a,b)=>(b.idle??99)-(a.idle??99)).map(s=>`<button onclick="detail('${s.id}')">${esc(s.name)} · ${s.st==='idle'?(s.idle===null?'chưa học':'nghỉ '+s.idle+' ngày'):'chính xác '+pc(s.ok,s.n)+'%'}</button>`).join(''):'<span class="muted">Không có học sinh nào cần chú ý 🎉</span>';
+  const ids=new Set(S.map(s=>s.id)),cnt={};A.forEach(a=>{if(ids.has(a.user_id)){const k=dk(a.created_at);(cnt[k]=cnt[k]||new Set()).add(a.user_id)}});
+  const bars=Array.from({length:14},(_,i)=>{const t=new Date();t.setDate(t.getDate()-13+i);return[t.getDate()+'/'+(t.getMonth()+1),cnt[dk(t)]?cnt[dk(t)].size:0]}),mx=Math.max(1,...bars.map(b=>b[1]));
+  $('chart').innerHTML=bars.map(b=>`<div title="${b[1]} học sinh"><small>${b[1]||''}</small><i style="height:${b[1]?Math.max(6,b[1]/mx*85):2}%"></i><small>${b[0]}</small></div>`).join('');
+  const tp={};S.forEach(s=>s.r.forEach(a=>Object.entries(a.topics||{}).forEach(([k,v])=>{const x=tp[k]=tp[k]||[0,0];x[0]+=v[0];x[1]+=v[1]})));
+  const tl=Object.entries(tp).filter(([,v])=>v[1]>=5).sort((a,b)=>pc(...a[1])-pc(...b[1])).slice(0,6);
+  $('topics').innerHTML=tl.length?tl.map(([k,v])=>{const p=pc(...v);return `<div class="tp"><span>${esc(k)}</span><div class="bar"><i style="width:${p}%;background:${clr(p)}"></i></div><b>${p}% (${v[1]})</b></div>`}).join(''):'<p class="muted">Chưa đủ dữ liệu.</p>';
+  const rank={idle:0,weak:1,ok:2,good:3};
+  S.sort((a,b)=>{let x=a[sortK],y=b[sortK];if(sortK==='st'){x=rank[x];y=rank[y]}if(x===null||x===undefined)x=sortK==='idle'?999:-1;if(y===null||y===undefined)y=sortK==='idle'?999:-1;return(typeof x==='string'?x.localeCompare(y,'vi'):x-y)*sortD||String(a.name).localeCompare(b.name,'vi')});
+  $('th').innerHTML='<tr>'+COLS.map(c=>`<th data-k="${c[0]}">${c[1]}${sortK===c[0]?(sortD>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>';
+  $('th').querySelectorAll('th').forEach(h=>h.onclick=()=>{sortD=sortK===h.dataset.k?-sortD:1;sortK=h.dataset.k;draw()});
+  $('tb').innerHTML=S.map(s=>`<tr onclick="detail('${s.id}')"><td><b>${esc(s.name)}</b><br><small class="muted">${esc(s.username)}</small></td><td>${s.grade}</td><td>${idleTxt(s.idle)}</td><td>${s.days}/${D}</td><td>${s.n}</td><td style="color:${s.n?clr(pc(s.ok,s.n)):'inherit'};font-weight:600">${s.n?pc(s.ok,s.n)+'%':'—'}</td><td>${dur(s.s)}</td><td>${s.xp}</td><td><span class="chip ${ST[s.st][1]}">${ST[s.st][0]}</span></td></tr>`).join('')||'<tr><td colspan="9" class="muted">Không có học sinh phù hợp.</td></tr>';
+}
+function detail(id){
+  const s=S.find(x=>x.id===id)||P.find(x=>x.id===id);if(!s)return;const l=by[id]||[],D=+$('fd').value;
+  const tp={};l.forEach(a=>Object.entries(a.topics||{}).forEach(([k,v])=>{const x=tp[k]=tp[k]||[0,0];x[0]+=v[0];x[1]+=v[1]}));
+  const days={};l.forEach(a=>{const k=dk(a.created_at);days[k]=(days[k]||0)+a.total});
+  const bars=Array.from({length:14},(_,i)=>{const t=new Date();t.setDate(t.getDate()-13+i);return[t.getDate()+'/'+(t.getMonth()+1),days[dk(t)]||0]}),mx=Math.max(1,...bars.map(b=>b[1]));
+  $('dlg').innerHTML=`<h2>${esc(s.name)} <small class="muted">· lớp ${s.grade} · ${esc(s.username)}</small></h2>
+  <p class="muted">Học gần nhất: ${idleTxt(s.idle??null)} · ${D} ngày qua: ${s.n||0} câu, ${s.n?pc(s.ok,s.n)+'% đúng':'chưa có dữ liệu'}</p>
+  <h3 style="margin:14px 0 6px">Số câu 14 ngày</h3><div class="sc">${bars.map(b=>`<div title="${b[1]} câu"><i style="height:${b[1]?Math.max(6,b[1]/mx*90):2}%"></i><small>${b[0]}</small></div>`).join('')}</div>
+  <h3 style="margin:14px 0 6px">Mức nắm vững (60 ngày)</h3>${Object.entries(tp).sort((a,b)=>pc(...a[1])-pc(...b[1])).map(([k,v])=>{const p=pc(...v);return `<div class="tp"><span>${esc(k)}</span><div class="bar"><i style="width:${p}%;background:${clr(p)}"></i></div><b>${v[0]}/${v[1]}</b></div>`}).join('')||'<p class="muted">Chưa có dữ liệu.</p>'}
+  <h3 style="margin:14px 0 6px">Các lượt làm bài gần đây</h3><div style="max-height:240px;overflow:auto">${l.slice(0,20).map(a=>{const d=new Date(a.created_at);return `<div class="att"><span>${d.toLocaleDateString('vi-VN')} ${d.toTimeString().slice(0,5)}</span><span>${esc(a.item_title)}</span><b>${a.total?a.correct+'/'+a.total:'—'}</b><small>${esc(a.kind)}${a.secs?' · '+dur(a.secs):''} · +${a.xp} XP</small></div>`}).join('')||'<p class="muted">Chưa làm bài nào.</p>'}</div>
+  <p style="text-align:right;margin-top:14px"><button class="btn" onclick="$('dlg').close()">Đóng</button></p>`;
+  $('dlg').showModal();
+}
+$('dlg').onclick=e=>{if(e.target===$('dlg'))$('dlg').close()};
+['fg','fd'].forEach(i=>$(i).onchange=draw);$('fs').oninput=draw;$('rf').onclick=load;
+$('ex').onclick=()=>{
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',rows=[['Họ tên','Tên đăng nhập','Lớp','Học gần nhất','Số ngày học','Số câu','Số câu đúng','Chính xác %','Thời gian (phút)','XP','Trạng thái']];
+  S.forEach(s=>rows.push([s.name,s.username,s.grade,idleTxt(s.idle),s.days,s.n,s.ok,s.n?pc(s.ok,s.n):'',Math.round(s.s/60),s.xp,ST[s.st][0]]));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='mathnova-thong-ke-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+};
+</script></body></html>
