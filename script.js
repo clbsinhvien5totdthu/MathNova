@@ -103,7 +103,7 @@ $('loginForm').onsubmit=async e=>{
 function enter(p){
   uid=p.id;
   user={id:p.id,username:p.username,name:p.name,grade:p.grade||5,xp:Number(p.xp)||0,
-    done:p.done&&typeof p.done==='object'?p.done:{},doc:p.doc&&typeof p.doc==='object'?p.doc:{},gd:p.gd||null};
+    done:p.done&&typeof p.done==='object'?p.done:{},doc:p.doc&&typeof p.doc==='object'?p.doc:{},gd:p.gd||null,av:avNum(p.avatar)||avLocalGet(p.id)};
   show('app');view('levels');refreshMe();renderEx();
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
@@ -206,9 +206,46 @@ function save(){ // ghi tiến độ lên Supabase, xếp hàng để không b�
     catch(_){toast('⚠️ Chưa lưu được tiến độ. Hãy kiểm tra mạng nhé.')}
   });
 }
+
+/* ===== ẢNH ĐẠI DIỆN (35 nhân vật, chọn trong hộp thoại) ===== */
+const AV_NAMES=['Bác nông dân','Bé nghe nhạc','Cầu thủ','Nhà khoa học','Thủy thủ','Đầu bếp','Kỹ sư','Cô bé mũ nồi','Chú bộ đội','Cô gái nón lá','Mèo game thủ','Cô gái kimono','Bé ba lô xanh','Cô bé tết tóc','Cậu bé kính tròn','Phi hành gia','Cô bé áo mưa','Nhà thám hiểm','Cô bé thỏ bông','Cầu thủ bóng rổ','Chim cánh cụt','Cáo nhỏ','Voi xanh','Vịt con','Khủng long','Cánh cụt mũ len','Thỏ trắng','Ếch xanh','Gấu nâu','Gấu trúc','Husky','Sư tử','Hươu nhỏ','Mèo trắng','Corgi'];
+const AV_N=AV_NAMES.length;
+const avNum=v=>{v=Number(v);return v>=1&&v<=AV_N?v:0};
+function avDefault(id){let h=0;for(const c of String(id||''))h=(h*31+c.charCodeAt(0))>>>0;return h%AV_N+1}
+const avOf=(num,id)=>avNum(num)||avDefault(id);
+const avImg=(num,id,c='av-img')=>`<img class="${c}" src="assets/avatar/a${String(avOf(num,id)).padStart(2,'0')}.webp" alt="" draggable="false">`;
+function avLocalGet(id){try{return avNum(localStorage.getItem('avatar:'+id))}catch(_){return 0}}
+function avLocalSet(id,n){try{localStorage.setItem('avatar:'+id,String(n))}catch(_){}}
+async function saveAvatar(n){
+  user.av=n;avLocalSet(uid,n);refreshMe();
+  if(typeof boardRows!=='undefined'&&boardRows){const r=boardRows.find(x=>x.id===uid);if(r)r.avatar=n}
+  if(typeof drawBoard==='function')drawBoard();
+  if(!sb)return;
+  const {error}=await sb.from('profiles').update({avatar:n}).eq('id',uid);
+  if(error)toast('⚠️ Ảnh đã đổi trên máy này, nhưng chưa lưu lên hệ thống. Hãy báo thầy cô nhé.');
+  else toast('Đã đổi ảnh đại diện! ✨');
+}
+function openAvatarPicker(){
+  const old=$('avpick');if(old)old.remove();
+  const r=rankOf(user.xp);let sel=avOf(user.av,uid);
+  const d=document.createElement('div');d.id='avpick';d.className='quiz';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.style.setProperty('--c',r.c);
+  d.innerHTML=`<div class="qbox avbox"><h2>Chọn ảnh đại diện</h2>
+  <div class="av-prev"><span class="av-frame">${avImg(sel,uid,'av-img')}</span><div><b id="avName"></b><small>Khung đổi màu theo hạng <b>${r.n}</b> của bạn</small></div></div>
+  <div class="av-grid" role="radiogroup" aria-label="Danh sách ảnh đại diện">${AV_NAMES.map((n,i)=>`<button type="button" role="radio" data-n="${i+1}" aria-label="${n}" class="av-opt">${avImg(i+1,uid,'av-img')}</button>`).join('')}</div>
+  <div class="qnav"><button type="button" class="btn ghost" data-act="x">Hủy</button><button type="button" class="btn go" data-act="ok" style="width:auto">Lưu ảnh</button></div></div>`;
+  const paint=()=>{d.querySelectorAll('.av-opt').forEach(b=>{const on=+b.dataset.n===sel;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
+    d.querySelector('.av-prev .av-img').src=`assets/avatar/a${String(sel).padStart(2,'0')}.webp`;$('avName').textContent=AV_NAMES[sel-1]};
+  d.onclick=e=>{
+    if(e.target===d||e.target.dataset.act==='x'){d.remove();return}
+    const o=e.target.closest('.av-opt');if(o){sel=+o.dataset.n;paint();return}
+    if(e.target.dataset.act==='ok'){d.remove();if(sel!==avOf(user.av,uid)||!user.av)saveAvatar(sel)}
+  };
+  document.body.appendChild(d);paint();
+}
 function refreshMe(){
   const r=rankOf(user.xp),nx=RANKS[RANKS.indexOf(r)+1];
-  $('meName').innerHTML=stk('ic-user','rk')+' '+esc(user.name);$('meXp').textContent=user.xp+' XP';
+  $('meName').innerHTML='<button type="button" class="me-av" id="meAv" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện" style="--c:'+rankOf(user.xp).c+'">'+avImg(user.av,uid)+'<i>✎</i></button> '+esc(user.name);
+  $('meAv').onclick=openAvatarPicker;$('meXp').textContent=user.xp+' XP';
   $('meRank').innerHTML=rkImg(r)+' '+esc(r.n);$('meRank').style.background=r.c;
   $('rankFill').style.width=(nx?(user.xp-r.min)/(nx.min-r.min)*100:100)+'%';
   $('rankFill').style.background=r.c;
@@ -425,7 +462,8 @@ async function renderBoard(){
   if(!sb)return;
   if(!boardRows)$('rankBoard').innerHTML='<h2>'+stk('star-gold','h-ic')+' Bảng vinh danh</h2><p class="muted">Đang tải bảng xếp hạng…</p>';
   try{
-    const {data,error}=await sb.from('profiles').select('id,name,grade,xp,done').order('xp',{ascending:false}).limit(500);
+    let {data,error}=await sb.from('profiles').select('id,name,grade,xp,done,avatar').order('xp',{ascending:false}).limit(500);
+    if(error)({data,error}=await sb.from('profiles').select('id,name,grade,xp,done').order('xp',{ascending:false}).limit(500)); // cột avatar chưa tạo
     if(error)throw error;
     if(seq!==boardSeq||!user)return;
     boardRows=data||[];
@@ -437,8 +475,8 @@ async function renderBoard(){
 }
 function drawBoard(){
   if(!user||!boardRows)return;
-  const all=boardRows.filter(r=>r.id!==uid).map(r=>({id:r.id,name:r.name,g:Number(r.grade)||5,xp:Number(r.xp)||0,n:countDone(r.done)}));
-  all.push({id:uid,name:user.name,g:user.grade||5,xp:user.xp,n:countDone(user.done)}); // dòng của mình luôn dùng số liệu mới nhất
+  const all=boardRows.filter(r=>r.id!==uid).map(r=>({id:r.id,name:r.name,av:r.avatar,g:Number(r.grade)||5,xp:Number(r.xp)||0,n:countDone(r.done)}));
+  all.push({id:uid,name:user.name,av:user.av,g:user.grade||5,xp:user.xp,n:countDone(user.done)}); // dòng của mình luôn dùng số liệu mới nhất
   all.sort((a,b)=>b.xp-a.xp||String(a.name).localeCompare(String(b.name),'vi'));
   const gs=[...new Set(all.map(x=>x.g))].sort((a,b)=>a-b);
   if(boardF!=='all'&&!gs.includes(+boardF))boardF='all';
@@ -448,7 +486,7 @@ function drawBoard(){
   <p class="muted">Xếp theo tổng XP của tất cả các khối. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
   <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${rkImg(mr)} ${mr.n} · ${user.xp} XP</p>
   <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}<button class="btn ghost sm refresh" onclick="renderBoard()">↻ Làm mới</button></div>
-  ${podiumHtml(list,medals)}<ol class="hlist" start="4">${list.slice(3).map((x,j)=>{const i=j+3;const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${rkImg(r)} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
+  ${podiumHtml(list,medals)}<ol class="hlist" start="4">${list.slice(3).map((x,j)=>{const i=j+3;const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="av-frame sm" style="--c:${r.c}">${avImg(x.av,x.id)}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${rkImg(r)} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
   ${myRankHtml(mr)}<h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${rkImg(r)} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
 }
 
@@ -553,5 +591,5 @@ function myRankHtml(mr){
 function podiumHtml(list,medals){
   const top=list.slice(0,3),crown=[stk('math-star','crown-img'),'',''];
   return '<div class="podium">'+[1,0,2].filter(i=>top[i]).map(i=>{const x=top[i],r=rankOf(x.xp);
-    return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${esc((x.name||'?').trim().slice(0,1).toUpperCase())}</div><b class="pn">${esc(x.name)}</b><small>${rkImg(r)} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
+    return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${avImg(x.av,x.id)}</div><b class="pn">${esc(x.name)}</b><small>${rkImg(r)} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
 }
