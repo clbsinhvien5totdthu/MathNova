@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon.png">
-<link rel="stylesheet" href="script.css?v=11">
+<link rel="stylesheet" href="script.css?v=12">
 </head>
 <body>
 
@@ -56,7 +56,7 @@
   <header>
     <div class="wrap bar">
       <a href="#" class="logo" id="goHome" aria-label="Phần mềm hỗ trợ học tập MathNova – Trang chủ"><span class="brand-mark sm"><small>Phần mềm hỗ trợ học tập</small><b>MathNova</b></span></a>
-      <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top"><span class="ni">🏠</span>Trang chủ</a><a href="#" data-go="levelsPick"><span class="ni">📚</span>Khối lớp</a><a href="#" data-go="rankBoard"><span class="ni">🏆</span>Vinh danh</a></nav>
+      <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top"><span class="ni">🏠</span>Trang chủ</a><a href="#" data-go="levelsPick"><span class="ni">📚</span>Khối lớp</a><a href="#" id="navStats"><span class="ni">📊</span>Thống kê</a><a href="#" data-go="rankBoard"><span class="ni">🏆</span>Vinh danh</a></nav>
       <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
       <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
     </div>
@@ -114,6 +114,11 @@
       </div>
     </div>
   </section>
+  <section id="stats" class="wrap view hidden">
+    <button class="back" id="backStats">← Trang chủ</button>
+    <h1 class="title">Thống kê học tập của tôi</h1>
+    <div id="statsBody"></div>
+  </section>
   <footer class="foot"><p>Phần mềm hỗ trợ học tập MathNova</p><small>Bứt phá tư duy – Làm chủ môn Toán</small></footer>
 </div>
 <div id="quiz" class="quiz hidden" role="dialog" aria-modal="true">
@@ -130,6 +135,6 @@
 <div id="dt" class="quiz hidden" role="dialog" aria-modal="true"><div id="dtbox" class="qbox"></div></div>
 <div id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js?v=11"></script>
+<script src="script.js?v=12"></script>
 </body>
 </html>
