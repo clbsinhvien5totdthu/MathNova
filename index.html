@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon.png">
-<link rel="stylesheet" href="script.css?v=12">
+<link rel="stylesheet" href="script.css?v=13">
 </head>
 <body>
 
@@ -76,6 +76,7 @@
       </div>
       <div class="hero-art"><span class="orb"></span><img src="assets/cover.png" alt="" class="hero-img"><span class="chip c1">π</span><span class="chip c2">+</span><span class="chip c3">√</span></div>
     </div>
+    <div id="assignBox"></div>
     <div class="feats">
       <div><b>📚</b><h3>Tài liệu</h3><p>Lý thuyết tổng ôn, sơ đồ tư duy</p></div>
       <div><b>✏️</b><h3>Bài tập</h3><p>Luyện tập theo mức độ, không giới hạn thời gian</p></div>
@@ -133,8 +134,9 @@
   <div id="qres" class="qbox hidden"></div>
 </div>
 <div id="dt" class="quiz hidden" role="dialog" aria-modal="true"><div id="dtbox" class="qbox"></div></div>
+<div id="remind" class="quiz hidden" role="dialog" aria-modal="true" aria-label="Nhắc việc học tập"><div id="remindBox" class="qbox"></div></div>
 <div id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js?v=12"></script>
+<script src="script.js?v=13"></script>
 </body>
 </html>
