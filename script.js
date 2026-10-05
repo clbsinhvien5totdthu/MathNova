@@ -754,7 +754,7 @@ function showRemind(){ // hiện mỗi lần vào web, chỉ khi có việc cầ
   if(!L.length&&!wb.length&&!redo.length)return;
   const tc={};wb.forEach(w=>{const t=w.t||'Khác';tc[t]=(tc[t]||0)+1});
   const top=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} (${n} câu)`).join(', ');
-  $('remindBox').innerHTML=`<h2>👋 Nhắc việc cho ${esc(user.name)}</h2>
+  $('remindBox').innerHTML=`<img class="remind-poster" src="assets/remind.webp" alt="" onerror="this.remove()"><h2>👋 Nhắc việc cho ${esc(user.name)}</h2>
   ${L.length?`<div class="st-box asg-box"><h3>📌 Bài thầy cô giao (${L.length})</h3>${L.map(asgRow).join('')}</div>`:''}
   ${(wb.length||redo.length)?`<div class="st-box asg-box"><h3>🔁 Cần ôn lại</h3>
     ${wb.length?`<div class="asg-row"><div><b>${wb.length} câu bạn từng làm sai</b></div><small>Nhiều nhất ở: ${top}</small><button type="button" class="btn go" onclick="reviewNow()">Ôn ${Math.min(wb.length,10)} câu</button></div>`:''}
