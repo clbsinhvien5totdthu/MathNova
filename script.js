@@ -107,7 +107,7 @@ function enter(p){
   show('app');view('levels');refreshMe();renderEx();
   $('navTeacher').classList.add('hidden');
   if(sb)sb.from('teachers').select('user_id').eq('user_id',uid).maybeSingle().then(({data})=>{if(data&&user)$('navTeacher').classList.remove('hidden')},()=>{});
-  loadAtt().then(()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats()});
+  loadAtt().then(async()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats();await loadAssign();renderAssign();renderEx();showRemind()});
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
 }
@@ -116,7 +116,7 @@ $('logout').onclick=async()=>{
   stopGame();$('arena').classList.add('hidden');
   await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
   try{if(sb)await sb.auth.signOut()}catch(_){}
-  user=null;uid=null;boardRows=null;ATT=[];$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
+  user=null;uid=null;boardRows=null;ATT=[];ASG=[];renderAssign();closeRemind();$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
   btn.disabled=false;show('login');
 };
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
@@ -325,7 +325,7 @@ let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   if(Z.grade!==curG)return '';
   const best=user.done[Z.id];
-  return `<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span><h3>${Z.title}</h3>
+  return `<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span>${asgTag(Z.id)}<h3>${Z.title}</h3>
   <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
   <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+Z.q.length+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></div></article>`;
@@ -333,7 +333,7 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
   $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE());
-  $('testList').innerHTML=emp(curG===5?dtCards():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');
+  $('testList').innerHTML=emp(curG===5?dtCards():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');renderAssign();
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
@@ -526,7 +526,7 @@ function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cu�
 const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
 function dtCards(){
   return DT_SETS.map((S,k)=>{const b=user.done[S.id],n=S.Q.length;
-  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span><h3>${(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
   <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu':'Chơi lại'}</button></div></article>`}).join('');
@@ -697,3 +697,68 @@ function renderStats(){
 }
 $('navStats').onclick=e=>{e.preventDefault();view('stats')};
 $('backStats').onclick=()=>view('levels');
+
+/* ===== BÀI THẦY CÔ GIAO & NHẮC ÔN TẬP (bảng "assignments"; hoàn thành = có lượt làm bài sau lúc giao) ===== */
+let ASG=[];
+const dueOf=a=>a.due_date?new Date(a.due_date+'T23:59:59'):null;
+const fmtDue=a=>a.due_date?a.due_date.split('-').reverse().join('/'):'';
+async function loadAssign(){
+  if(!sb||!user){ASG=[];return}
+  try{
+    const {data,error}=await sb.from('assignments').select('*').order('created_at',{ascending:false}).limit(60);
+    if(error)throw error;
+    ASG=(data||[]).filter(a=>!a.user_ids||!a.user_ids.length||a.user_ids.includes(uid));
+  }catch(_){ASG=[]} // chưa tạo bảng hoặc mất mạng: bỏ qua, không làm hỏng trang
+}
+function asgStatus(a){
+  const t0=+new Date(a.created_at),at=ATT.filter(x=>x.id===a.item_id&&+new Date(x.at)>=t0),due=dueOf(a),now=Date.now(),done=at.length>0;
+  return{done,best:Math.max(0,...at.map(x=>x.ok)),n:(at[0]||{}).n||0,
+    late:!done&&!!due&&+due<now,soon:!done&&!!due&&+due>=now&&+due-now<2*864e5};
+}
+function asgList(){
+  const L=ASG.map(a=>({a,s:asgStatus(a)}));
+  return{open:L.filter(x=>!x.s.done).sort((x,y)=>(+(dueOf(x.a)||9e15))-(+(dueOf(y.a)||9e15))),done:L.filter(x=>x.s.done).slice(0,3)};
+}
+const asgTag=id=>{const a=ASG.find(x=>x.item_id===id&&!asgStatus(x).done);return a?`<span class="tag asg">📌 Thầy cô giao${a.due_date?' · hạn '+fmtDue(a).slice(0,5):''}</span>`:''};
+function asgRow({a,s}){
+  const c=s.done?['done','Đã làm']:s.late?['late','Quá hạn']:s.soon?['soon','Sắp đến hạn']:['new','Mới giao'];
+  return `<div class="asg-row"><div><b>${esc(a.item_title)}</b> <span class="asg-chip ${c[0]}">${c[1]}</span></div>
+  <small>${a.due_date?'Hạn: '+fmtDue(a)+' · ':''}${s.done?'Điểm: '+s.best+'/'+s.n:'Chưa làm'}${a.note?' · 💬 '+esc(a.note):''}</small>
+  <button type="button" class="btn go" onclick="asgStart('${a.id}')">${s.done?'Làm lại':'Làm ngay'}</button></div>`;
+}
+function renderAssign(){
+  const box=$('assignBox');if(!box)return;
+  const L=user?asgList():{open:[],done:[]};
+  box.innerHTML=(L.open.length+L.done.length)?`<div class="st-box asg-box"><h3>📌 Bài thầy cô giao${L.open.length?` <span class="asg-chip new">${L.open.length} bài chưa làm</span>`:''}</h3>${[...L.open,...L.done].map(asgRow).join('')}</div>`:'';
+}
+function asgStart(id){
+  const a=ASG.find(x=>x.id===id);if(!a)return;
+  curG=+a.grade||curG;closeRemind();
+  const k=QUIZZES.findIndex(z=>z.id===a.item_id),j=DT_SETS.findIndex(s=>s.id===a.item_id);
+  if(k>=0)startQuiz(k);else if(j>=0)dtStart(j);else toast('Bài này chưa có trong phần mềm. Hãy hỏi thầy cô nhé.');
+}
+// các bài đã làm nhưng đạt dưới 70% → gợi ý làm lại
+function redoList(){
+  const all=[...QUIZZES.map(z=>({id:z.id,t:z.title,n:z.q.length})),...DT_SETS.map(s=>({id:s.id,t:'Đề test '+s.name,n:s.Q.length}))];
+  return all.filter(x=>user.done[x.id]!==undefined&&user.done[x.id]/x.n<.7).slice(0,3).map(x=>({...x,b:user.done[x.id]}));
+}
+function redoStart(id){
+  const k=QUIZZES.findIndex(z=>z.id===id),j=DT_SETS.findIndex(s=>s.id===id);closeRemind();
+  if(k>=0){curG=QUIZZES[k].grade;startQuiz(k)}else if(j>=0)dtStart(j);
+}
+function closeRemind(){$('remind').classList.add('hidden');document.body.style.overflow=''}
+function reviewNow(){closeRemind();startReview()}
+function showRemind(){ // hiện mỗi lần vào web, chỉ khi có việc cần nhắc
+  if(!user)return;
+  const L=asgList().open,wb=wrongBank(),redo=redoList();
+  if(!L.length&&!wb.length&&!redo.length)return;
+  const tc={};wb.forEach(w=>{const t=w.t||'Khác';tc[t]=(tc[t]||0)+1});
+  const top=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} (${n} câu)`).join(', ');
+  $('remindBox').innerHTML=`<h2>👋 Nhắc việc cho ${esc(user.name)}</h2>
+  ${L.length?`<div class="st-box asg-box"><h3>📌 Bài thầy cô giao (${L.length})</h3>${L.map(asgRow).join('')}</div>`:''}
+  ${(wb.length||redo.length)?`<div class="st-box asg-box"><h3>🔁 Cần ôn lại</h3>
+    ${wb.length?`<div class="asg-row"><div><b>${wb.length} câu bạn từng làm sai</b></div><small>Nhiều nhất ở: ${top}</small><button type="button" class="btn go" onclick="reviewNow()">Ôn ${Math.min(wb.length,10)} câu</button></div>`:''}
+    ${redo.map(x=>`<div class="asg-row"><div><b>${esc(x.t)}</b> <span class="asg-chip soon">Nên làm lại</span></div><small>Điểm cao nhất mới ${x.b}/${x.n} câu</small><button type="button" class="btn go" onclick="redoStart('${x.id}')">Làm lại</button></div>`).join('')}</div>`:''}
+  <div class="qnav"><button type="button" class="btn ghost" onclick="closeRemind()">Để sau</button></div>`;
+  $('remind').classList.remove('hidden');$('remind').scrollTop=0;document.body.style.overflow='hidden';
+}
