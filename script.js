@@ -253,7 +253,7 @@ function openAvatarPicker(){
 }
 function refreshMe(){
   const r=rankOf(user.xp),nx=RANKS[RANKS.indexOf(r)+1];
-  $('meName').innerHTML='<button type="button" class="me-av" id="meAv" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện" style="--c:'+rankOf(user.xp).c+'">'+avImg(user.av,uid)+'<i>✎</i></button> '+esc(user.name);
+  $('meName').innerHTML='<button type="button" class="me-av" id="meAv" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện" style="--c:'+rankOf(user.xp).c+'">'+avImg(user.av,uid)+'<i>✎</i></button><span class="me-nm">'+esc(user.name)+'</span>';
   $('meAv').onclick=openAvatarPicker;countXp(user.xp);refreshStreak();
   $('meRank').innerHTML=rkImg(r)+' '+esc(r.n);$('meRank').style.background=r.c;
   $('rankFill').style.width=(nx?(user.xp-r.min)/(nx.min-r.min)*100:100)+'%';
