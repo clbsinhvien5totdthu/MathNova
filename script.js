@@ -40,7 +40,7 @@ new MutationObserver(m=>m.forEach(r=>r.addedNodes.forEach(n=>{if(n.id==='rankup'
 const stk=(n,c='')=>`<img class="${c}" src="assets/stk/${n}.webp" alt="">`;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');SFX.play('pop');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
 function show(id){['login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id))}
-function view(id){['levels','grade','stats'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);document.body.dataset.view=id;document.querySelectorAll('.nav a').forEach(a=>{const g=a.dataset.go,on=(id==='levels'&&g==='top')||(id==='grade'&&g==='levelsPick')||(id==='stats'&&a.id==='navStats');a.classList.toggle('on',!!on)});if(id==='levels'&&user)renderBoard();if(id==='stats')renderStats()}
+function view(id){['levels','grade','stats'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard();if(id==='stats')renderStats()}
 
 /* ---- Màn hình chờ ---- */
 (function splash(){
@@ -107,7 +107,7 @@ function enter(p){
   show('app');view('levels');refreshMe();renderEx();
   $('navTeacher').classList.add('hidden');
   if(sb)sb.from('teachers').select('user_id').eq('user_id',uid).maybeSingle().then(({data})=>{if(data&&user)$('navTeacher').classList.remove('hidden')},()=>{});
-  loadAtt().then(async()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats();await loadAssign();renderAssign();renderEx();showRemind();refreshStreak();streakNudge()});
+  loadAtt().then(async()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats();await loadAssign();renderAssign();renderEx();showRemind()});
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
 }
@@ -253,8 +253,8 @@ function openAvatarPicker(){
 }
 function refreshMe(){
   const r=rankOf(user.xp),nx=RANKS[RANKS.indexOf(r)+1];
-  $('meName').innerHTML='<button type="button" class="me-av" id="meAv" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện" style="--c:'+rankOf(user.xp).c+'">'+avImg(user.av,uid)+'<i>✎</i></button><span class="me-nm">'+esc(user.name)+'</span>';
-  $('meAv').onclick=openAvatarPicker;countXp(user.xp);refreshStreak();
+  $('meName').innerHTML='<button type="button" class="me-av" id="meAv" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện" style="--c:'+rankOf(user.xp).c+'">'+avImg(user.av,uid)+'<i>✎</i></button> '+esc(user.name);
+  $('meAv').onclick=openAvatarPicker;$('meXp').textContent=user.xp+' XP';
   $('meRank').innerHTML=rkImg(r)+' '+esc(r.n);$('meRank').style.background=r.c;
   $('rankFill').style.width=(nx?(user.xp-r.min)/(nx.min-r.min)*100:100)+'%';
   $('rankFill').style.background=r.c;
@@ -271,7 +271,7 @@ function showRankUp(r){ // màn chúc mừng lên hạng với huy hiệu lớn
   d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};
   document.body.appendChild(d);dtSfx('win');d.querySelector('button').focus({preventScroll:true});
 }
-function gameXp(s){if(s>0)markStudied(); // trò chơi: 2 XP/câu, tối đa 30 XP mỗi ngày
+function gameXp(s){ // trò chơi: 2 XP/câu, tối đa 30 XP mỗi ngày
   const d=new Date().toDateString();if(!user.gd||user.gd.d!==d)user.gd={d,x:0};
   const x=Math.max(0,Math.min(s*2,30-user.gd.x));user.gd.x+=x;addXp(x);return x;
 }
@@ -332,8 +332,8 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 }).join('');
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
-  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(journeyEx());
-  $('testList').innerHTML=emp(curG===5?journeyDt():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');renderAssign();requestAnimationFrame(drawJourneys);setTimeout(drawJourneys,600);
+  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE());
+  $('testList').innerHTML=emp(curG===5?dtCards():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');renderAssign();
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
@@ -354,16 +354,14 @@ function showQ(){
   const q=qz.qs[qz.i],n=qz.qs.length;
   $('qbar').style.width=(qz.i/n*100)+'%';
   $('qlv').textContent=`Câu ${qz.i+1}/${n} · ${LV_NAME[q.l]}`;
-  $('qdots').innerHTML=qz.qs.map((_,k)=>`<i class="${k<qz.i?(qz.sel[k]===qz.qs[k].o[0]?'ok':'no'):k===qz.i?'now':''}"></i>`).join('');
-  $('qfb').className='qfb';$('qfb').innerHTML='';
   $('qtext').innerHTML=fmt(q.q);$('qopts').innerHTML='';
-  [$('qtext'),$('qopts')].forEach(el=>{el.style.animation='none';void el.offsetHeight;el.style.animation=''});
   q.opts.forEach((o,k)=>{
-    const b=document.createElement('button');b.type='button';b.dataset.v=o;b.innerHTML=String.fromCharCode(65+k)+'. '+fmt(o);
-    b.onclick=()=>{if(qz.sel[qz.i]!==undefined)return;qz.sel[qz.i]=o;revealQ(q,o,b)};
+    const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+k)+'. '+fmt(o);
+    b.className=qz.sel[qz.i]===o?'on':'';
+    b.onclick=()=>{qz.sel[qz.i]=o;[...$('qopts').children].forEach(x=>x.classList.toggle('on',x===b));$('qnext').disabled=false};
     $('qopts').appendChild(b);
   });
-  $('qnext').disabled=true;
+  $('qnext').disabled=qz.sel[qz.i]===undefined;
   $('qnext').textContent=qz.i===n-1?'Nộp bài':'Câu tiếp';
 }
 $('qnext').onclick=()=>{qz.i<qz.qs.length-1?(qz.i++,showQ()):finishQuiz()};
@@ -381,10 +379,9 @@ function finishQuiz(){
   const wrong=qz.qs.map((q,i)=>({q,i})).filter(x=>qz.sel[x.i]!==x.q.o[0]);
   $('qmain').classList.add('hidden');$('qres').classList.remove('hidden');$('quiz').scrollTop=0;
   $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${stk(ok===n?'star-gold':ok>=n*.6?'al-idea':'al-pencil','res-ic')}</h2>
-  ${starsBlock(ok,n)}<p class="gain">+${gain} XP</p><p class="muted">${rv?'Bài ôn tập không tính XP.':first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
-  ${perQ()}
+  <p class="gain">+${gain} XP</p><p class="muted">${rv?'Bài ôn tập không tính XP.':first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
+  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(x=>`<div class="rv"><b>Câu ${x.i+1}.</b> ${fmt(x.q.q)}<br><span class="bad">Bạn chọn: ${fmt(qz.sel[x.i]??'(bỏ trống)')}</span><br><span class="good">Đáp án: ${fmt(x.q.o[0])}</span></div>`).join(''):'<p>Bạn trả lời đúng tất cả!</p>'}
   <div class="qnav"><button class="btn ghost" onclick="closeQuiz()">Đóng</button><button class="btn go" style="width:auto" onclick="startQuiz()">Làm lại</button></div>`;
-  novaCelebrate(starsOf(ok,n),rv);markStudied();
 }
 const DT_T={tn:"Số tự nhiên",pt:"Phép tính",ps:"Phân số",tp:"Phân số thập phân",pp:"Phép tính phân số",hs:"Hỗn số",hh:"Hình học & đo lường"};
 const DT_Q=[
@@ -593,11 +590,11 @@ function dtEnd(){
    logAttempt({k:'test',id:S.id,t:'Đề test '+S.name,g:curG,ok:n,n:N,s:sec,xp:gain,tp,w:wrong.map(a=>({q:a.q[2],o:co(a),t:S.T[a.q[0]]})),r:dt.ans.filter(a=>a.ok).map(a=>a.q[2])})}
   $('dtbox').innerHTML=`<div style="text-align:center"><p class="px-t clear">${ratio>=.47?'GAME CLEAR!':'GAME OVER'}</p>
   <div class="px-res dg-res">${pimg('mk-pose')}${pimg('scroll')}${rkImg(mr,'res-rk')}</div><h2>${lv}</h2><h2>${n}/${N} câu đúng</h2>
-  ${starsBlock(n,N)}<p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ${pimg('coin','hud-ic')} ${dt.xp} điểm · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${mr.n}</p></div>
+  <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ${pimg('coin','hud-ic')} ${dt.xp} điểm · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${mr.n}</p></div>
   <h3>Bản đồ năng lực</h3>${rows}<p class="muted">${weak.length?'Cần ôn thêm: <b>'+weak.join(', ')+'</b>.':'Bạn đúng ở mọi nội dung. Tuyệt vời!'}</p>
   ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${fmt(a.q[2])}<br><span class="bad">Bạn chọn: ${fmt(a.pick)}</span><br><span class="good">Đáp án: ${fmt(a.q[3][a.q[4]])}</span><br><em>${fmt(a.q[5])}</em></div>`).join(''):''}
   <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart(${dt.k})">Chơi lại</button></div>`;
-  $('dt').scrollTop=0;dtSfx(ratio>=.47?'win':'lose');novaCelebrate(starsOf(n,N));markStudied();
+  $('dt').scrollTop=0;dtSfx(ratio>=.47?'win':'lose');
 }
 
 function myRankHtml(mr){
@@ -765,142 +762,3 @@ function showRemind(){ // hiện mỗi lần vào web, chỉ khi có việc cầ
   <div class="qnav"><button type="button" class="btn ghost" onclick="closeRemind()">Để sau</button></div>`;
   $('remind').classList.remove('hidden');$('remind').scrollTop=0;document.body.style.overflow='hidden';
 }
-
-/* =====================================================================
-   V10 — HÀNH TRÌNH · SAO THƯỞNG · CHUỖI NGÀY · PHẢN HỒI TỪNG CÂU · CHUYỂN ĐỘNG
-   ===================================================================== */
-const REDUCE=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ---- Nova (hình vẽ SVG, không cần ảnh) ---- */
-const novaFace=()=>`<svg class="nface" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 12V6" stroke="#7CE04A" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="5" r="3.4" fill="#B6F25A"/><circle cx="24" cy="28" r="17" fill="#7CE04A" stroke="#241a5a" stroke-width="2.5"/><ellipse cx="24" cy="27" rx="9" ry="8.5" fill="#fff" stroke="#241a5a" stroke-width="2"/><circle cx="25" cy="27.5" r="4.6" fill="#241a5a"/><circle cx="26.6" cy="25.6" r="1.5" fill="#fff"/><path d="M19 38q5 3.4 10 0" stroke="#241a5a" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`;
-const ufoSvg=`<svg class="ufo" viewBox="0 0 90 80" aria-hidden="true"><g class="uf-fl"><path d="M36 58Q45 82 54 58Z" fill="#FFBE55"/><path d="M40 58Q45 72 50 58Z" fill="#FFF6D6"/></g><circle cx="45" cy="30" r="20" fill="rgba(159,208,255,.35)" stroke="#9FD0FF" stroke-width="2.5"/><ellipse cx="45" cy="34" rx="12" ry="11" fill="#7CE04A"/><circle cx="45" cy="33" r="5" fill="#fff"/><circle cx="46" cy="33" r="2.6" fill="#241a5a"/><path d="M45 23V16" stroke="#7CE04A" stroke-width="2.5"/><circle cx="45" cy="15" r="3" fill="#B6F25A"/><ellipse cx="45" cy="47" rx="35" ry="11" fill="#C9D3F2" stroke="#7D69B0" stroke-width="3"/><circle cx="27" cy="48" r="3.2" fill="#FFBE55"/><circle cx="45" cy="50" r="3.2" fill="#FFBE55"/><circle cx="63" cy="48" r="3.2" fill="#FFBE55"/></svg>`;
-
-/* ---- Sao & lời khen ---- */
-const starsOf=(ok,n)=>n&&ok/n>=.9?3:n&&ok/n>=.7?2:1;
-const PRAISE={3:['Tuyệt đỉnh! Nova xin bái phục bạn 🌟','Quá xuất sắc! Bạn đúng là thiên tài Toán học!','Hoàn hảo! Cả dải ngân hà đang vỗ tay cho bạn!'],
-  2:['Giỏi lắm! Thêm một chút nữa là đủ 3 sao rồi!','Rất tốt! Nova tin bạn chinh phục được 3 sao.','Làm tốt lắm! Xem lại vài câu là hoàn hảo.'],
-  1:['Cố lên! Mỗi lần luyện là một bước gần hơn tới 3 sao.','Nova tin lần sau bạn sẽ làm tốt hơn nhiều!','Không sao cả! Xem lại các câu sai rồi thử lại nhé.']};
-const pick=a=>a[Math.floor(Math.random()*a.length)];
-function starsBlock(ok,n){const s=starsOf(ok,n);
-  return `<div class="rstars" role="img" aria-label="${s} trên 3 sao">${[1,2,3].map(i=>`<i class="${i<=s?'on':''}" style="--d:${(i*.3).toFixed(2)}s">★</i>`).join('')}</div><div class="nbubble">${novaFace()}<p>${pick(PRAISE[s])}</p></div>`}
-
-/* ---- Pháo hoa giấy + sao bay ---- */
-function confetti(n=120){
-  if(REDUCE())return;
-  const c=document.createElement('canvas');c.className='confetti';c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
-  const x=c.getContext('2d'),col=['#FFBE55','#5FE0D2','#C9B6FF','#FF7AA8','#9FD0FF','#B6F25A'];
-  const P=Array.from({length:n},()=>({x:innerWidth/2+(Math.random()-.5)*innerWidth*.3,y:innerHeight*.45,vx:(Math.random()-.5)*14,vy:-6-Math.random()*11,
-    s:5+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:pick(col),st:Math.random()<.25}));
-  const t0=performance.now();
-  (function f(t){const e=t-t0;x.clearRect(0,0,c.width,c.height);
-    P.forEach(p=>{p.vy+=.28;p.vx*=.992;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;x.save();x.globalAlpha=Math.max(0,1-e/2600);x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
-      if(p.st){x.font=(p.s*2.4)+'px sans-serif';x.fillText('★',-p.s,p.s)}else x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});
-    if(e<2700)requestAnimationFrame(f);else c.remove()})(t0);
-}
-function floatStars(n){for(let i=0;i<n;i++)setTimeout(()=>{const s=document.createElement('span');s.className='nova-pop';s.textContent='★';
-  s.style.left=(innerWidth/2-60+i*60+(Math.random()*20-10))+'px';s.style.top=(innerHeight*.38)+'px';document.body.appendChild(s);setTimeout(()=>s.remove(),1200)},i*220)}
-function novaCelebrate(stars,quiet){
-  if(quiet){dtSfx('ok');return}
-  dtSfx(stars>=2?'win':'ok');confetti(stars===3?170:stars===2?110:50);floatStars(stars);
-}
-
-/* ---- Chuỗi ngày học 🔥 ---- */
-function studiedDays(){const s=new Set();ATT.forEach(a=>{if(a.at)s.add(dayKey(a.at))});
-  try{JSON.parse(localStorage.getItem('days:'+uid)||'[]').forEach(d=>s.add(d))}catch(_){}return s}
-function streakInfo(){const s=studiedDays();let d=Date.now();const today=s.has(dayKey(d));let n=0;if(!today)d-=864e5;while(s.has(dayKey(d))){n++;d-=864e5}return{n,today}}
-function refreshStreak(){const el=$('meStreak');if(!el||!user)return;const s=streakInfo();
-  el.textContent='🔥 '+s.n;el.className='streak'+(s.n===0?' cold':s.today?'':' risk');
-  el.title=s.today?`Chuỗi ${s.n} ngày học liên tiếp`:(s.n?`Học 1 bài hôm nay để giữ chuỗi ${s.n} ngày!`:'Học 1 bài hôm nay để bắt đầu chuỗi!')}
-function markStudied(){if(!user)return;const k=dayKey(Date.now());let a=[];
-  try{a=JSON.parse(localStorage.getItem('days:'+uid)||'[]')}catch(_){}
-  if(!a.includes(k)){a.push(k);try{localStorage.setItem('days:'+uid,JSON.stringify(a.slice(-400)))}catch(_){}}
-  refreshStreak();
-  let last=null;try{last=localStorage.getItem('sk:'+uid)}catch(_){}
-  if(last!==k){try{localStorage.setItem('sk:'+uid,k)}catch(_){}const s=streakInfo();
-    setTimeout(()=>toast(s.n>1?`🔥 Chuỗi ${s.n} ngày học liên tiếp! Nova tự hào về bạn!`:'🔥 Bắt đầu chuỗi học! Mai quay lại để giữ lửa nhé!'),1400)}}
-function streakNudge(){const s=streakInfo();if(s.today||!$('remind').classList.contains('hidden'))return;
-  setTimeout(()=>{if(user)toast(s.n>0?`Nova nhắc nhẹ: học 1 bài hôm nay để giữ chuỗi 🔥 ${s.n} ngày nhé!`:'Nova rủ bạn: học 1 bài hôm nay để bắt đầu chuỗi 🔥 nhé!')},2400)}
-function countXp(to){const el=$('meXp');const from=(el._u===uid&&el._v!==undefined)?el._v:to;el._u=uid;el._v=to;
-  if(from===to||REDUCE()){el.textContent=to+' XP';return}
-  const t0=performance.now(),d=Math.min(900,350+Math.abs(to-from)*8);el.classList.add('bump');
-  (function f(t){const p=Math.min(1,(t-t0)/d),e=1-Math.pow(1-p,3);el.textContent=Math.round(from+(to-from)*e)+' XP';
-    if(p<1)requestAnimationFrame(f);else setTimeout(()=>el.classList.remove('bump'),250)})(t0)}
-
-/* ---- Gợi ý khi trả lời sai ---- */
-function qHint(q){const t=String(q.q);
-  if(q.e)return q.e;
-  if(/…/.test(t))return 'Nhớ quan hệ giữa các đơn vị (1 m = 10 dm = 100 cm = 1 000 mm; 1 km = 1 000 m; 1 kg = 1 000 g; 1 l = 1 000 ml), rồi viết thành phân số thập phân.';
-  if(/\d+\/\d+|phân số/.test(t))return 'Đưa phân số về mẫu số 10, 100 hoặc 1 000 rồi viết thành số thập phân.';
-  if(/so sánh|lớn nhất|bé nhất|sắp xếp/i.test(t))return 'So sánh từng hàng từ trái sang phải: phần nguyên trước, rồi phần mười, phần trăm, phần nghìn.';
-  if(/hàng|phần mười|phần trăm|phần nghìn|chữ số/.test(t))return 'Sau dấu phẩy: chữ số đầu là hàng phần mười, tiếp theo là phần trăm, rồi phần nghìn.';
-  return pick(['Đọc lại đề thật chậm và gạch chân các số liệu quan trọng.','Thử loại trừ những đáp án chắc chắn sai trước nhé.','Làm lại phép tính từng bước trên giấy nháp rồi so với đáp án.'])}
-const GOOD=['Chính xác! 🌟','Đúng rồi, giỏi quá! ✨','Tuyệt vời! 🚀','Nova gật đầu khen bạn! 👏'];
-function revealQ(q,chosen,btn){
-  const ok=chosen===q.o[0],i=qz.i;
-  [...$('qopts').children].forEach(b=>{b.disabled=true;if(b.dataset.v===q.o[0])b.classList.add('ok');else if(b===btn)b.classList.add('no')});
-  dtSfx(ok?'hit':'no');
-  $('qfb').className='qfb '+(ok?'ok':'no');
-  $('qfb').innerHTML=ok?`<b>${pick(GOOD)}</b>`:`<b>Chưa đúng rồi. Không sao, thử nhớ lại nhé!</b><br>Đáp án đúng: <span class="good">${fmt(q.o[0])}</span><br><span class="qhint">💡 Gợi ý: ${fmt(qHint(q))}</span>`;
-  const d=$('qdots').children[i];if(d)d.className=ok?'ok':'no';
-  $('qnext').disabled=false;$('qnext').focus({preventScroll:true});
-}
-function perQ(){return '<h3>Kết quả từng câu</h3><div class="qres-list">'+qz.qs.map((q,i)=>{const ok=qz.sel[i]===q.o[0];
-  return `<details class="qr ${ok?'ok':'no'}"${ok?'':' open'}><summary><span class="qri">${ok?'✓':'✗'}</span><span>Câu ${i+1}. ${fmt(q.q)}</span></summary><div class="qrb">${ok?'':`<span class="bad">Bạn chọn: ${fmt(qz.sel[i]??'(bỏ trống)')}</span><br>`}<span class="good">Đáp án: ${fmt(q.o[0])}</span>${ok?'':`<br><span class="qhint">💡 ${fmt(qHint(q))}</span>`}</div></details>`}).join('')+'</div>'}
-
-/* ---- Bản đồ hành trình ---- */
-const JM={};
-const isTeacher=()=>!$('navTeacher').classList.contains('hidden');
-const passed=(b,n)=>b!==undefined&&b>=Math.ceil(n*.5);
-function jItemsEx(){return QUIZZES.map((Z,k)=>({Z,k})).filter(x=>x.Z.grade===curG).map(({Z,k})=>({k,id:Z.id,title:Z.title,sub:`${Z.q.length} câu · tối đa ${quizMax(Z)} XP`,best:user.done[Z.id],n:Z.q.length,cover:`<img src="assets/stk/${COV.ex}.webp" alt="" loading="lazy">`}))}
-function jItemsDt(){return DT_SETS.map((S,k)=>({k,id:S.id,title:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name,sub:`${S.desc} · ${S.Q.length} câu`,best:user.done[S.id],n:S.Q.length,cover:pimg(S.cover,'jpx'),px:1}))}
-function journey(kind,items){
-  if(!items.length)return '';
-  const un=items.map((it,i)=>i===0||isTeacher()||it.best!==undefined||passed(items[i-1].best,items[i-1].n)||!!asgTag(it.id));
-  let now=items.findIndex((it,i)=>un[i]&&!passed(it.best,it.n));if(now<0)now=items.length-1;
-  JM[kind]={items,un};
-  const dn=items.filter(it=>passed(it.best,it.n)).length,got=items.reduce((s,it)=>s+(it.best===undefined?0:starsOf(it.best,it.n)),0);
-  return `<div class="jmap"><div class="jhead"><b>🗺️ Hành trình chinh phục</b><span>${dn}/${items.length} trạm · ⭐ ${got}/${items.length*3}</span></div>
-  <div class="jpath"><svg class="jsvg" aria-hidden="true"></svg>${items.map((it,i)=>{
-    const ps=passed(it.best,it.n),st=!un[i]?'lock':i===now&&!ps?'now':ps?'done':'open',s=it.best===undefined?0:starsOf(it.best,it.n);
-    return `<div class="jn ${i%2?'r':'l'} ${st}">
-      ${st==='now'?`<div class="jtip">${it.best===undefined?'Bắt đầu nào!':'Làm tiếp nhé!'}</div>${ufoSvg}`:''}
-      <button type="button" class="jhex${it.px?' px':''}" onclick="jGo('${kind}',${i})" aria-label="${esc(it.title)}${st==='lock'?' (đang khóa)':''}"><span class="jh-o"><span class="jh-i">${it.cover}</span></span><span class="jnum">${i+1}</span>${st==='lock'?'<span class="jlock">🔒</span>':''}${st==='done'?'<span class="jchk">✓</span>':''}</button>
-      <div class="jlab"><b>${esc(it.title)}</b><small>${it.sub}</small>${asgTag(it.id)}
-      ${st==='lock'?'<small class="jl">Đang khóa</small>':`<div class="jstars" aria-label="${s} sao">${[1,2,3].map(k=>`<i class="${k<=s?'on':''}">★</i>`).join('')}</div>`}</div></div>`}).join('')}</div></div>`;
-}
-const journeyEx=()=>journey('ex',jItemsEx());
-const journeyDt=()=>journey('dt',jItemsDt());
-function jGo(kind,i){
-  const m=JM[kind];if(!m)return;const it=m.items[i];
-  if(!m.un[i]){const p=m.items[i-1];dtSfx('no');toast(`🔒 Đạt từ 50% câu đúng ở "${p.title}" để mở khóa trạm này nhé!`);
-    const nd=document.querySelectorAll(`.jmap .jn`);const all=[...document.querySelectorAll(`#${kind==='ex'?'exList':'testList'} .jn`)];const el=all[i];if(el){el.classList.remove('jshake');void el.offsetWidth;el.classList.add('jshake')}return}
-  kind==='ex'?startQuiz(it.k):dtStart(it.k);
-}
-function drawPath(p){
-  const svg=p.querySelector('.jsvg'),nodes=[...p.querySelectorAll('.jhex')],pr=p.getBoundingClientRect();
-  if(!svg||!pr.width||nodes.length<2){if(svg)svg.innerHTML='';return}
-  svg.setAttribute('viewBox',`0 0 ${pr.width} ${pr.height}`);
-  const pts=nodes.map(n=>{const r=n.getBoundingClientRect();return[r.left-pr.left+r.width/2,r.top-pr.top+r.height/2]});
-  let h='';
-  for(let i=0;i<pts.length-1;i++){const[a,b]=[pts[i],pts[i+1]],my=(a[1]+b[1])/2,d=`M${a[0]} ${a[1]}C${a[0]} ${my} ${b[0]} ${my} ${b[0]} ${b[1]}`;
-    const dn=nodes[i].closest('.jn').classList.contains('done');
-    h+=`<path class="jp-base" d="${d}"/>`+(dn?`<path class="jp-done" d="${d}"/>`:'')}
-  svg.innerHTML=h;
-}
-const jRO=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>drawPath(e.target))):null;
-function drawJourneys(){document.querySelectorAll('.jpath').forEach(p=>{if(jRO&&!p._ro){p._ro=1;jRO.observe(p)}drawPath(p)})}
-
-/* ---- Chuyển động toàn trang ---- */
-(function motion(){
-  const hd=document.querySelector('header');
-  addEventListener('scroll',()=>hd&&hd.classList.toggle('scrolled',scrollY>10),{passive:true});
-  document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('.btn');if(!b||b.disabled||REDUCE())return;
-    const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,sp=document.createElement('span');sp.className='rip';
-    sp.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;b.appendChild(sp);setTimeout(()=>sp.remove(),650)});
-  if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.1});
-    const scan=()=>document.querySelectorAll('.honor:not([data-rv]),.st-box:not([data-rv]),.asg-box:not([data-rv]),.kpi:not([data-rv])').forEach(el=>{el.setAttribute('data-rv','');io.observe(el)});
-    let q=0;new MutationObserver(()=>{cancelAnimationFrame(q);q=requestAnimationFrame(scan)}).observe(document.getElementById('app'),{childList:true,subtree:true});scan();
-  }
-  addEventListener('resize',()=>drawJourneys());
-})();
