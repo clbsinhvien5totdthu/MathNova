@@ -1718,3 +1718,102 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 #remind .st-box{margin:12px 0}
 @media(max-width:560px){.asg-row{grid-template-columns:1fr}.asg-row .btn{grid-column:1;grid-row:auto;margin-top:6px}}
 .remind-poster{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px;margin-bottom:12px}
+
+/* =====================================================================
+   V8 — SỬA LỖI + NÂNG CẤP GIAO DIỆN
+   ===================================================================== */
+
+/* ---- LỖI 1: ảnh bìa thẻ tràn khỏi khung, đè lên chữ ----
+   Nguyên nhân: img height:100% trong grid + aspect-ratio không tính được trên Safari/iOS
+   → ảnh hiện đúng kích thước gốc. Cách sửa: định vị tuyệt đối trong khung cố định. */
+.cover{position:relative;overflow:hidden;display:block;aspect-ratio:16/9;max-height:210px;width:100%;
+  background:radial-gradient(circle at 70% 30%,#fff 0,transparent 55%),linear-gradient(135deg,#EEF3FF,#DFE8FA)}
+.cover:not(.px-cover)>img{position:absolute;inset:0;width:100%;height:100%;max-width:100%;object-fit:contain;padding:14px 18px;
+  filter:drop-shadow(0 8px 14px rgba(11,27,74,.18));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.card:hover .cover:not(.px-cover)>img{transform:scale(1.06) rotate(-1deg)}
+.stk-cover>img{padding:12px 24px}
+/* thẻ game pixel: giữ bố cục flex, chỉ chặn tràn */
+.px-cover{display:flex;overflow:hidden}
+.px-cover img{max-width:38%}
+.cbody{min-width:0}
+.cbody h3,.cbody small{overflow-wrap:anywhere}
+@media(max-width:640px){.cover{aspect-ratio:2/1;max-height:170px}}
+
+/* ---- LỖI 2: header điện thoại bị tràn, mất nút Đăng xuất ---- */
+header .bar{min-width:0}
+.logo{min-width:0;flex:0 1 auto}
+.me{flex:0 0 auto}
+#logout .lo-i{display:none}
+@media(max-width:640px){
+  .bar{height:56px;gap:8px}
+  .brand-mark.sm small{display:none}              /* chỉ giữ chữ MathNova cho gọn */
+  .brand-mark.sm b{font-size:1.25rem}
+  .me{gap:5px}
+  .rank,.xp{font-size:.74rem;padding:3px 8px}
+  #logout{width:34px;height:34px;padding:0;border-radius:50%;display:inline-grid;place-items:center}
+  #logout .lo-t{display:none}
+  #logout .lo-i{display:inline;font-size:1rem;line-height:1}
+  .rankstrip{gap:8px}
+  .rankstrip small{font-size:.72rem;white-space:nowrap}
+}
+@media(max-width:360px){.rank .rk{display:none}.brand-mark.sm b{font-size:1.1rem}}
+
+/* ---- Nâng cấp: nền, thanh trên, chữ ---- */
+body{background:
+  radial-gradient(900px 420px at 100% -80px,rgba(125,105,176,.10),transparent 60%),
+  radial-gradient(700px 360px at -10% 240px,rgba(47,143,131,.08),transparent 60%),#F5F7FB;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+header{border-bottom:1px solid rgba(11,63,117,.08);box-shadow:0 4px 22px rgba(11,27,74,.06);backdrop-filter:saturate(1.4) blur(14px)}
+h1,h2,h3{letter-spacing:-.01em}
+.title{font-family:"Baloo 2","Be Vietnam Pro",sans-serif;font-weight:800;color:var(--navy)}
+.rbar{height:9px;box-shadow:inset 0 1px 2px rgba(11,27,74,.12)}
+
+/* ---- Thẻ nội dung ---- */
+.grid{gap:22px}
+.card{border-radius:22px;border:1px solid rgba(11,63,117,.08);
+  box-shadow:0 1px 2px rgba(11,27,74,.05),0 10px 28px rgba(11,27,74,.07);background:#fff}
+.card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(11,27,74,.14)}
+.cbody{padding:16px 20px 20px;gap:8px}
+.cbody h3{font-family:"Baloo 2","Be Vietnam Pro",sans-serif;font-size:1.2rem;line-height:1.25;color:var(--navy)}
+.cbody small{color:var(--muted);line-height:1.45}
+.tag{padding:3px 11px;font-size:.74rem;letter-spacing:.02em;text-transform:none}
+.card .btn{margin-top:auto;border-radius:99px;padding:10px 20px;font-weight:600}
+.card .btn:not(.go):not(.ghost){background:#fff;border:2px solid var(--navy);color:var(--navy)}
+
+/* ---- Nút bấm ---- */
+.btn{transition:transform .15s,box-shadow .2s,background .2s;-webkit-tap-highlight-color:transparent}
+.btn.go{background:linear-gradient(135deg,#2F8F83,#2A7FA0);border:0;color:#fff;box-shadow:0 6px 16px rgba(47,143,131,.35)}
+.btn.go:hover{background:linear-gradient(135deg,#257A6F,#226C8A);box-shadow:0 8px 20px rgba(47,143,131,.45)}
+.btn:active{transform:scale(.96)}
+.btn:focus-visible,.tabs button:focus-visible,.nav a:focus-visible,input:focus-visible{outline:3px solid rgba(125,105,176,.55);outline-offset:2px}
+
+/* ---- Tab ---- */
+.tabs{background:#fff;padding:5px;border-radius:99px;box-shadow:0 2px 12px rgba(11,27,74,.07);border:1px solid rgba(11,63,117,.08);display:inline-flex}
+.tabs button{border:0;border-radius:99px;background:transparent;transition:background .2s,color .2s,box-shadow .2s}
+.tabs button.on{background:linear-gradient(135deg,#0B3F75,#2B2FA0);color:#fff;box-shadow:0 4px 12px rgba(11,63,117,.35)}
+@media(max-width:640px){.tabs{display:grid;width:100%;gap:2px;border-radius:18px}.tabs button{border-radius:14px}}
+
+/* ---- Trang chủ ---- */
+.hero{box-shadow:0 20px 50px rgba(11,27,74,.28)}
+.eyebrow{backdrop-filter:blur(6px)}
+.feats>div,.lv{transition:transform .2s,box-shadow .2s}
+.feats>div:hover,.lv:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(11,27,74,.12)}
+.lvsec h2,.honor h2{font-family:"Baloo 2",sans-serif;font-weight:800;color:var(--navy)}
+
+/* ---- Thanh điều hướng dưới (điện thoại): dạng thanh nổi, mục đang chọn nổi bật ---- */
+@media(max-width:900px){
+  .nav{left:10px;right:10px;bottom:calc(8px + var(--safe-b));padding:6px;border:1px solid rgba(11,63,117,.08);border-radius:22px;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(11,27,74,.2)}
+  .nav a{flex:1;min-width:0;padding:6px 4px;font-weight:600;color:var(--muted);transition:background .2s,color .2s}
+  .nav a:active,.nav a.on{background:var(--sky);color:var(--navy)}
+  #app{padding-bottom:calc(92px + var(--safe-b))}
+  .sfx-btn{bottom:calc(92px + var(--safe-b))}   /* nút âm thanh không đè lên nội dung */
+}
+
+/* ---- Hiệu ứng xuất hiện nhẹ ---- */
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.panel:not(.hidden) .card,.lv,.feats>div{animation:riseIn .45s cubic-bezier(.2,.8,.2,1) both}
+.panel:not(.hidden) .card:nth-child(2){animation-delay:.05s}
+.panel:not(.hidden) .card:nth-child(3){animation-delay:.1s}
+.panel:not(.hidden) .card:nth-child(n+4){animation-delay:.15s}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
