@@ -1741,7 +1741,7 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 
 /* ---- LỖI 2: header điện thoại bị tràn, mất nút Đăng xuất ---- */
 header .bar{min-width:0}
-.logo{min-width:0;flex:0 1 auto}
+.logo{flex:none;min-width:max-content;position:relative;z-index:2}
 .me{flex:0 0 auto}
 #logout .lo-i{display:none}
 @media(max-width:640px){
@@ -1817,3 +1817,19 @@ h1,h2,h3{letter-spacing:-.01em}
 .panel:not(.hidden) .card:nth-child(3){animation-delay:.1s}
 .panel:not(.hidden) .card:nth-child(n+4){animation-delay:.15s}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ---- Sửa chồng chữ: logo không bị co, menu tự thu gọn khi màn hình vừa ---- */
+header .bar{flex-wrap:nowrap}
+.nav{min-width:0;flex:0 1 auto}
+.nav a{flex:none}
+@media(min-width:901px) and (max-width:1240px){
+  .nav{margin-right:8px;gap:0}
+  .nav a{padding:8px 9px;gap:4px;font-size:.86rem}
+  .nav img,.nav .ni{width:20px;height:20px;font-size:1rem}
+  .me{gap:6px}
+  #meName{font-size:0}                      /* chỉ hiện ảnh đại diện, ẩn tên */
+}
+@media(min-width:901px) and (max-width:1020px){
+  .nav a{font-size:0;gap:0;padding:8px 10px}  /* chỉ hiện biểu tượng */
+  .nav a .ni,.nav a img{font-size:1.2rem;width:24px;height:24px}
+}
