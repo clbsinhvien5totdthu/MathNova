@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon.png">
-<link rel="stylesheet" href="script.css?v=18">
+<link rel="stylesheet" href="script.css?v=14">
 </head>
 <body>
 
@@ -57,8 +57,8 @@
     <div class="wrap bar">
       <a href="#" class="logo" id="goHome" aria-label="Phần mềm hỗ trợ học tập MathNova – Trang chủ"><span class="brand-mark sm"><small>Phần mềm hỗ trợ học tập</small><b>MathNova</b></span></a>
       <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top"><span class="ni">🏠</span>Trang chủ</a><a href="#" data-go="levelsPick"><span class="ni">📚</span>Khối lớp</a><a href="teacher.html" id="navTeacher" class="hidden"><span class="ni">👩‍🏫</span>Giáo viên</a><a href="#" id="navStats"><span class="ni">📊</span>Thống kê</a><a href="#" data-go="rankBoard"><span class="ni">🏆</span>Vinh danh</a></nav>
-      <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span><span class="streak cold" id="meStreak" title="Chuỗi ngày học">🔥 0</span>
-      <button class="btn ghost sm" id="logout" type="button" aria-label="Đăng xuất"><span class="lo-t">Đăng xuất</span><span class="lo-i" aria-hidden="true">⏻</span></button></div>
+      <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
+      <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
     </div>
     <div class="wrap rankstrip"><div class="rbar"><i id="rankFill"></i></div><small id="rankTxt"></small></div>
   </header>
@@ -126,11 +126,9 @@
   <div id="qmain" class="qbox">
     <div class="qtop"><b id="qtitle"></b><span>⏱ <b id="qtime">15:00</b></span></div>
     <div class="qprog"><i id="qbar"></i></div>
-    <div class="qdots" id="qdots" aria-hidden="true"></div>
     <p class="qlv" id="qlv"></p>
     <h2 id="qtext"></h2>
     <div id="qopts" class="qopts"></div>
-    <div id="qfb" class="qfb" aria-live="polite"></div>
     <div class="qnav"><button class="btn ghost" id="qquit" type="button">Thoát</button><button class="btn go" id="qnext" type="button" style="width:auto"></button></div>
   </div>
   <div id="qres" class="qbox hidden"></div>
@@ -139,6 +137,6 @@
 <div id="remind" class="quiz hidden" role="dialog" aria-modal="true" aria-label="Nhắc việc học tập"><div id="remindBox" class="qbox"></div></div>
 <div id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js?v=18"></script>
+<script src="script.js?v=14"></script>
 </body>
 </html>
