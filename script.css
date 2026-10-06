@@ -2083,3 +2083,25 @@ header .bar{transition:height .25s}header.scrolled{box-shadow:0 10px 34px rgba(2
 .rbar i{transition:width .9s cubic-bezier(.2,.8,.2,1)}
 .hero .chip{animation:float 6s ease-in-out infinite}.hero .chip.c2{animation-delay:-2s}.hero .chip.c3{animation-delay:-4s}
 @media(prefers-reduced-motion:reduce){[data-rv]{opacity:1;transform:none}.jn.now .jhex,.ufo,.jtip,.nface{animation:none}}
+
+/* ---- V10.1: sửa thanh điều hướng bị đè (màn hình 900–1300px) ---- */
+header .bar{gap:10px}
+.nav{overflow:hidden;min-width:0;flex:0 1 auto;margin-right:8px}
+.nav a{flex:none}
+.me{flex:none;gap:8px;position:relative;z-index:2}
+.me-nm{display:inline-block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(min-width:901px) and (max-width:1320px){
+  .me-nm{display:none}                                  /* chỉ giữ ảnh đại diện */
+  .nav a{padding:8px 10px;gap:5px;font-size:.9rem}
+  .nav img,.nav .ni{width:20px;height:20px;font-size:1rem}
+}
+@media(min-width:901px) and (max-width:1180px){
+  .xp,.streak,.rank{font-size:.82rem;padding:3px 9px}
+  #logout{width:36px;height:36px;padding:0;border-radius:50%;display:inline-grid;place-items:center}
+  #logout .lo-t{display:none}#logout .lo-i{display:inline;font-size:1rem}
+}
+@media(min-width:901px) and (max-width:1060px){
+  .nav a{font-size:0;gap:0;padding:8px 9px}               /* chỉ hiện biểu tượng */
+  .nav a .ni,.nav a img{width:24px;height:24px;font-size:1.25rem}
+  #meRank{font-size:0;padding:3px 7px}#meRank .rk{width:22px;height:22px;display:inline-block}
+}
