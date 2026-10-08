@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/favicon.png">
-<link rel="stylesheet" href="script.css?v=15">
+<link rel="stylesheet" href="script.css?v=16">
 </head>
 <body>
 
@@ -58,6 +58,7 @@
       <a href="#" class="logo" id="goHome" aria-label="Phần mềm hỗ trợ học tập MathNova – Trang chủ"><span class="brand-mark sm"><small>Phần mềm hỗ trợ học tập</small><b>MathNova</b></span></a>
       <nav class="nav" aria-label="Điều hướng"><a href="#" data-go="top"><span class="ni">🏠</span>Trang chủ</a><a href="#" data-go="levelsPick"><span class="ni">📚</span>Khối lớp</a><a href="teacher.html" id="navTeacher" class="hidden"><span class="ni">👩‍🏫</span>Giáo viên</a><a href="#" id="navStats"><span class="ni">📊</span>Thống kê</a><a href="#" data-go="rankBoard"><span class="ni">🏆</span>Vinh danh</a></nav>
       <div class="me"><span id="meName"></span><span class="rank" id="meRank"></span><span class="xp" id="meXp"></span>
+      <button class="bell" id="bell" type="button" aria-label="Thông báo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><b id="bellN" class="hidden"></b></button>
       <button class="btn ghost sm" id="logout">Đăng xuất</button></div>
     </div>
     <div class="wrap rankstrip"><div class="rbar"><i id="rankFill"></i></div><small id="rankTxt"></small></div>
@@ -135,9 +136,10 @@
 </div>
 <div id="dt" class="quiz hidden" role="dialog" aria-modal="true"><div id="dtbox" class="qbox"></div></div>
 <div id="hw" class="quiz hidden" role="dialog" aria-modal="true" aria-label="Nộp bài tự luận"><div id="hwbox" class="qbox"></div></div>
+<div id="notif" class="quiz hidden" role="dialog" aria-modal="true" aria-label="Thông báo"><div id="notifBox" class="qbox"></div></div>
 <div id="remind" class="quiz hidden" role="dialog" aria-modal="true" aria-label="Nhắc việc học tập"><div id="remindBox" class="qbox"></div></div>
 <div id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js?v=15"></script>
+<script src="script.js?v=16"></script>
 </body>
 </html>
