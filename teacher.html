@@ -45,6 +45,7 @@ dialog{border:0;border-radius:20px;padding:22px;width:min(640px,94vw);max-height
 .btn.sm{padding:3px 12px;font-size:.82rem}.btn.danger{border-color:var(--red);color:var(--red);background:#fff}
 dialog label{display:block;margin:12px 0 4px;font-weight:600}dialog .rd{display:inline-block;margin-right:16px;font-weight:400}
 #af select,#af textarea,#af input[type=date]{width:100%}#af textarea{resize:vertical}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 12px;cursor:pointer;font-size:.82rem}.chipb:hover{background:var(--sky)}
 .pk{max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-top:6px}.pk label{margin:4px 0;font-weight:400}
 </style></head><body>
 <main id="login"><form class="lc" id="lf"><h1>MathNova · Giáo viên</h1><p class="muted">Đăng nhập để theo dõi việc học của học sinh.</p>
@@ -60,12 +61,15 @@ dialog label{display:block;margin:12px 0 4px;font-weight:600}dialog .rd{display:
 <div class="kpis" id="kpis"></div>
 <div class="box"><h2>⚠️ Cần chú ý</h2><div id="alerts" class="alert"></div></div>
 <div class="box"><h2>📌 Bài đã giao</h2><div id="asg"></div></div>
+<div class="box"><h2>📝 Bài tự luận học sinh nộp <span id="suCnt" class="chip c-weak hidden"></span></h2>
+<div class="tools" style="margin:6px 0 10px"><select id="suf"><option value="wait">Chờ chấm</option><option value="all">Tất cả bài nộp</option><option value="graded">Đã chấm</option><option value="redo">Yêu cầu làm lại</option></select></div><div id="su"></div></div>
 <div class="cols"><div class="box"><h2>Số học sinh học mỗi ngày (14 ngày)</h2><div class="sc" id="chart"></div></div>
 <div class="box"><h2>Nội dung cả lớp còn yếu</h2><div id="topics"></div></div></div>
 <div class="box"><h2>Danh sách học sinh <small class="muted">(bấm tiêu đề để sắp xếp, bấm dòng để xem chi tiết)</small></h2><div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
 </div></div></div>
 <dialog id="dlg"></dialog>
 <dialog id="ad"></dialog>
+<dialog id="sd" style="width:min(820px,96vw)"></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -98,7 +102,7 @@ async function load(){
     P=await all(()=>sb.from('profiles').select('id,username,name,grade').order('id'));
     A=await all(()=>sb.from('attempts').select('id,user_id,kind,item_id,item_title,correct,total,secs,xp,topics,created_at').gte('created_at',since).order('created_at',{ascending:false}).order('id'));
   }catch(e){$('load').textContent='Không tải được dữ liệu: '+(e.message||'lỗi')+'. Kiểm tra đã chạy SQL phân quyền giáo viên chưa.';return}
-  await loadAs();
+  await loadAs();await loadSu();
   by={};A.forEach(a=>(by[a.user_id]=by[a.user_id]||[]).push(a));
   const gs=[...new Set(P.filter(p=>!T.has(p.id)).map(p=>p.grade))].sort((a,b)=>a-b),cg=$('fg').value||'all';
   $('fg').innerHTML='<option value="all">Tất cả các lớp</option>'+gs.map(g=>`<option value="${g}">Lớp ${g}</option>`).join('');$('fg').value=gs.includes(+cg)?cg:'all';
@@ -116,7 +120,7 @@ function calc(){
 const idleTxt=i=>i===null?'Chưa học':i===0?'Hôm nay':i===1?'Hôm qua':i+' ngày trước';
 const COLS=[['name','Học sinh'],['grade','Lớp'],['idle','Học gần nhất'],['days','Số ngày học'],['n','Số câu'],['acc','Chính xác'],['s','Thời gian'],['xp','XP'],['st','Trạng thái']];
 function draw(){
-  calc();drawAs();const D=+$('fd').value,today=S.filter(s=>s.idle===0).length,tn=S.reduce((a,s)=>a+s.n,0),tok=S.reduce((a,s)=>a+s.ok,0),warn=S.filter(s=>s.st==='idle'||s.st==='weak');
+  calc();drawAs();drawSu();const D=+$('fd').value,today=S.filter(s=>s.idle===0).length,tn=S.reduce((a,s)=>a+s.n,0),tok=S.reduce((a,s)=>a+s.ok,0),warn=S.filter(s=>s.st==='idle'||s.st==='weak');
   $('kpis').innerHTML=[[S.length,'học sinh'],[today,'đã học hôm nay'],[S.filter(s=>s.n>0).length,`có học trong ${D} ngày`],[tn?pc(tok,tn)+'%':'—','chính xác trung bình'],[warn.length,'cần chú ý']].map(k=>`<div class="kpi"><b>${k[0]}</b><small>${k[1]}</small></div>`).join('');
   $('alerts').innerHTML=warn.length?warn.sort((a,b)=>(b.idle??99)-(a.idle??99)).map(s=>`<button onclick="detail('${s.id}')">${esc(s.name)} · ${s.st==='idle'?(s.idle===null?'chưa học':'nghỉ '+s.idle+' ngày'):'chính xác '+pc(s.ok,s.n)+'%'}</button>`).join(''):'<span class="muted">Không có học sinh nào cần chú ý 🎉</span>';
   const ids=new Set(S.map(s=>s.id)),cnt={};A.forEach(a=>{if(ids.has(a.user_id)){const k=dk(a.created_at);(cnt[k]=cnt[k]||new Set()).add(a.user_id)}});
@@ -146,7 +150,8 @@ function detail(id){
 }
 /* ===== GIAO BÀI ===== */
 // Danh mục bài có thể giao: id phải trùng id trong script.js. Thêm bài mới vào script.js thì thêm 1 dòng ở đây.
-const CAT=[{g:5,items:[['t5-b10-cb','TOÁN 5 - BÀI 10 - CƠ BẢN (bài tập)'],['t5-b10-thvd','TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG (bài tập)'],['dt-b1-9','Đề test Bài 1–9 (Đại Thánh)'],['dt-b10','BÀI TẬP BÀI 10 (Đại Thánh)'],['dt-b11','BÀI TẬP BÀI 11 (Đại Thánh)'],['dt-b12','Đề test Bài 12 (Đại Thánh)']]}];
+const CAT=[{g:5,items:[['t5-b10-cb','TOÁN 5 - BÀI 10 - CƠ BẢN (bài tập)'],['t5-b10-thvd','TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG (bài tập)'],['dt-b1-9','Đề test Bài 1–9 (Đại Thánh)'],['dt-b10','BÀI TẬP BÀI 10 (Đại Thánh)'],['dt-b11','BÀI TẬP BÀI 11 (Đại Thánh)'],['dt-b12','Đề test Bài 12 (Đại Thánh)']]},
+ {g:7,items:[['t7-hw-ex','Toán 7 · Rational Numbers – Exercises Q1–Q16 + Bonus (tự luận, nộp ảnh)'],['t7-hw-home','Toán 7 · Rational Numbers – Homework 1–9 (tự luận, nộp ảnh)'],['dt7-vocab','Toán 7 · Kiểm tra 1: Từ vựng & cách đọc'],['dt7-compare','Toán 7 · Kiểm tra 2: So sánh & sắp xếp'],['dt7-ops','Toán 7 · Kiểm tra 3: Bốn phép tính'],['dt7-power','Toán 7 · Kiểm tra 4: Lũy thừa, phương trình, bài toán']]}];
 const ITEMS=CAT.flatMap(c=>c.items.map(i=>({g:c.g,id:i[0],t:i[1]})));
 let AS=[],asErr='';
 async function loadAs(){try{AS=await all(()=>sb.from('assignments').select('*').order('created_at',{ascending:false}).order('id'));asErr=''}catch(e){AS=[];asErr=e.message||'lỗi'}}
@@ -157,7 +162,7 @@ function drawAs(){
   if(asErr){el.innerHTML='<p class="muted">Chưa tải được danh sách bài giao ('+esc(asErr)+'). Hãy chạy file <b>giao-bai-tap.sql</b> trong Supabase → SQL Editor.</p>';return}
   if(!AS.length){el.innerHTML='<p class="muted">Chưa giao bài nào. Bấm “📌 Giao bài” ở trên để giao bài cho học sinh.</p>';return}
   el.innerHTML=AS.map(a=>{
-    const ts=tgt(a),t0=+new Date(a.created_at),dn=new Set(ts.filter(p=>(by[p.id]||[]).some(x=>x.item_id===a.item_id&&+new Date(x.created_at)>=t0)).map(p=>p.id)),miss=ts.filter(p=>!dn.has(p.id)),p=pc(dn.size,ts.length);
+    const ts=tgt(a),t0=+new Date(a.created_at),dn=new Set(ts.filter(p=>a.item_id.startsWith('t7-hw')?SU.some(x=>x.user_id===p.id&&x.item_id===a.item_id&&+new Date(x.created_at)>=t0):(by[p.id]||[]).some(x=>x.item_id===a.item_id&&+new Date(x.created_at)>=t0)).map(p=>p.id)),miss=ts.filter(p=>!dn.has(p.id)),p=pc(dn.size,ts.length);
     const late=a.due_date&&new Date(a.due_date+'T23:59:59')<new Date();
     return `<div class="as"><div><b>${esc(a.item_title)}</b> <small class="muted">· lớp ${a.grade} · ${a.user_ids&&a.user_ids.length?a.user_ids.length+' học sinh':'cả lớp'} · giao ${new Date(a.created_at).toLocaleDateString('vi-VN')}${a.due_date?' · hạn '+fdd(a.due_date):''}</small>${late?' <span class="chip c-idle">Quá hạn</span>':''}${a.note?'<br><small class="muted">💬 '+esc(a.note)+'</small>':''}</div>
     <button class="btn danger sm" onclick="delAs('${a.id}')">Xóa</button>
@@ -202,6 +207,56 @@ function openAg(){
 }
 $('ag').onclick=openAg;$('ad').onclick=e=>{if(e.target===$('ad'))$('ad').close()};
 $('dlg').onclick=e=>{if(e.target===$('dlg'))$('dlg').close()};
+
+/* ===== CHẤM BÀI TỰ LUẬN (học sinh chụp ảnh nộp → bảng submissions + kho ảnh 'homework') ===== */
+let SU=[],suErr='';
+const SUST={submitted:['Chờ chấm','c-weak'],graded:['Đã chấm','c-good'],redo:['Làm lại','c-idle']};
+const nm=id=>{const p=P.find(x=>x.id===id);return p?p.name:'(không rõ)'};
+const fn=n=>String(Math.round(Number(n)*100)/100).replace('.',',');
+async function loadSu(){try{SU=await all(()=>sb.from('submissions').select('*').order('created_at',{ascending:false}).order('id'));suErr=''}catch(e){SU=[];suErr=e.message||'lỗi'}}
+function drawSu(){
+  const el=$('su'),cnt=$('suCnt');if(!el)return;
+  if(suErr){cnt.classList.add('hidden');el.innerHTML='<p class="muted">Chưa tải được bài nộp ('+esc(suErr)+'). Hãy chạy file <b>toan7-nop-bai-va-tai-khoan.sql</b> trong Supabase → SQL Editor.</p>';return}
+  const wait=SU.filter(x=>x.status==='submitted').length;cnt.textContent=wait+' bài chờ chấm';cnt.classList.toggle('hidden',!wait);
+  const f=$('suf').value,L=SU.filter(x=>f==='all'||(f==='wait'?x.status==='submitted':x.status===f));
+  el.innerHTML=L.length?`<div class="tw"><table style="min-width:620px"><thead><tr><th>Học sinh</th><th>Bài</th><th>Nộp lúc</th><th>Ảnh</th><th>Trạng thái</th><th></th></tr></thead><tbody>`+L.map(x=>{const d=new Date(x.created_at),st=SUST[x.status]||[x.status,'c-ok'];
+   return `<tr onclick="openSu('${x.id}')"><td><b>${esc(nm(x.user_id))}</b></td><td style="white-space:normal">${esc(x.item_title)}</td><td>${d.toLocaleDateString('vi-VN')} ${d.toTimeString().slice(0,5)}</td><td>${(x.photos||[]).length}</td><td><span class="chip ${st[1]}">${st[0]}${x.status==='graded'?' · '+fn(x.score)+'/'+fn(x.max_score||10):''}</span></td><td><button class="btn sm">${x.status==='submitted'?'Chấm bài':'Xem'}</button></td></tr>`}).join('')+'</tbody></table></div>'
+   :'<p class="muted">'+(f==='wait'?'Không có bài nào đang chờ chấm 🎉':'Chưa có bài nộp nào.')+'</p>';
+}
+async function openSu(id){
+  const x=SU.find(r=>r.id===id);if(!x)return;
+  const d=$('sd');d.innerHTML=`<h2>📝 ${esc(nm(x.user_id))} <small class="muted">· ${esc(x.item_title)}</small></h2>
+  <p class="muted">Nộp lúc ${new Date(x.created_at).toLocaleString('vi-VN')}${x.note?' · 💬 '+esc(x.note):''}</p>
+  <div id="sph" class="muted" style="margin:10px 0">Đang tải ảnh…</div>
+  <form id="sf"><label for="ssc">Điểm <small class="muted">(thang ${fn(x.max_score||10)})</small></label>
+  <input id="ssc" type="number" min="0" max="${x.max_score||10}" step="0.25" value="${x.score??''}" style="width:110px" required>
+  <label for="sfb">Nhận xét cho học sinh</label><textarea id="sfb" rows="3" maxlength="600" style="width:100%" placeholder="Ví dụ: Làm tốt phần quy đồng, cần kiểm tra lại dấu ở câu 5c.">${esc(x.feedback||'')}</textarea>
+  <div class="alert" style="margin-top:6px">${['Làm tốt lắm! 👏','Trình bày rõ ràng, tiếp tục phát huy.','Cần kiểm tra lại dấu (+/−).','Nhớ quy đồng mẫu số trước khi cộng/trừ.','Thiếu bước giải, hãy viết đầy đủ.','Ảnh mờ/thiếu trang, em chụp lại nhé.'].map(t=>`<button type="button" class="chipb">${esc(t)}</button>`).join('')}</div>
+  <p class="err" id="serr"></p>
+  <p style="text-align:right;margin-top:10px"><button type="button" class="btn ghost" id="sx">Đóng</button> <button type="button" class="btn danger" id="sredo">Yêu cầu làm lại</button> <button class="btn" id="ssv">Lưu điểm</button></p></form>`;
+  d.showModal();
+  $('sx').onclick=()=>d.close();
+  d.querySelectorAll('.chipb').forEach(b=>b.onclick=()=>{const t=$('sfb');t.value=(t.value?t.value.trim()+' ':'')+b.textContent});
+  const save=async st=>{
+    const sc=$('ssc').value,mx=Number(x.max_score||10);$('serr').textContent='';
+    if(st==='graded'&&(sc===''||isNaN(Number(sc))||Number(sc)<0||Number(sc)>mx)){$('serr').textContent='Hãy nhập điểm từ 0 đến '+mx+'.';return}
+    $('ssv').disabled=$('sredo').disabled=true;
+    const row={status:st,score:st==='graded'?Number(sc):null,max_score:mx,feedback:$('sfb').value.trim()||null,graded_by:me.id,graded_at:new Date().toISOString()};
+    const {data,error}=await sb.from('submissions').update(row).eq('id',x.id).select().single();
+    $('ssv').disabled=$('sredo').disabled=false;
+    if(error){$('serr').textContent='Không lưu được: '+(error.message||'lỗi')+'. Đã chạy file SQL chưa?';return}
+    Object.assign(x,data);d.close();drawSu();drawAs();
+  };
+  $('ssv').onclick=e=>{e.preventDefault();save('graded')};
+  $('sredo').onclick=()=>save('redo');
+  const ph=x.photos||[];
+  if(!ph.length){$('sph').textContent='Bài nộp không có ảnh.';return}
+  const {data,error}=await sb.storage.from('homework').createSignedUrls(ph,3600);
+  if(error||!data){$('sph').textContent='Không tải được ảnh: '+(error?error.message:'lỗi')+'.';return}
+  $('sph').className='';$('sph').innerHTML=data.map((u,i)=>u.signedUrl?`<a href="${u.signedUrl}" target="_blank" rel="noopener"><img src="${u.signedUrl}" alt="Trang ${i+1}" loading="lazy" style="max-width:100%;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;display:block"></a>`:`<p class="muted">Ảnh ${i+1}: không tải được</p>`).join('')+'<p class="muted"><small>Bấm vào ảnh để mở cỡ lớn.</small></p>';
+}
+$('suf').onchange=drawSu;$('sd').onclick=e=>{if(e.target===$('sd'))$('sd').close()};
+
 ['fg','fd'].forEach(i=>$(i).onchange=draw);$('fs').oninput=draw;$('rf').onclick=load;
 $('ex').onclick=()=>{
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',rows=[['Họ tên','Tên đăng nhập','Lớp','Học gần nhất','Số ngày học','Số câu','Số câu đúng','Chính xác %','Thời gian (phút)','XP','Trạng thái']];
