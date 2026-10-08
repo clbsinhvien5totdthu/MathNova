@@ -217,8 +217,8 @@ async function loadSu(){try{SU=await all(()=>sb.from('submissions').select('*').
 function drawSu(){
   const el=$('su'),cnt=$('suCnt');if(!el)return;
   if(suErr){cnt.classList.add('hidden');el.innerHTML='<p class="muted">Chưa tải được bài nộp ('+esc(suErr)+'). Hãy chạy file <b>toan7-nop-bai-va-tai-khoan.sql</b> trong Supabase → SQL Editor.</p>';return}
-  const wait=SU.filter(x=>x.status==='submitted').length;cnt.textContent=wait+' bài chờ chấm';cnt.classList.toggle('hidden',!wait);
-  const f=$('suf').value,L=SU.filter(x=>f==='all'||(f==='wait'?x.status==='submitted':x.status===f));
+  const wait=SU.filter(x=>x.status==='submitted'&&(!x.teacher_id||x.teacher_id===me.id)).length;cnt.textContent=wait+' bài chờ chấm';cnt.classList.toggle('hidden',!wait);
+  const f=$('suf').value,L=SU.filter(x=>!x.teacher_id||x.teacher_id===me.id).filter(x=>f==='all'||(f==='wait'?x.status==='submitted':x.status===f));
   el.innerHTML=L.length?`<div class="tw"><table style="min-width:620px"><thead><tr><th>Học sinh</th><th>Bài</th><th>Nộp lúc</th><th>Ảnh</th><th>Trạng thái</th><th></th></tr></thead><tbody>`+L.map(x=>{const d=new Date(x.created_at),st=SUST[x.status]||[x.status,'c-ok'];
    return `<tr onclick="openSu('${x.id}')"><td><b>${esc(nm(x.user_id))}</b></td><td style="white-space:normal">${esc(x.item_title)}</td><td>${d.toLocaleDateString('vi-VN')} ${d.toTimeString().slice(0,5)}</td><td>${(x.photos||[]).length}</td><td><span class="chip ${st[1]}">${st[0]}${x.status==='graded'?' · '+fn(x.score)+'/'+fn(x.max_score||10):''}</span></td><td><button class="btn sm">${x.status==='submitted'?'Chấm bài':'Xem'}</button></td></tr>`}).join('')+'</tbody></table></div>'
    :'<p class="muted">'+(f==='wait'?'Không có bài nào đang chờ chấm 🎉':'Chưa có bài nộp nào.')+'</p>';
