@@ -10,7 +10,8 @@ const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.in
 // Thêm tài liệu mới: {t:'Tên', type:'PDF', topic:'Chủ đề', file:'assets/ten-file.pdf', img:'assets/anh-bia.png'}
 // (không có img thì tự dùng ảnh bìa mặc định)
 const DOCS = [
-  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', grade:5, topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'}
+  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', grade:5, topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'},
+  {t:'Rational Numbers – Lý thuyết & Ví dụ mẫu (song ngữ Anh–Việt)', type:'PDF', grade:7, topic:'Số hữu tỉ · Rational Numbers', file:'assets/Ly-thuyet-toan-7-so-huu-ti.pdf'}
 ];
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
@@ -107,6 +108,7 @@ function enter(p){
   show('app');view('levels');refreshMe();renderEx();
   $('navTeacher').classList.add('hidden');
   if(sb)sb.from('teachers').select('user_id').eq('user_id',uid).maybeSingle().then(({data})=>{if(data&&user)$('navTeacher').classList.remove('hidden')},()=>{});
+  loadSubs().then(()=>{renderEx();renderAssign()});
   loadAtt().then(async()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats();await loadAssign();renderAssign();renderEx();showRemind()});
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
@@ -116,7 +118,7 @@ $('logout').onclick=async()=>{
   stopGame();$('arena').classList.add('hidden');
   await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
   try{if(sb)await sb.auth.signOut()}catch(_){}
-  user=null;uid=null;boardRows=null;ATT=[];ASG=[];renderAssign();closeRemind();$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
+  user=null;uid=null;boardRows=null;ATT=[];ASG=[];SUBS=[];closeHw();renderAssign();closeRemind();$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
   btn.disabled=false;show('login');
 };
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
@@ -197,7 +199,7 @@ const RANKS=[
  {n:'Kim cương',k:'kimcuong',min:8000,c:'#6FA8FF',i:'💎'},{n:'Tinh anh',k:'tinhanh',min:14000,c:'#C99BFF',i:'🔮'},
  {n:'Thách đấu',k:'thachdau',min:24000,c:'#FF7B7B',i:'👑'}];
 // Hệ số XP theo lớp: lớp càng cao, bài càng khó, XP càng nhiều
-const GRADE_MULT={1:.5,2:.6,3:.75,4:.9,5:1};
+const GRADE_MULT={1:.5,2:.6,3:.75,4:.9,5:1,6:1.1,7:1.2,8:1.3,9:1.4,10:1.5,11:1.6,12:1.7};
 const LEVEL_XP={easy:4,mid:8,hard:14}, LV_NAME={easy:'Nhận biết',mid:'Thông hiểu',hard:'Vận dụng'};
 const REPLAY=.2; // làm lại chỉ nhận 20% XP để chống cày
 const rkImg=(r,c='rk')=>`<img class="${c}" src="assets/rank/${r.k}.webp" alt="Hạng ${r.n}">`;
@@ -332,8 +334,8 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 }).join('');
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
-  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE());
-  $('testList').innerHTML=emp(curG===5?dtCards():'');$('gameList').innerHTML=emp(curG===5?gameCard():'');renderAssign();
+  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE()+hwCards());
+  $('testList').innerHTML=emp(dtCards());$('gameList').innerHTML=emp(curG===5?gameCard():'');renderAssign();
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
@@ -462,9 +464,11 @@ const Q12=[
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fr=(n,d)=>`<span class="fr"><i>${n}</i><i>${d}</i></span>`;
 // Chuyển "2 3/4" thành hỗn số và "3/5" thành phân số xếp chồng (đã escape HTML)
-const fmt=s=>esc(s)
+const fx=s=>String(s)
   .replace(/(?<![\d,])(\d+) (\d+)\/(\d+)(?![\d])/g,(_,w,n,d)=>`<span class="mx">${w}${fr(n,d)}</span>`)
-  .replace(/(?<![\d,])(\d+)\/(\d+)(?![\d])/g,(_,n,d)=>fr(n,d));
+  .replace(/(?<![\d,])(\d+)\/(\d+)(?![\d])/g,(_,n,d)=>fr(n,d))
+  .replace(/\^(\d+|□)/g,'<sup>$1</sup>'); // mũ: (−1/2)^4 → (−½)⁴
+const fmt=s=>fx(esc(s));
 const countDone=d=>d&&typeof d==='object'?Object.keys(d).length:0;
 let boardF='all',boardRows=null,boardSeq=0;
 function setBoard(f){boardF=f;drawBoard()}
@@ -504,12 +508,89 @@ function drawBoard(){
 /* ===== HÀNH TRÌNH ĐẠI THÁNH v2: Tôn Ngộ Không đại chiến yêu quái (pixel) ===== */
 const PXD='assets/px/';
 const pimg=(n,c='')=>`<img class="${c}" src="${PXD}${n}.webp" alt="" draggable="false">`;
+/* ===== TOÁN 7 – SỐ HỮU TỈ (Rational Numbers): 4 đề kiểm tra trắc nghiệm rèn phản xạ ===== */
+const T7A={"voc": "Vocabulary", "read": "Reading maths aloud", "opp": "Opposite & reciprocal", "cls": "Rational numbers"};
+const Q7A=[
+["voc", "Q1", "What is the English for “số hữu tỉ”?", ["rational number", "reciprocal", "fraction", "exponent"], 0, "số hữu tỉ = rational number /ˈræʃənəl ˈnʌmbə(r)/."],
+["voc", "Q2", "What is the English for “tử số”?", ["numerator", "denominator", "exponent", "reciprocal"], 0, "tử số = numerator; mẫu số = denominator."],
+["voc", "Q3", "What is the English for “mẫu số chung”?", ["common denominator", "equivalent fraction", "opposite number", "order of operations"], 0, "mẫu số chung = common denominator: used to add, subtract and compare fractions."],
+["voc", "Q4", "What is the English for “số nghịch đảo”?", ["reciprocal", "opposite number", "exponent", "numerator"], 0, "số nghịch đảo = reciprocal; số đối = opposite number."],
+["voc", "Q5", "What is the English for “thứ tự giảm dần”?", ["decreasing order", "increasing order", "order of operations", "equation"], 0, "giảm dần = decreasing (large → small); tăng dần = increasing."],
+["voc", "Q6", "In the fraction 7/9, the number 9 is the:", ["denominator", "numerator", "exponent", "reciprocal"], 0, "The bottom number is the denominator (mẫu số); the top is the numerator (tử số)."],
+["voc", "Q7", "In 5^3, the number 3 is called the:", ["exponent", "numerator", "denominator", "opposite number"], 0, "In a power, the small raised number is the exponent (số mũ); 5 is the base (cơ số)."],
+["read", "Q8", "How do we read −3/4 in English?", ["minus three over four", "three minus over four", "minus four over three", "three over minus four"], 0, "Say the sign first, then “three over four”."],
+["read", "Q9", "Which sentence reads (−1/2)^4 correctly?", ["open parenthesis minus one over two close parenthesis raised to the fourth power", "minus one over two times four", "one over two raised to the minus fourth", "minus one over two raised to the second power"], 0, "“Raised to the fourth power” means exponent 4."],
+["read", "Q10", "Which expression is read “two over five plus open parenthesis minus two over five close parenthesis equals zero”?", ["2/5 + (−2/5) = 0", "2/5 − (−2/5) = 0", "2/5 × (−2/5) = 0", "2/5 + (−5/2) = 0"], 0, "A number plus its opposite equals zero."],
+["opp", "Q11", "The opposite number of 3/5 is:", ["−3/5", "5/3", "−5/3", "3/5"], 0, "Opposite of x is −x, so x + (−x) = 0 / số đối của 3/5 là −3/5."],
+["opp", "Q12", "The reciprocal of −2/7 is:", ["−7/2", "7/2", "2/7", "−2/7"], 0, "Flip the fraction and keep the sign: reciprocal of a/b is b/a / số nghịch đảo giữ nguyên dấu."],
+["opp", "Q13", "Which number has NO reciprocal?", ["0", "1", "−1", "1/2"], 0, "We cannot divide by 0, so 0 has no reciprocal / số 0 không có số nghịch đảo."],
+["cls", "Q14", "0.6 can be written as the fraction:", ["3/5", "6/5", "1/6", "3/50"], 0, "0.6 = 6/10 = 3/5 / viết 0,6 = 6/10 rồi rút gọn."],
+["cls", "Q15", "Which statement is TRUE?", ["Every integer is a rational number.", "Every rational number is an integer.", "The number 0 has a reciprocal.", "The opposite of x is 1/x."], 0, "For example −4 = −4/1, so every integer is rational (ℤ ⊂ ℚ)."]
+];
+const T7B={"eq": "Equivalent fractions", "cmp": "Comparing", "ord": "Ordering", "btw": "Numbers in between"};
+const Q7B=[
+["eq", "Q1", "Complete: 3/4 = ?/20", ["15", "19", "−15", "17"], 0, "20 ÷ 4 = 5, so multiply the top by 5 too: 3 × 5 = 15. / Nhân cả tử và mẫu với 5."],
+["eq", "Q2", "Complete: −5/6 = ?/18", ["−15", "7", "15", "−13"], 0, "18 ÷ 6 = 3, so multiply the top by 3 too: -5 × 3 = -15. / Nhân cả tử và mẫu với 3."],
+["eq", "Q3", "Complete: 2/7 = 8/?", ["28", "14", "21", "56"], 0, "2 × 4 = 8, so multiply the denominator by 4: 7 × 4 = 28. / Nhân tử và mẫu với 4."],
+["eq", "Q4", "Which fraction is equivalent to 0.4?", ["2/5", "4/5", "1/4", "4/100"], 0, "0.4 = 4/10 = 2/5 / 0,4 = 4/10 = 2/5."],
+["eq", "Q5", "Complete: −2 = ?/7", ["−14", "−9", "14", "−5"], 0, "−2 = −2/1 = (−2×7)/(1×7) = −14/7."],
+["cmp", "Q6", "Choose the correct symbol: −2/3 □ −3/4", [">", "<", "=", "cannot be compared"], 0, "Convert to a common form: −2/3 = −0.666667, −3/4 = −0.75. Hence −2/3 > −3/4. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q7", "Choose the correct symbol: −0.6 □ −3/5", ["=", ">", "<", "cannot be compared"], 0, "Convert to a common form: −0.6 = −0.6, −3/5 = −0.6. Hence −0.6 = −3/5. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q8", "Choose the correct symbol: 5/8 □ 0.6", [">", "<", "=", "cannot be compared"], 0, "Convert to a common form: 5/8 = 0.625, 0.6 = 0.6. Hence 5/8 > 0.6. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q9", "Choose the correct symbol: −4/5 □ −0.75", ["<", ">", "=", "cannot be compared"], 0, "Convert to a common form: −4/5 = −0.8, −0.75 = −0.75. Hence −4/5 < −0.75. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q10", "Choose the correct symbol: 7/12 □ 5/8", ["<", ">", "=", "cannot be compared"], 0, "Convert to a common form: 7/12 = 0.583333, 5/8 = 0.625. Hence 7/12 < 5/8. / Đổi về cùng dạng rồi so sánh."],
+["ord", "Q11", "Write in increasing order:  1/2; −3/4; 0.4; −1/3", ["−3/4; −1/3; 0.4; 1/2", "1/2; 0.4; −1/3; −3/4", "−3/4; 0.4; −1/3; 1/2", "−1/3; −3/4; 0.4; 1/2"], 0, "Compare as decimals: 1/2 = 0.5, −3/4 = −0.75, 0.4 = 0.4, −1/3 = −0.333333. Small → large."],
+["ord", "Q12", "Write in decreasing order:  −0.6; 2/3; 0; −5/8", ["2/3; 0; −0.6; −5/8", "−5/8; −0.6; 0; 2/3", "2/3; −0.6; 0; −5/8", "0; 2/3; −0.6; −5/8"], 0, "Compare as decimals: −0.6 = −0.6, 2/3 = 0.666667, 0 = 0, −5/8 = −0.625. Large → small."],
+["ord", "Q13", "Which is the smallest?", ["−5/6", "−3/4", "−0.7", "−2/3"], 0, "−5/6 ≈ −0.833 is farthest to the left on the number line, so it is the smallest. / Số càng xa về bên trái càng bé."],
+["btw", "Q14", "Which number lies between −2/3 and −1/2?", ["−7/12", "−3/4", "−5/12", "−1/3"], 0, "Use denominator 12: −8/12 < x < −6/12, so x = −7/12. / Quy đồng mẫu 12."],
+["btw", "Q15", "Which number lies between 1/4 and 1/3?", ["7/24", "3/8", "1/5", "1/2"], 0, "Use denominator 24: 6/24 < x < 8/24, so x = 7/24. / Quy đồng mẫu 24."]
+];
+const T7C={"addsub": "Add & subtract", "muldiv": "Multiply & divide", "order": "Order of operations", "err": "Find the mistake"};
+const Q7C=[
+["addsub", "Q1", "Calculate: −1/6 + 2/3", ["1/2", "1/9", "−5/6", "−1/2"], 0, "Common denominator 6: −1/6 + 4/6 = 3/6 = 1/2. / Quy đồng mẫu 6."],
+["addsub", "Q2", "Calculate: 3/5 − 7/10", ["−1/10", "−4/15", "13/10", "1/10"], 0, "Common denominator 10: 6/10 − 7/10 = −1/10."],
+["addsub", "Q3", "Calculate: −5/8 − 1/4", ["−7/8", "−1/2", "−3/8", "7/8"], 0, "Common denominator 8: −5/8 − 2/8 = −7/8."],
+["addsub", "Q4", "Calculate: 4/9 − (−1/6)", ["11/18", "1/3", "5/18", "−11/18"], 0, "Subtracting a negative = adding: 4/9 + 1/6 = 8/18 + 3/18 = 11/18. / Trừ số âm = cộng số dương."],
+["addsub", "Q5", "Calculate: −3/4 + 5/6", ["1/12", "1/5", "−19/12", "−1/12"], 0, "Common denominator 12: −9/12 + 10/12 = 1/12."],
+["muldiv", "Q6", "Calculate: −3/5 × 10/9", ["−2/3", "2/3", "23/45", "−27/50"], 0, "−(3×10)/(5×9) = −30/45 = −2/3. Different signs → negative."],
+["muldiv", "Q7", "Calculate: −7/12 × (−6/7)", ["1/2", "−1/2", "−121/84", "49/72"], 0, "Two negatives → positive: (7×6)/(12×7) = 42/84 = 1/2."],
+["muldiv", "Q8", "Calculate: 4/15 × (−5/8)", ["−1/6", "1/6", "−43/120", "−32/75"], 0, "−(4×5)/(15×8) = −20/120 = −1/6."],
+["muldiv", "Q9", "Calculate: −5/6 : 10/9", ["−3/4", "−25/27", "3/4", "−4/3"], 0, "Multiply by the reciprocal: −5/6 × 9/10 = −45/60 = −3/4. / Nhân với số nghịch đảo của số chia."],
+["muldiv", "Q10", "Calculate: 3/8 : (−9/16)", ["−2/3", "−27/128", "2/3", "−3/2"], 0, "3/8 × (−16/9) = −48/72 = −2/3."],
+["order", "Q11", "Calculate: 1/2 − 3/4 × 2/3", ["0", "−1/6", "1/6", "1/4"], 0, "Multiply first: 3/4 × 2/3 = 1/2. Then 1/2 − 1/2 = 0. / Nhân trước, trừ sau."],
+["order", "Q12", "Calculate: (−1/3 + 5/6) : 3/2", ["1/3", "3/4", "−1/3", "1/2"], 0, "Brackets: −2/6 + 5/6 = 1/2. Then 1/2 : 3/2 = 1/2 × 2/3 = 1/3."],
+["order", "Q13", "Calculate: 1 − [1/2 − (−1/4)]", ["1/4", "3/4", "5/4", "−1/4"], 0, "Inner bracket: 1/2 + 1/4 = 3/4. Then 1 − 3/4 = 1/4."],
+["order", "Q14", "Calculate: (−1/2)^3 + 3/4 : 3", ["1/8", "−3/8", "−1/8", "3/8"], 0, "Power: (−1/2)^3 = −1/8. Division: 3/4 : 3 = 1/4. Sum: −1/8 + 2/8 = 1/8."],
+["err", "Q15", "A learner writes 1/3 + 1/4 = 2/7. What is the mistake?", ["Added numerators and denominators separately", "Forgot to simplify", "Used the wrong common denominator 6", "There is no mistake"], 0, "Fractions must have a common denominator first: 1/3 + 1/4 = 4/12 + 3/12 = 7/12. / Phải quy đồng mẫu số rồi mới cộng tử."]
+];
+const T7D={"pow": "Powers", "eqn": "Equations", "prob": "Word problems"};
+const Q7D=[
+["pow", "Q1", "Calculate (−2/3)^3", ["−8/27", "8/27", "−8/9", "−2/9"], 0, "(−2)^3 / 3^3 = −8/27. Odd exponent → the result stays negative. / Số mũ lẻ → kết quả âm."],
+["pow", "Q2", "Calculate (−1/2)^4", ["1/16", "−1/16", "1/8", "−1/8"], 0, "(−1)^4 / 2^4 = 1/16. Even exponent → positive. / Số mũ chẵn → kết quả dương."],
+["pow", "Q3", "(3/4)^2 · (3/4)^3 = ?", ["(3/4)^5", "(3/4)^6", "(9/16)^3", "(3/4)^1"], 0, "Same base: add the exponents, 2 + 3 = 5. / Cùng cơ số: cộng số mũ."],
+["pow", "Q4", "(−5/6)^7 : (−5/6)^4 = ?", ["(−5/6)^3", "(−5/6)^11", "(−5/6)^28", "(−5/6)^2"], 0, "Same base: subtract the exponents, 7 − 4 = 3. / Cùng cơ số: trừ số mũ."],
+["pow", "Q5", "((2/5)^2)^3 = ?", ["(2/5)^6", "(2/5)^5", "(2/5)^8", "(2/5)^9"], 0, "Power of a power: multiply the exponents, 2 × 3 = 6. / Lũy thừa của lũy thừa: nhân số mũ."],
+["eqn", "Q6", "Find x: x + 1/2 = 3/4", ["1/4", "5/4", "−1/4", "3/8"], 0, "x = 3/4 − 1/2 = 3/4 − 2/4 = 1/4. / Chuyển vế: đổi dấu."],
+["eqn", "Q7", "Find x: x − 2/3 = −1/6", ["1/2", "−5/6", "5/6", "−1/2"], 0, "x = −1/6 + 2/3 = −1/6 + 4/6 = 3/6 = 1/2."],
+["eqn", "Q8", "Find x: 2/5 · x = −4/15", ["−2/3", "2/3", "−8/75", "−3/2"], 0, "x = −4/15 : 2/5 = −4/15 × 5/2 = −20/30 = −2/3."],
+["eqn", "Q9", "Find x: (−5/6) · x = 5/12", ["−1/2", "1/2", "−25/72", "−2"], 0, "x = 5/12 : (−5/6) = 5/12 × (−6/5) = −30/60 = −1/2."],
+["eqn", "Q10", "Find x: x : 3/4 = 4/9", ["1/3", "16/27", "3/16", "−1/3"], 0, "x = 4/9 × 3/4 = 12/36 = 1/3. / Số bị chia = thương × số chia."],
+["prob", "Q11", "At 6 a.m. the temperature is −4.2°C. It rises by 9.0°C by noon, then falls by 3.8°C in the evening. The evening temperature is:", ["1.0°C", "−1.0°C", "8.6°C", "4.8°C"], 0, "−4.2 + 9.0 = 4.8; then 4.8 − 3.8 = 1.0. Answer 1.0°C."],
+["prob", "Q12", "A tank is 5/6 full. Then 1/3 of the tank’s total capacity is used. What fraction of the tank is still full?", ["1/2", "5/18", "7/6", "4/3"], 0, "5/6 − 1/3 = 5/6 − 2/6 = 3/6 = 1/2. / Cả hai phân số đều tính trên cả bể."],
+["prob", "Q13", "A 4.5 m ribbon is cut into two pieces: 1 1/2 m and 2 1/4 m. How much ribbon is left?", ["0.75 m", "3.75 m", "2.25 m", "1.25 m"], 0, "1 1/2 + 2 1/4 = 3.75 m; 4.5 − 3.75 = 0.75 m (= 3/4 m)."],
+["prob", "Q14", "A bottle holds 3.2 L of juice. 3/4 L is used at lunch and another 0.55 L later. How much juice remains?", ["1.9 L", "2.45 L", "2.31 L", "4.5 L"], 0, "3/4 L = 0.75 L. 3.2 − 0.75 − 0.55 = 1.9 L."],
+["prob", "Q15", "Which statement is ALWAYS true?", ["The product of two negative rational numbers is positive.", "The sum of two rational numbers is positive.", "Every rational number has a reciprocal.", "A power of a negative number is negative."], 0, "(−a)·(−b) = a·b > 0. The other statements have counter-examples (−1 + 0, the number 0, (−1)^2). / Mỗi câu còn lại đều có phản ví dụ."]
+];
 // Mỗi đề test = một chặng đường. id cũ 'dt-b1-9' được giữ nguyên để không mất tiến độ.
 const DT_SETS=[
  {id:'dt-b1-9',name:'Bài 1–9',desc:'Ôn tập & bổ sung',T:DT_T,Q:DT_Q,cover:'dm-1'},
  {id:'dt-b10',name:'Bài 10',desc:'Khái niệm số thập phân',T:T10,Q:Q10,cover:'dm-2'},
  {id:'dt-b11',name:'Bài 11',desc:'So sánh các số thập phân',T:T11,Q:Q11,cover:'dm-3'},
- {id:'dt-b12',name:'Bài 12',desc:'Viết số đo dưới dạng số thập phân',T:T12,Q:Q12,cover:'ds-2'}
+ {id:'dt-b12',name:'Bài 12',desc:'Viết số đo dưới dạng số thập phân',T:T12,Q:Q12,cover:'ds-2'},
+ {id:'dt7-vocab',grade:7,name:'Rational Numbers · Test 1',desc:'Từ vựng, cách đọc, số đối & số nghịch đảo',T:T7A,Q:Q7A,cover:'dm-1'},
+ {id:'dt7-compare',grade:7,name:'Rational Numbers · Test 2',desc:'Phân số bằng nhau, so sánh, sắp xếp',T:T7B,Q:Q7B,cover:'dm-2'},
+ {id:'dt7-ops',grade:7,name:'Rational Numbers · Test 3',desc:'Cộng, trừ, nhân, chia, thứ tự phép tính',T:T7C,Q:Q7C,cover:'dm-3'},
+ {id:'dt7-power',grade:7,name:'Rational Numbers · Test 4',desc:'Lũy thừa, phương trình, bài toán thực tế',T:T7D,Q:Q7D,cover:'ds-2'}
 ];
 let dt=null,dtMuted=false,dtAC=null;
 try{dtMuted=localStorage.getItem('mute')==='1'}catch(_){}
@@ -525,8 +606,8 @@ function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cu�
 }
 const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
 function dtCards(){
-  return DT_SETS.map((S,k)=>{const b=user.done[S.id],n=S.Q.length;
-  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
+  return DT_SETS.map((S,k)=>{if((S.grade||5)!==curG)return '';const b=user.done[S.id],n=S.Q.length;
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${S.grade===7?'Kiểm tra · '+S.name:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
   <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu':'Chơi lại'}</button></div></article>`}).join('');
@@ -609,7 +690,7 @@ function podiumHtml(list,medals){
 }
 
 /* ===== THỐNG KÊ HỌC TẬP (nhật ký từng lượt làm bài → Supabase bảng "attempts", có dự phòng localStorage) ===== */
-const GOAL=20,KIND={quiz:'✏️',test:'🎮',game:'⚡',doc:'📖',review:'🔁'};
+const GOAL=20,KIND={quiz:'✏️',test:'🎮',game:'⚡',doc:'📖',review:'🔁',hw:'📝'};
 let ATT=[],attErr=false,attBusy=false;
 const attKey=()=>'att:'+uid;
 const attSave=()=>{try{localStorage.setItem(attKey(),JSON.stringify(ATT.slice(0,300)))}catch(_){}};
@@ -711,6 +792,8 @@ async function loadAssign(){
   }catch(_){ASG=[]} // chưa tạo bảng hoặc mất mạng: bỏ qua, không làm hỏng trang
 }
 function asgStatus(a){
+  if(HW.some(h=>h.id===a.item_id)){const t0=+new Date(a.created_at),L=(SUBS||[]).filter(x=>x.item_id===a.item_id&&+new Date(x.created_at)>=t0),due=dueOf(a),now=Date.now(),done=L.length>0;
+    return{done,best:0,n:0,hw:true,sub:L[0],late:!done&&!!due&&+due<now,soon:!done&&!!due&&+due>=now&&+due-now<2*864e5}}
   const t0=+new Date(a.created_at),at=ATT.filter(x=>x.id===a.item_id&&+new Date(x.at)>=t0),due=dueOf(a),now=Date.now(),done=at.length>0;
   return{done,best:Math.max(0,...at.map(x=>x.ok)),n:(at[0]||{}).n||0,
     late:!done&&!!due&&+due<now,soon:!done&&!!due&&+due>=now&&+due-now<2*864e5};
@@ -723,8 +806,8 @@ const asgTag=id=>{const a=ASG.find(x=>x.item_id===id&&!asgStatus(x).done);return
 function asgRow({a,s}){
   const c=s.done?['done','Đã làm']:s.late?['late','Quá hạn']:s.soon?['soon','Sắp đến hạn']:['new','Mới giao'];
   return `<div class="asg-row"><div><b>${esc(a.item_title)}</b> <span class="asg-chip ${c[0]}">${c[1]}</span></div>
-  <small>${a.due_date?'Hạn: '+fmtDue(a)+' · ':''}${s.done?'Điểm: '+s.best+'/'+s.n:'Chưa làm'}${a.note?' · 💬 '+esc(a.note):''}</small>
-  <button type="button" class="btn go" onclick="asgStart('${a.id}')">${s.done?'Làm lại':'Làm ngay'}</button></div>`;
+  <small>${a.due_date?'Hạn: '+fmtDue(a)+' · ':''}${s.hw?(s.done?hwText(s.sub):'Chưa nộp'):s.done?'Điểm: '+s.best+'/'+s.n:'Chưa làm'}${a.note?' · 💬 '+esc(a.note):''}</small>
+  <button type="button" class="btn go" onclick="asgStart('${a.id}')">${s.hw?(s.done?'Xem / nộp lại':'Nộp bài'):s.done?'Làm lại':'Làm ngay'}</button></div>`;
 }
 function renderAssign(){
   const box=$('assignBox');if(!box)return;
@@ -734,6 +817,7 @@ function renderAssign(){
 function asgStart(id){
   const a=ASG.find(x=>x.id===id);if(!a)return;
   curG=+a.grade||curG;closeRemind();
+  if(HW.some(h=>h.id===a.item_id)){openHw(a.item_id);return}
   const k=QUIZZES.findIndex(z=>z.id===a.item_id),j=DT_SETS.findIndex(s=>s.id===a.item_id);
   if(k>=0)startQuiz(k);else if(j>=0)dtStart(j);else toast('Bài này chưa có trong phần mềm. Hãy hỏi thầy cô nhé.');
 }
@@ -761,4 +845,126 @@ function showRemind(){ // hiện mỗi lần vào web, chỉ khi có việc cầ
     ${redo.map(x=>`<div class="asg-row"><div><b>${esc(x.t)}</b> <span class="asg-chip soon">Nên làm lại</span></div><small>Điểm cao nhất mới ${x.b}/${x.n} câu</small><button type="button" class="btn go" onclick="redoStart('${x.id}')">Làm lại</button></div>`).join('')}</div>`:''}
   <div class="qnav"><button type="button" class="btn ghost" onclick="closeRemind()">Để sau</button></div>`;
   $('remind').classList.remove('hidden');$('remind').scrollTop=0;document.body.style.overflow='hidden';
+}
+
+/* ===== BÀI TẬP TỰ LUẬN VỀ NHÀ – TOÁN 7 (học sinh làm vào vở/phiếu, chụp ảnh nộp, giáo viên chấm) ===== */
+const HW_PDF='assets/Phieu-bai-tap-toan-7-so-huu-ti.pdf';
+const HW=[
+ {id:'t7-hw-ex',grade:7,title:'Rational Numbers – Exercises (Q1–Q16 + Bonus)',desc:'Phiếu bài tập số hữu tỉ · 16 câu + 2 câu Bonus · làm tự luận',max:10,q:[
+  ['Q1','Copy and complete each set of equivalent fractions.<br>a) −3 = −3/1 = □/4 &nbsp; b) 5/8 = 10/□ = □/40 &nbsp; c) 0.6 = 6/10 = □/5 &nbsp; d) −7/9 = −14/□ = □/27'],
+  ['Q2','Write the correct symbol &lt;, &gt;, = in each box.<br>a) −3/4 □ −2/3 &nbsp; b) −0.4 □ −2/5 &nbsp; c) 5/8 □ 0.6 &nbsp; d) −1.25 □ −5/4'],
+  ['Q3','Put the numbers in increasing order: −5/6, −0.72, 2/3, 0, −3/4, 0.7.'],
+  ['Q4','Match each description with the correct number.<br>A. The opposite of 3/5 &nbsp; B. The reciprocal of 3/4 &nbsp; C. A rational number equal to 0.75 &nbsp; D. A rational number equal to −1.2<br>Numbers: 1. 4/3 &nbsp; 2. −3/5 &nbsp; 3. 3/4 &nbsp; 4. −6/5'],
+  ['Q5','Calculate. Show the main step in each calculation.<br>a) 5/8 − 7/12 &nbsp; b) −4/9 + 5/6 &nbsp; c) 7/10 − (−3/5) &nbsp; d) −11/15 − 2/5'],
+  ['Q6','Complete the working: −7/15 : 14/25 = −7/15 × □/□ = −□/□. Then calculate 5/12 : (−25/18).'],
+  ['Q7','Match each expression with its value.<br>A. (−3/4)^2 &nbsp; B. (−2/5)^3 &nbsp; C. (3/7)^5 : (3/7)^3 &nbsp; D. (−1/2)^4 · 2^3<br>Values: 1. −8/125 &nbsp; 2. 1/2 &nbsp; 3. 9/16 &nbsp; 4. 9/49'],
+  ['Q8','Copy and complete the exponent laws.<br>a) (5/6)^3 · (5/6)^4 = (5/6)^□ &nbsp; b) (−7/9)^8 : (−7/9)^5 = (−7/9)^□<br>c) (−2/3)^4 · (−2/3)^3 : (−2/3)^5 = (−2/3)^□ = □/□'],
+  ['Q9','Calculate using the correct order of operations.<br>a) 2/3 − 3/4 · 8/9 &nbsp; b) (−5/6 + 1/3) : 5/4 &nbsp; c) 1 − [2/5 − (−3/10)] &nbsp; d) (−1/2)^3 + 3/4 : (−3/2)'],
+  ['Q10','Find the mistake. A learner writes −2/3 + 5/6 = −4/6 − 5/6 = −9/6. Explain the mistake and write the correct calculation.'],
+  ['Q11','Choose the correct answer, then explain your choice. A = 3/7 · 11/5 + 3/7 · 4/5.<br>A. 33/35 &nbsp; B. 9/7 &nbsp; C. 3/5 &nbsp; D. 3'],
+  ['Q12','Write three different rational numbers x such that −2/3 &lt; x &lt; −1/2. Explain briefly how you know that each answer is correct.'],
+  ['Q13','Find x. Show all your working.<br>a) x − 5/6 = −1/4 &nbsp; b) 3/4 x = −9/10 &nbsp; c) (x + 1)/2 = 5/6 &nbsp; d) (x − 2)/3 + (x + 1)/6 = 1'],
+  ['Q14','For each statement, write always true, sometimes true, or never true. Give a reason or an example.<br>a) The sum of two rational numbers is positive.<br>b) The product of two negative rational numbers is positive.<br>c) A rational number has a reciprocal.'],
+  ['Q15','Solve the real-life problems.<br>a) At 6 a.m., the temperature is −3.5°C. By noon, it rises by 8.2°C. In the evening, it falls by 2.7°C. What is the temperature in the evening?<br>b) A water tank is 3/5 full. Then 1/4 of the tank’s total capacity is used. What fraction of the tank remains full?'],
+  ['Q16','A 3.5 m ribbon is cut into two pieces. The first piece is 3/4 m long and the second piece is 1 1/4 m long. How much ribbon is left?'],
+  ['Bonus 1','Find the value of (−3/5) · 25/9 · (−6/5). Answer: ……'],
+  ['Bonus 2','Let n be an integer. If −3/4 &lt; n/12 &lt; −1/2, then all possible values of n are ……']
+ ]},
+ {id:'t7-hw-home',grade:7,title:'Rational Numbers – Homework (Bài 1–9)',desc:'Bài về nhà · 9 bài tự luận · ôn từ vựng, tính toán, bài toán thực tế',max:10,q:[
+  ['1','Complete the sentences using the words in the box: <i>numerator, denominator, equivalent fractions, reciprocal, exponent, increasing order, decreasing order, equation</i>.<br>a) In 5/8, 5 is the … and 8 is the … &nbsp; b) 1/2 and 2/4 are … &nbsp; c) The … of 3/5 is 5/3.<br>d) In 2^5, the number 5 is the … &nbsp; e) −3/4 &lt; 0 &lt; 1/2 is written in … &nbsp; f) 4/5 &gt; 0 &gt; −2/3 is written in … &nbsp; g) x + 1/2 = 3/4 is an …'],
+  ['2','Write how you would read each expression aloud in English. Use the forms from the Vocabulary table.<br>a) −3/4 &nbsp; b) 2/3 × 3/5 = 2/5 &nbsp; c) (−1/2)^4 &nbsp; d) −2/3 &lt; −1/2 &lt; 0'],
+  ['3','Copy and complete.<br>a) 3/4 = □/20 &nbsp; b) −5/6 = −15/□ &nbsp; c) 0.4 = □/5 &nbsp; d) −2 = □/7'],
+  ['4','Write &lt;, &gt;, = in each box, then write the four numbers in decreasing order.<br>−5/8 □ −0.6, &nbsp; 7/10 □ 0.7, &nbsp; −2/3 □ −3/4.<br>Numbers: −5/8, −0.6, 7/10, −2/3.'],
+  ['5','Calculate. Show the main steps.<br>a) −7/12 + 5/8 &nbsp; b) 3/5 − (−7/10) &nbsp; c) −4/9 · 15/8 &nbsp; d) 5/6 : (−25/18)'],
+  ['6','Calculate using powers and the correct order of operations.<br>a) (−2/3)^4 : (−2/3)^2 &nbsp; b) 1 − 3/4 · (−2/3)'],
+  ['7','Find x. Show all your working.<br>a) x + 3/5 = −1/10 &nbsp; b) 2/3 x = −4/9'],
+  ['8','A learner writes 1/2 − 3/4 = (1 − 3)/(2 − 4) = 1. Explain the mistake and give the correct answer.'],
+  ['9','Real-life problem. A bottle contains 2.4 L of juice. During lunch, 3/4 L is used. Later, another 0.65 L is used. How much juice remains in the bottle?']
+ ]}
+];
+
+let SUBS=[],hwFiles=[],hwCur=null,hwBusy=false;
+async function loadSubs(){
+  if(!sb||!user){SUBS=[];return}
+  try{const {data,error}=await sb.from('submissions').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(100);
+    if(error)throw error;SUBS=data||[]}
+  catch(_){SUBS=[]} // chưa chạy file SQL tạo bảng submissions: bỏ qua
+}
+const subLast=id=>(SUBS||[]).find(x=>x.item_id===id);
+const fnum=n=>String(Math.round(Number(n)*100)/100).replace('.',',');
+function hwText(s){
+  if(!s)return 'Chưa nộp';
+  if(s.status==='graded')return '✅ Đã chấm: '+fnum(s.score)+'/'+fnum(s.max_score||10);
+  if(s.status==='redo')return '🔁 Thầy cô yêu cầu làm lại';
+  return '⏳ Đã nộp '+new Date(s.created_at).toLocaleDateString('vi-VN')+' · chờ thầy cô chấm';
+}
+const hwCards=()=>HW.map(h=>{
+  if(h.grade!==curG)return '';
+  const s=subLast(h.id);
+  return `<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Bài tập về nhà · Tự luận</span>${asgTag(h.id)}<h3>${esc(h.title)}</h3>
+  <small>${esc(h.desc)} · làm xong chụp ảnh nộp, thầy cô chấm</small><small>${hwText(s)}</small>
+  <button class="btn go" style="width:auto" onclick="openHw('${h.id}')">${!s||s.status==='redo'?'Làm bài & nộp ảnh':'Xem / nộp lại'}</button></div></article>`;
+}).join('');
+// Nén ảnh chụp từ điện thoại: cạnh dài tối đa 1600px, JPEG 82%
+function imgToJpeg(file,max=1600,q=.82){return new Promise((res,rej)=>{
+  const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{let w=im.naturalWidth,h=im.naturalHeight;const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);
+    c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('blob'))},'image/jpeg',q)};
+  im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'))};im.src=u})}
+function openHw(id){
+  const h=HW.find(x=>x.id===id);if(!h||!user)return;
+  hwCur=h;hwFiles=[];hwBusy=false;
+  const s=subLast(id);
+  $('hwbox').innerHTML=`<div class="qtop"><b>📝 ${esc(h.title)}</b></div>
+  <p class="muted">Làm bài tự luận vào vở hoặc in phiếu bài tập, <b>chụp ảnh rõ nét</b> rồi nộp tại đây. Thầy cô sẽ chấm và nhận xét ngay trên hệ thống.</p>
+  <div class="hw-links"><a class="btn ghost sm" href="${HW_PDF}" target="_blank" rel="noopener">📄 Mở phiếu bài tập (PDF)</a></div>
+  <div class="hw-status ${s?s.status:'none'}"><b>${hwText(s)}</b>${s&&s.feedback?`<p>💬 <b>Nhận xét của thầy cô:</b> ${esc(s.feedback)}</p>`:''}</div>
+  <details class="hw-q"><summary>Xem đề bài trên màn hình (${h.q.length} mục)</summary>${h.q.map(q=>`<div class="hw-qi"><b>${q[0]}.</b> ${fx(q[1])}</div>`).join('')}</details>
+  <h3>Nộp ảnh bài làm</h3>
+  <label class="hw-pick"><input id="hwfile" type="file" accept="image/*" multiple><span class="btn ghost">📷 Chụp / chọn ảnh</span></label>
+  <p class="muted"><small>Tối đa 8 ảnh, mỗi trang một ảnh, chụp đủ sáng và thấy rõ chữ. Ảnh được tự động thu nhỏ để gửi nhanh.</small></p>
+  <div id="hwprev" class="hw-prev"></div>
+  <label for="hwnote" class="hw-lb">Lời nhắn cho thầy cô <small class="muted">(không bắt buộc)</small></label>
+  <textarea id="hwnote" rows="2" maxlength="300" placeholder="Ví dụ: Em chưa làm được câu 13d ạ."></textarea>
+  <p id="hwmsg" class="err" role="alert"></p>
+  <div class="qnav"><button type="button" class="btn ghost" id="hwclose">Đóng</button><button type="button" class="btn go" id="hwgo" style="width:auto" disabled>Nộp bài</button></div>`;
+  $('hw').classList.remove('hidden');$('hw').scrollTop=0;document.body.style.overflow='hidden';
+  $('hwclose').onclick=closeHw;
+  $('hwfile').onchange=e=>{
+    const add=[...e.target.files].filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|webp|heic)$/i.test(f.name));
+    hwFiles=hwFiles.concat(add).slice(0,8);e.target.value='';hwDraw()};
+  $('hwgo').onclick=hwSubmit;
+}
+function hwDraw(){
+  const box=$('hwprev');if(!box)return;
+  box.innerHTML=hwFiles.map((f,i)=>`<div class="hw-th"><img src="${URL.createObjectURL(f)}" alt="Ảnh ${i+1}"><button type="button" aria-label="Bỏ ảnh ${i+1}" data-i="${i}">×</button></div>`).join('');
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{hwFiles.splice(+b.dataset.i,1);hwDraw()});
+  $('hwgo').disabled=!hwFiles.length||hwBusy;
+}
+function closeHw(){const d=$('hw');if(d){d.classList.add('hidden');document.body.style.overflow=''}hwFiles=[];hwCur=null}
+async function hwSubmit(){
+  const h=hwCur;if(!h||!hwFiles.length||hwBusy)return;
+  if(!sb){$('hwmsg').textContent='Hệ thống chưa kết nối. Hãy báo thầy cô nhé.';return}
+  hwBusy=true;const go=$('hwgo'),msg=$('hwmsg');go.disabled=true;msg.textContent='';
+  const paths=[],stamp=Date.now();
+  try{
+    for(let i=0;i<hwFiles.length;i++){
+      go.textContent=`Đang gửi ảnh ${i+1}/${hwFiles.length}…`;
+      const blob=await imgToJpeg(hwFiles[i]),path=`${uid}/${h.id}/${stamp}-${i+1}.jpg`;
+      const {error}=await sb.storage.from('homework').upload(path,blob,{contentType:'image/jpeg',upsert:false});
+      if(error)throw error;paths.push(path);
+    }
+    go.textContent='Đang lưu bài nộp…';
+    const row={user_id:uid,item_id:h.id,item_title:h.title,grade:h.grade,photos:paths,note:($('hwnote').value||'').trim()||null,status:'submitted',max_score:h.max};
+    const {data,error}=await sb.from('submissions').insert(row).select().single();
+    if(error)throw error;
+    SUBS.unshift(data);hwBusy=false;closeHw();renderEx();renderAssign();toast('Đã nộp bài! Thầy cô sẽ chấm sớm 📝');
+  }catch(e){
+    console.error('hw',e);hwBusy=false;go.disabled=false;go.textContent='Nộp bài';
+    const m=String(e&&e.message||'');
+    msg.textContent=/bucket|not found|relation|submissions|schema/i.test(m)?'Hệ thống chưa sẵn sàng nhận bài (thiếu bảng hoặc kho ảnh). Hãy báo thầy cô nhé.'
+      :/image|img|blob/i.test(m)?'Không đọc được một ảnh. Hãy chụp lại ảnh dạng JPG/PNG rồi chọn lại nhé.'
+      :'Chưa gửi được. Hãy kiểm tra mạng rồi bấm Nộp bài lại.';
+  }
 }
