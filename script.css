@@ -1718,3 +1718,23 @@ body:has(#dt:not(.hidden)) .sfx-btn,body:has(#quiz:not(.hidden)) .sfx-btn{displa
 #remind .st-box{margin:12px 0}
 @media(max-width:560px){.asg-row{grid-template-columns:1fr}.asg-row .btn{grid-column:1;grid-row:auto;margin-top:6px}}
 .remind-poster{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px;margin-bottom:12px}
+
+/* ===== Toán 7: mũ, bài tự luận nộp ảnh ===== */
+sup{font-size:.72em;line-height:0;vertical-align:super;margin-left:.05em}
+#hw .qbox{max-width:760px}
+.hw-links{margin:6px 0 10px}
+.hw-status{margin:10px 0;padding:10px 14px;border-radius:14px;background:#EAF1FF;border:1px solid #D6E2FA}
+.hw-status.submitted{background:#FFF6DA;border-color:#FFE49A}.hw-status.graded{background:#E9F8F0;border-color:#BFEBD3}.hw-status.redo{background:#FDECEC;border-color:#F6C3C5}
+.hw-status p{margin-top:6px}
+.hw-q{margin:10px 0;border:1px solid #D6E2FA;border-radius:14px;padding:8px 14px;background:#fff}
+.hw-q summary{cursor:pointer;font-weight:600;color:#0B2A5B}
+.hw-qi{padding:8px 0;border-top:1px solid #E4ECFB;line-height:2}
+.hw-qi:first-of-type{border-top:0;margin-top:6px}
+.hw-pick{display:inline-block;cursor:pointer}.hw-pick input{position:absolute;opacity:0;width:1px;height:1px}
+.hw-pick:focus-within .btn{outline:3px solid #1E5EFF55}
+.hw-prev{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:8px 0}
+.hw-th{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:2px solid #D6E2FA;background:#F7FAFF}
+.hw-th img{width:100%;height:100%;object-fit:cover;display:block}
+.hw-th button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:#D12F35;color:#fff;font-size:1.1rem;line-height:1;cursor:pointer}
+.hw-lb{display:block;margin:10px 0 4px;font-weight:600}
+#hwbox textarea{width:100%;padding:8px 12px;border:2px solid #D6E2FA;border-radius:12px;font:inherit;resize:vertical}
