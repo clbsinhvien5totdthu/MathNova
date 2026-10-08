@@ -11,7 +11,7 @@ const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.in
 // (không có img thì tự dùng ảnh bìa mặc định)
 const DOCS = [
   {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', grade:5, topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'},
-  {t:'Rational Numbers – Lý thuyết & Ví dụ mẫu (song ngữ Anh–Việt)', type:'PDF', grade:7, topic:'Số hữu tỉ · Rational Numbers', file:'assets/Ly-thuyet-toan-7-so-huu-ti.pdf'}
+  {t:'Rational Numbers – Lý thuyết & Ví dụ mẫu (song ngữ Anh–Việt)', type:'PDF', grade:7, topic:'Số hữu tỉ · Rational Numbers', file:'assets/toan-7/Ly-thuyet-toan-7-so-huu-ti.pdf'}
 ];
 const $ = id => document.getElementById(id);
 let user = null, uid = null;
@@ -108,7 +108,8 @@ function enter(p){
   show('app');view('levels');refreshMe();renderEx();
   $('navTeacher').classList.add('hidden');
   if(sb)sb.from('teachers').select('user_id').eq('user_id',uid).maybeSingle().then(({data})=>{if(data&&user)$('navTeacher').classList.remove('hidden')},()=>{});
-  loadSubs().then(()=>{renderEx();renderAssign()});
+  loadTeachers().then(()=>{renderEx();renderAssign()});
+  loadSubs().then(()=>{renderEx();renderAssign();checkNotif(true)});startPoll();
   loadAtt().then(async()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats();await loadAssign();renderAssign();renderEx();showRemind()});
   document.querySelector('.tabs button').click();
   toast('Xin chào '+user.name+'! 👋');
@@ -118,7 +119,7 @@ $('logout').onclick=async()=>{
   stopGame();$('arena').classList.add('hidden');
   await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
   try{if(sb)await sb.auth.signOut()}catch(_){}
-  user=null;uid=null;boardRows=null;ATT=[];ASG=[];SUBS=[];closeHw();renderAssign();closeRemind();$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
+  user=null;uid=null;boardRows=null;ATT=[];ASG=[];SUBS=[];stopPoll();NSEEN=null;NANN=new Set();TCH=[];hwTeacher=null;closeNotif();drawBell();closeHw();renderAssign();closeRemind();$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
   btn.disabled=false;show('login');
 };
 $('goHome').onclick=e=>{e.preventDefault();view('levels')};
@@ -741,6 +742,9 @@ function startReview(g){
   cur={id:'review',title:'ÔN CÂU ĐÃ SAI',min:0,grade:g||curG,review:true,q:b.map(w=>({l:'mid',q:w.q,o:w.o}))};
   startQuiz();
 }
+const I=(p,s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const IC={flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',ok:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',up:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',file:'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'};
+const fdt=t=>{const d=new Date(t);return d.toLocaleDateString('vi-VN')+' '+d.toTimeString().slice(0,5)};
 function renderStats(){
   if(!user)return;
   const days={};
@@ -755,26 +759,35 @@ function renderStats(){
   const tp={};ATT.forEach(a=>Object.entries(a.tp||{}).forEach(([k,v])=>{const x=tp[k]=tp[k]||[0,0];x[0]+=v[0];x[1]+=v[1]}));
   const tl=Object.entries(tp).filter(([,v])=>v[1]>=2).sort((a,b)=>pc(...a[1])-pc(...b[1]));
   const weak=tl.filter(([,v])=>pc(...v)<70).slice(0,3).map(([k])=>k),wb=wrongBank().length;
-  const gp=Math.min(100,pc(td.n,GOAL));
-  $('statsBody').innerHTML=`
-  ${attErr||ATT.some(a=>a.p)?'<p class="st-tip warn">⚠️ Một số kết quả chưa đồng bộ lên hệ thống nên thầy cô chưa xem được. Dữ liệu vẫn được giữ trên máy này và tự gửi lại khi có mạng.</p>':''}
-  <div class="kpis">
-    <div class="kpi"><b>🔥 ${streak}</b><small>ngày học liên tiếp</small></div>
-    <div class="kpi"><b>${pc(T.ok,T.n)}%</b><small>độ chính xác chung (${T.ok}/${T.n} câu)</small></div>
-    <div class="kpi"><b>${dur(T.s)}</b><small>tổng thời gian làm bài</small></div>
-    <div class="kpi"><b>${w1[1]?pc(...w1)+'%':'—'}</b><small>chính xác 7 ngày qua ${dl===null?'':`<em style="color:${dl>=0?'#0B7A43':'#D12F35'}">${dl>=0?'▲ +':'▼ '}${dl}%</em>`}</small></div>
+  const gp=Math.min(100,pc(td.n,GOAL)),C=2*Math.PI*42;
+  const bd=(t,c='')=>`<span class="ub ${c}">${t}</span>`;
+  const kpi=(ic,t,v,d)=>`<div class="uc kp"><div class="uc-h"><span>${t}</span>${I(IC[ic])}</div><div class="kv">${v}</div><p class="ud">${d}</p></div>`;
+  const hs=(SUBS||[]).slice(0,8),hg=(SUBS||[]).filter(s=>s.status==='graded'),hav=hg.length?hg.reduce((t,s)=>t+Number(s.score)/Number(s.max_score||10)*10,0)/hg.length:null;
+  const stB=s=>s.status==='graded'?bd('Đã chấm','green'):s.status==='redo'?bd('Làm lại','red'):bd('Chờ chấm','amber');
+  $('statsBody').innerHTML=`<div class="ui">
+  ${attErr||ATT.some(a=>a.p)?'<div class="ualert">Một số kết quả chưa đồng bộ lên hệ thống nên thầy cô chưa xem được. Dữ liệu vẫn được giữ trên máy này và tự gửi lại khi có mạng.</div>':''}
+  <div class="ugrid4">
+    ${kpi('flame','Chuỗi ngày học',streak+' <small>ngày</small>',streak?'Học liên tiếp, giữ vững nhé!':'Hãy học hôm nay để bắt đầu chuỗi')}
+    ${kpi('ok','Độ chính xác',pc(T.ok,T.n)+'%',`${T.ok}/${T.n} câu đúng`)}
+    ${kpi('clock','Thời gian học',dur(T.s),'Tổng thời gian làm bài')}
+    ${kpi('up','7 ngày qua',w1[1]?pc(...w1)+'%':'—',dl===null?'Chưa đủ dữ liệu để so sánh':bd((dl>=0?'+':'')+dl+'%',dl>=0?'green':'red')+' so với tuần trước')}
   </div>
-  <div class="st-box goal"><h3>🎯 Mục tiêu hôm nay: ${GOAL} câu</h3>
-    <div class="rbar"><i style="width:${gp}%;background:${gp>=100?'#16B364':'#1E5EFF'}"></i></div>
-    <small class="muted">${td.n>=GOAL?'Đã hoàn thành mục tiêu! 🎉':'Đã làm '+td.n+' câu, còn '+(GOAL-td.n)+' câu nữa.'} Hôm nay: ${td.ok}/${td.n} đúng · ${dur(td.s)} · +${td.xp} XP</small></div>
-  <div class="st-box"><h3>📈 14 ngày gần đây <small class="muted">(số câu làm, màu = độ chính xác)</small></h3>
-    <div class="sc">${bars.map(b=>`<div class="sc-col" title="${b.x?b.x.n+' câu · '+pc(b.x.ok,b.x.n)+'% đúng':'Không học'}"><i style="height:${b.x?Math.max(5,b.x.n/mx*100):2}%;background:${b.x?clr(pc(b.x.ok,b.x.n)):''}"></i><small>${b.l}</small></div>`).join('')}</div></div>
-  <div class="st-box"><h3>🧭 Mức nắm vững theo nội dung</h3>
-    ${tl.length?tl.map(([k,v])=>{const p=pc(...v);return `<div class="tprow"><span>${esc(k)}</span><div class="rbar"><i style="width:${p}%;background:${clr(p)}"></i></div><b>${v[0]}/${v[1]}</b></div>`}).join(''):'<p class="muted">Làm vài bài để xem bản đồ năng lực của bạn.</p>'}
-    ${weak.length?`<p class="st-tip">💡 Gợi ý: nên ôn thêm <b>${weak.map(esc).join(', ')}</b>.</p>`:''}
-    ${wb?`<button class="btn go" style="width:auto" onclick="startReview()">🔁 Ôn ${Math.min(wb,10)} câu đã sai</button>`:''}</div>
-  <div class="st-box"><h3>🗓️ Lịch sử từng buổi học</h3>
-    ${keys.length?keys.slice(0,10).map((d,i)=>{const x=days[d];return `<details class="dayc"${i===0?' open':''}><summary><b>${fd(d)}</b><span>${x.l.length} lượt · ${x.ok}/${x.n} đúng (${pc(x.ok,x.n)}%) · ${dur(x.s)} · +${x.xp} XP</span></summary>${x.l.map(a=>`<div class="att"><span>${new Date(a.at).toTimeString().slice(0,5)}</span><span>${KIND[a.k]||'•'} ${esc(a.t)}</span><b style="color:${a.n?clr(pc(a.ok,a.n)):'inherit'}">${a.n?a.ok+'/'+a.n:'—'}</b><small>${a.s?dur(a.s)+' · ':''}+${a.xp} XP</small></div>`).join('')}</details>`}).join(''):'<p class="muted">Chưa có buổi học nào. Hãy làm một bài tập nhé!</p>'}</div>`;
+  <div class="ugrid2">
+    <div class="uc"><div class="uc-h col"><h3>Hoạt động 14 ngày gần đây</h3><p class="ud">Chiều cao = số câu đã làm · màu = độ chính xác · đường nét đứt = mục tiêu ${GOAL} câu</p></div>
+      <div class="uchart"><i class="gl" style="bottom:${GOAL/mx*100}%"></i>${bars.map(b=>`<div class="uc-col" title="${b.x?b.x.n+' câu · '+pc(b.x.ok,b.x.n)+'% đúng':'Không học'}"><div class="bw"><i style="height:${b.x?Math.max(4,b.x.n/mx*100):0}%;background:${b.x?clr(pc(b.x.ok,b.x.n)):'transparent'}"></i></div><small>${b.l}</small></div>`).join('')}</div></div>
+    <div class="uc"><div class="uc-h col"><h3>Mục tiêu hôm nay</h3><p class="ud">${td.n>=GOAL?'Đã hoàn thành mục tiêu!':'Còn '+(GOAL-td.n)+' câu nữa'}</p></div>
+      <div class="ring"><svg viewBox="0 0 100 100" width="132" height="132"><circle cx="50" cy="50" r="42" fill="none" stroke="#f4f4f5" stroke-width="10"/><circle cx="50" cy="50" r="42" fill="none" stroke="${gp>=100?'#16B364':'#1E5EFF'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*gp/100} ${C}" transform="rotate(-90 50 50)"/></svg><div><b>${td.n}</b><small>/ ${GOAL} câu</small></div></div>
+      <p class="ud ctr">${td.ok}/${td.n} đúng · ${dur(td.s)} · +${td.xp} XP</p></div>
+  </div>
+  <div class="uc"><div class="uc-h col"><h3>Bài tự luận đã nộp</h3><p class="ud">${hs.length?'Mỗi bài cho biết bạn đã nộp cho thầy/cô nào và kết quả chấm.'+(hav!==null?' Điểm trung bình: <b>'+fnum(hav)+'/10</b>.':''):'Bạn chưa nộp bài tự luận nào.'}</p></div>
+    ${hs.length?`<div class="utw"><table class="ut"><thead><tr><th>Bài</th><th>Gửi cho</th><th>Nộp lúc</th><th>Trạng thái</th><th class="r">Điểm</th></tr></thead><tbody>${hs.map(s=>`<tr onclick="openHw('${esc(s.item_id)}')"><td class="w">${esc(s.item_title)}</td><td>${esc(tl(s.teacher_id||s.graded_by))}</td><td>${fdt(s.created_at)}</td><td>${stB(s)}</td><td class="r"><b>${s.status==='graded'?fnum(s.score)+'/'+fnum(s.max_score||10):'—'}</b></td></tr>`).join('')}</tbody></table></div>`:''}</div>
+  <div class="uc"><div class="uc-h col"><h3>Mức nắm vững theo nội dung</h3><p class="ud">Phần nào còn yếu sẽ nằm ở đầu danh sách.</p></div>
+    ${tl.length?tl.map(([k,v])=>{const p=pc(...v);return `<div class="utp"><span>${esc(k)}</span><div class="ubar"><i style="width:${p}%;background:${clr(p)}"></i></div><b>${p}%</b><small>${v[0]}/${v[1]}</small></div>`}).join(''):'<p class="ud">Làm vài bài để xem bản đồ năng lực của bạn.</p>'}
+    ${weak.length?`<div class="ualert info">Gợi ý: nên ôn thêm <b>${weak.map(esc).join(', ')}</b>.</div>`:''}
+    ${wb?`<button class="btn go" style="width:auto;margin-top:12px" onclick="startReview()">Ôn ${Math.min(wb,10)} câu đã sai</button>`:''}</div>
+  <div class="uc"><div class="uc-h col"><h3>Lịch sử từng buổi học</h3><p class="ud">10 buổi gần nhất. Bấm vào để xem chi tiết.</p></div>
+    ${keys.length?keys.slice(0,10).map((d,i)=>{const x=days[d];return `<details class="uday"${i===0?' open':''}><summary><b>${fd(d)}</b><span>${x.l.length} lượt · ${x.ok}/${x.n} đúng (${pc(x.ok,x.n)}%) · ${dur(x.s)} · +${x.xp} XP</span></summary>${x.l.map(a=>`<div class="uatt"><span>${new Date(a.at).toTimeString().slice(0,5)}</span><span class="w">${KIND[a.k]||'•'} ${esc(a.t)}</span><b style="color:${a.n?clr(pc(a.ok,a.n)):'inherit'}">${a.n?a.ok+'/'+a.n:'—'}</b><small>${a.s?dur(a.s)+' · ':''}+${a.xp} XP</small></div>`).join('')}</details>`}).join(''):'<p class="ud">Chưa có buổi học nào. Hãy làm một bài tập nhé!</p>'}</div>
+  </div>`;
 }
 $('navStats').onclick=e=>{e.preventDefault();view('stats')};
 $('backStats').onclick=()=>view('levels');
@@ -848,7 +861,7 @@ function showRemind(){ // hiện mỗi lần vào web, chỉ khi có việc cầ
 }
 
 /* ===== BÀI TẬP TỰ LUẬN VỀ NHÀ – TOÁN 7 (học sinh làm vào vở/phiếu, chụp ảnh nộp, giáo viên chấm) ===== */
-const HW_PDF='assets/Phieu-bai-tap-toan-7-so-huu-ti.pdf';
+const HW_PDF='assets/toan-7/Phieu-bai-tap-toan-7-so-huu-ti.pdf';
 const HW=[
  {id:'t7-hw-ex',grade:7,title:'Rational Numbers – Exercises (Q1–Q16 + Bonus)',desc:'Phiếu bài tập số hữu tỉ · 16 câu + 2 câu Bonus · làm tự luận',max:10,q:[
   ['Q1','Copy and complete each set of equivalent fractions.<br>a) −3 = −3/1 = □/4 &nbsp; b) 5/8 = 10/□ = □/40 &nbsp; c) 0.6 = 6/10 = □/5 &nbsp; d) −7/9 = −14/□ = □/27'],
@@ -894,9 +907,9 @@ const subLast=id=>(SUBS||[]).find(x=>x.item_id===id);
 const fnum=n=>String(Math.round(Number(n)*100)/100).replace('.',',');
 function hwText(s){
   if(!s)return 'Chưa nộp';
-  if(s.status==='graded')return '✅ Đã chấm: '+fnum(s.score)+'/'+fnum(s.max_score||10);
-  if(s.status==='redo')return '🔁 Thầy cô yêu cầu làm lại';
-  return '⏳ Đã nộp '+new Date(s.created_at).toLocaleDateString('vi-VN')+' · chờ thầy cô chấm';
+  if(s.status==='graded')return '✅ '+tl(s.graded_by||s.teacher_id)+' đã chấm: '+fnum(s.score)+'/'+fnum(s.max_score||10);
+  if(s.status==='redo')return '🔁 '+tl(s.graded_by||s.teacher_id)+' yêu cầu làm lại';
+  return '⏳ Đã nộp cho '+tl(s.teacher_id)+' ngày '+new Date(s.created_at).toLocaleDateString('vi-VN')+' · chờ chấm';
 }
 const hwCards=()=>HW.map(h=>{
   if(h.grade!==curG)return '';
@@ -912,35 +925,103 @@ function imgToJpeg(file,max=1600,q=.82){return new Promise((res,rej)=>{
     const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);
     c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('blob'))},'image/jpeg',q)};
   im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'))};im.src=u})}
+/* --- Giáo viên nhận bài & thông báo khi chấm xong --- */
+let TCH=[],hwTeacher=null,NSEEN=null,NANN=new Set(),npoll=null;
+const tn=id=>(TCH.find(t=>t.id===id)||{}).name;
+const tl=id=>{const n=tn(id);return n?'thầy/cô '+n:'thầy cô'};
+async function loadTeachers(){
+  if(!sb)return;
+  try{
+    const {data:t,error}=await sb.from('teachers').select('user_id');if(error)throw error;
+    const ids=(t||[]).map(r=>r.user_id).filter(id=>id!==uid);
+    if(!ids.length){TCH=[];return}
+    const {data:p}=await sb.from('profiles').select('id,name,username').in('id',ids);
+    TCH=ids.map(id=>{const x=(p||[]).find(r=>r.id===id)||{};return{id,name:x.name||x.username||'Giáo viên'}});
+  }catch(_){TCH=[]}
+}
+const nsKey=()=>'nseen:'+uid;
+const nsGet=()=>{if(NSEEN)return NSEEN;try{NSEEN=new Set(JSON.parse(localStorage.getItem(nsKey())||'[]'))}catch(_){NSEEN=new Set()}return NSEEN};
+const nsSave=()=>{try{localStorage.setItem(nsKey(),JSON.stringify([...nsGet()].slice(-200)))}catch(_){}};
+const nKey=s=>s.id+':'+(s.graded_at||s.status);
+const gradedSubs=()=>(SUBS||[]).filter(s=>s.status==='graded'||s.status==='redo');
+const unseenSubs=()=>gradedSubs().filter(s=>!nsGet().has(nKey(s)));
+function drawBell(){
+  const n=user?unseenSubs().length:0,b=$('bellN');if(!b)return;
+  b.textContent=n>9?'9+':n;b.classList.toggle('hidden',!n);$('bell').classList.toggle('ring',n>0);
+}
+function checkNotif(announce){
+  drawBell();if(!announce)return;
+  const fresh=unseenSubs().filter(s=>!NANN.has(nKey(s)));
+  fresh.forEach(s=>NANN.add(nKey(s)));
+  if(fresh.length){const s=fresh[0];
+    toast('🔔 '+(tl(s.graded_by||s.teacher_id)[0].toUpperCase()+tl(s.graded_by||s.teacher_id).slice(1))+(s.status==='redo'?' yêu cầu bạn làm lại: ':' đã chấm xong: ')+s.item_title)}
+}
+function openNotif(){
+  if(!user)return;
+  const L=gradedSubs().sort((a,b)=>String(b.graded_at||'').localeCompare(String(a.graded_at||''))).slice(0,15),un=new Set(unseenSubs().map(nKey));
+  $('notifBox').innerHTML=`<div class="qtop"><b>Thông báo</b></div>
+  ${L.length?L.map(s=>`<div class="nt ${un.has(nKey(s))?'new':''}"><div class="nt-i ${s.status}">${s.status==='graded'?'✓':'↻'}</div><div class="nt-b">
+    <b>${esc(s.item_title)}</b>
+    <p>${esc(tl(s.graded_by||s.teacher_id)[0].toUpperCase()+tl(s.graded_by||s.teacher_id).slice(1))} ${s.status==='graded'?'đã chấm: <b>'+fnum(s.score)+'/'+fnum(s.max_score||10)+'</b>':'yêu cầu bạn làm lại'}</p>
+    ${s.feedback?`<p class="nt-fb">“${esc(s.feedback)}”</p>`:''}
+    <small>${s.graded_at?fdt(s.graded_at):''}</small></div>
+    <button type="button" class="btn ghost sm" onclick="closeNotif();openHw('${esc(s.item_id)}')">Xem</button></div>`).join(''):'<p class="muted">Chưa có thông báo. Khi thầy cô chấm xong bài bạn nộp, thông báo sẽ hiện ở đây.</p>'}
+  <div class="qnav"><button type="button" class="btn ghost" onclick="closeNotif()">Đóng</button></div>`;
+  $('notif').classList.remove('hidden');$('notif').scrollTop=0;document.body.style.overflow='hidden';
+  gradedSubs().forEach(s=>nsGet().add(nKey(s)));nsSave();drawBell();
+}
+function closeNotif(){$('notif').classList.add('hidden');document.body.style.overflow=''}
+function startPoll(){
+  stopPoll();
+  npoll=setInterval(async()=>{if(!user||document.hidden)return;await loadSubs();checkNotif(true);renderEx();renderAssign();if(!$('stats').classList.contains('hidden'))renderStats()},45000);
+}
+function stopPoll(){if(npoll){clearInterval(npoll);npoll=null}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user)loadSubs().then(()=>{checkNotif(true);renderEx();renderAssign()})});
+$('bell').onclick=openNotif;
+
+function hwSteps(){
+  const el=$('hwsteps');if(!el)return;
+  const ok=[!!hwTeacher||!TCH.length,hwFiles.length>0,false];
+  el.innerHTML=['Chọn thầy/cô','Thêm ảnh','Nộp bài'].map((t,i)=>`<div class="stp ${ok[i]?'done':(i===0||ok[i-1])?'cur':''}"><i>${ok[i]?'✓':i+1}</i><span>${t}</span></div>`).join('<hr>');
+}
 function openHw(id){
   const h=HW.find(x=>x.id===id);if(!h||!user)return;
   hwCur=h;hwFiles=[];hwBusy=false;
   const s=subLast(id);
-  $('hwbox').innerHTML=`<div class="qtop"><b>📝 ${esc(h.title)}</b></div>
-  <p class="muted">Làm bài tự luận vào vở hoặc in phiếu bài tập, <b>chụp ảnh rõ nét</b> rồi nộp tại đây. Thầy cô sẽ chấm và nhận xét ngay trên hệ thống.</p>
-  <div class="hw-links"><a class="btn ghost sm" href="${HW_PDF}" target="_blank" rel="noopener">📄 Mở phiếu bài tập (PDF)</a></div>
-  <div class="hw-status ${s?s.status:'none'}"><b>${hwText(s)}</b>${s&&s.feedback?`<p>💬 <b>Nhận xét của thầy cô:</b> ${esc(s.feedback)}</p>`:''}</div>
-  <details class="hw-q"><summary>Xem đề bài trên màn hình (${h.q.length} mục)</summary>${h.q.map(q=>`<div class="hw-qi"><b>${q[0]}.</b> ${fx(q[1])}</div>`).join('')}</details>
-  <h3>Nộp ảnh bài làm</h3>
-  <label class="hw-pick"><input id="hwfile" type="file" accept="image/*" multiple><span class="btn ghost">📷 Chụp / chọn ảnh</span></label>
-  <p class="muted"><small>Tối đa 8 ảnh, mỗi trang một ảnh, chụp đủ sáng và thấy rõ chữ. Ảnh được tự động thu nhỏ để gửi nhanh.</small></p>
+  let last=null;try{last=localStorage.getItem('tch:'+uid)}catch(_){}
+  hwTeacher=(s&&s.teacher_id)||last;
+  if(!TCH.find(t=>t.id===hwTeacher))hwTeacher=TCH.length===1?TCH[0].id:null;
+  const stx=s?(s.status==='graded'?['ok','Đã chấm xong']:s.status==='redo'?['redo','Cần làm lại']:['wait','Đang chờ chấm']):null;
+  $('hwbox').innerHTML=`<div class="qtop"><b>${esc(h.title)}</b></div>
+  <div id="hwsteps" class="steps"></div>
+  ${s?`<div class="hw-status ${s.status}"><b>${stx[1]}</b><p>${esc(hwText(s))}</p>${s.feedback?`<p>💬 <b>Nhận xét của ${esc(tl(s.graded_by||s.teacher_id))}:</b> ${esc(s.feedback)}</p>`:''}</div>`:''}
+  <details class="hw-q"><summary>Xem đề bài (${h.q.length} mục)</summary><div class="hw-links"><a class="btn ghost sm" href="${HW_PDF}" target="_blank" rel="noopener">Mở phiếu bài tập (PDF)</a></div>${h.q.map(q=>`<div class="hw-qi"><b>${q[0]}.</b> ${fx(q[1])}</div>`).join('')}</details>
+
+  <h3 class="hw-h"><span>1</span>Nộp cho thầy/cô nào?</h3>
+  ${TCH.length?`<div class="tch-list">${TCH.map(t=>`<button type="button" class="tch${t.id===hwTeacher?' on':''}" data-t="${t.id}"><i>${esc(t.name.trim().split(/\s+/).pop()[0]||'T').toUpperCase()}</i><span><b>${esc(t.name)}</b><small>Giáo viên</small></span><em>✓</em></button>`).join('')}</div>`:'<p class="muted"><small>Chưa tải được danh sách giáo viên. Bài sẽ gửi đến thầy cô phụ trách chung.</small></p>'}
+
+  <h3 class="hw-h"><span>2</span>Thêm ảnh bài làm</h3>
+  <label class="hw-pick"><input id="hwfile" type="file" accept="image/*" multiple><span class="btn ghost">Chụp / chọn ảnh</span></label>
+  <p class="muted"><small>Tối đa 8 ảnh, mỗi trang một ảnh, chụp đủ sáng và thấy rõ chữ.</small></p>
   <div id="hwprev" class="hw-prev"></div>
-  <label for="hwnote" class="hw-lb">Lời nhắn cho thầy cô <small class="muted">(không bắt buộc)</small></label>
+
+  <h3 class="hw-h"><span>3</span>Lời nhắn <small class="muted">(không bắt buộc)</small></h3>
   <textarea id="hwnote" rows="2" maxlength="300" placeholder="Ví dụ: Em chưa làm được câu 13d ạ."></textarea>
   <p id="hwmsg" class="err" role="alert"></p>
   <div class="qnav"><button type="button" class="btn ghost" id="hwclose">Đóng</button><button type="button" class="btn go" id="hwgo" style="width:auto" disabled>Nộp bài</button></div>`;
   $('hw').classList.remove('hidden');$('hw').scrollTop=0;document.body.style.overflow='hidden';
   $('hwclose').onclick=closeHw;
+  document.querySelectorAll('#hwbox .tch').forEach(b=>b.onclick=()=>{hwTeacher=b.dataset.t;document.querySelectorAll('#hwbox .tch').forEach(x=>x.classList.toggle('on',x===b));hwDraw()});
   $('hwfile').onchange=e=>{
     const add=[...e.target.files].filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|webp|heic)$/i.test(f.name));
     hwFiles=hwFiles.concat(add).slice(0,8);e.target.value='';hwDraw()};
-  $('hwgo').onclick=hwSubmit;
+  $('hwgo').onclick=hwSubmit;hwDraw();
 }
 function hwDraw(){
   const box=$('hwprev');if(!box)return;
   box.innerHTML=hwFiles.map((f,i)=>`<div class="hw-th"><img src="${URL.createObjectURL(f)}" alt="Ảnh ${i+1}"><button type="button" aria-label="Bỏ ảnh ${i+1}" data-i="${i}">×</button></div>`).join('');
   box.querySelectorAll('button').forEach(b=>b.onclick=()=>{hwFiles.splice(+b.dataset.i,1);hwDraw()});
-  $('hwgo').disabled=!hwFiles.length||hwBusy;
+  $('hwgo').disabled=!hwFiles.length||hwBusy||(TCH.length>0&&!hwTeacher);hwSteps();
 }
 function closeHw(){const d=$('hw');if(d){d.classList.add('hidden');document.body.style.overflow=''}hwFiles=[];hwCur=null}
 async function hwSubmit(){
@@ -956,10 +1037,13 @@ async function hwSubmit(){
       if(error)throw error;paths.push(path);
     }
     go.textContent='Đang lưu bài nộp…';
-    const row={user_id:uid,item_id:h.id,item_title:h.title,grade:h.grade,photos:paths,note:($('hwnote').value||'').trim()||null,status:'submitted',max_score:h.max};
-    const {data,error}=await sb.from('submissions').insert(row).select().single();
+    const row={user_id:uid,item_id:h.id,item_title:h.title,grade:h.grade,photos:paths,note:($('hwnote').value||'').trim()||null,status:'submitted',max_score:h.max,teacher_id:hwTeacher||null};
+    try{if(hwTeacher)localStorage.setItem('tch:'+uid,hwTeacher)}catch(_){}
+    let r=await sb.from('submissions').insert(row).select().single();
+    if(r.error&&/teacher_id/i.test(r.error.message||'')){delete row.teacher_id;r=await sb.from('submissions').insert(row).select().single()} // chưa chạy SQL thêm cột teacher_id
+    const {data,error}=r;
     if(error)throw error;
-    SUBS.unshift(data);hwBusy=false;closeHw();renderEx();renderAssign();toast('Đã nộp bài! Thầy cô sẽ chấm sớm 📝');
+    SUBS.unshift(data);hwBusy=false;closeHw();renderEx();renderAssign();toast('Đã nộp bài cho '+tl(hwTeacher)+'! Khi chấm xong bạn sẽ nhận thông báo 🔔');
   }catch(e){
     console.error('hw',e);hwBusy=false;go.disabled=false;go.textContent='Nộp bài';
     const m=String(e&&e.message||'');
