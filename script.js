@@ -323,96 +323,7 @@ const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN D
  {l:'hard',q:'Bài 10. Trong các số thập phân lập được từ ba thẻ 2, 5, 0, số lớn nhất là:',o:['5,20','5,02','2,50','0,52']},
  {l:'hard',q:'Bài 10. Số nào sau đây lập được từ ba thẻ 2, 5, 0 (mỗi thẻ dùng một lần)?',o:['5,02','5,22','0,05','2,02']}
 ]};
-/* ===== TOÁN 5 – ÔN NHANH TRƯỚC BÀI 12–13 (đáp án đúng luôn ở vị trí đầu) ===== */
-const QON_12_13={id:'t5-on-b12-13',title:'TOÁN 5 - ÔN NHANH TRƯỚC BÀI 12–13',min:0,grade:5,q:[
- {l:'easy',q:'Bài 8 (ôn). 1 m = … cm',o:['100','10','1 000','1']},
- {l:'easy',q:'Bài 8 (ôn). 1 km = … m',o:['1 000','100','10','10 000']},
- {l:'easy',q:'Bài 8 (ôn). 1 kg = … g',o:['1 000','100','10','10 000']},
- {l:'easy',q:'Bài 8 (ôn). 1 m² = … dm²',o:['100','10','1 000','1']},
- {l:'mid',q:'Bài 8 (ôn). Hai đơn vị đo diện tích liền nhau (ví dụ m² và dm²) hơn kém nhau bao nhiêu lần?',o:['100 lần','10 lần','1 000 lần','2 lần']},
- {l:'easy',q:'Bài 10 (ôn). Phân số 7/100 viết thành số thập phân là:',o:['0,07','0,7','0,007','7,100']},
- {l:'easy',q:'Bài 10 (ôn). Hỗn số 3 4/10 viết thành số thập phân là:',o:['3,4','3,04','34,10','0,34']},
- {l:'mid',q:'Bài 10 (ôn). Phân số 6/1000 viết thành số thập phân là:',o:['0,006','0,06','0,6','6,000']},
- {l:'mid',q:'Bài 10 (ôn). Trong số 8,364, chữ số 6 thuộc hàng nào?',o:['Hàng phần trăm','Hàng phần mười','Hàng phần nghìn','Hàng đơn vị']},
- {l:'mid',q:'Bài 11 (ôn). So sánh 5,06 và 5,6, kết quả đúng là:',o:['5,06 < 5,6','5,06 > 5,6','5,06 = 5,6','Không so sánh được']},
- {l:'mid',q:'Bài 11 (ôn). Số lớn nhất trong các số 3,09; 3,9; 3,19; 3,091 là:',o:['3,9','3,19','3,09','3,091']}
-]};
-
-/* ===== TOÁN 5 – BÀI 12: VIẾT SỐ ĐO ĐẠI LƯỢNG DƯỚI DẠNG SỐ THẬP PHÂN (SGK trang 42–46) ===== */
-const Q12_BASIC={id:'t5-b12-cb',title:'TOÁN 5 - BÀI 12 - CƠ BẢN',min:0,grade:5,q:[
- {l:'easy',q:'Bài 12a. Điền số thích hợp: 2 m 15 cm = … m',o:['2,15','2,015','21,5','215']},
- {l:'easy',q:'Bài 12b. Điền số thích hợp: 1 kg 250 g = … kg',o:['1,25','1,025','12,5','1 250']},
- {l:'easy',q:'Bài 12c. Điền số thích hợp: 275 g = … kg',o:['0,275','2,75','0,0275','27,5']},
- {l:'easy',q:'Bài 12d. Điền số thích hợp: 125 m = … km',o:['0,125','1,25','12,5','0,0125']},
- {l:'easy',q:'Bài 12e. Điền số thích hợp: 2 m 5 dm = … m',o:['2,5','2,05','25','0,25']},
- {l:'easy',q:'Bài 12g. Điền số thích hợp: 6 m 75 cm = … m',o:['6,75','6,075','67,5','6,705']},
- {l:'mid',q:'Bài 12h. Điền số thích hợp: 3 m 8 cm = … m',o:['3,08','3,8','3,008','38']},
- {l:'mid',q:'Bài 12i. Điền số thích hợp: 4 km 500 m = … km',o:['4,5','4,05','4,005','45']},
- {l:'mid',q:'Bài 12k. Điền số thích hợp: 7 km 80 m = … km',o:['7,08','7,8','7,008','78']},
- {l:'mid',q:'Bài 12l. Điền số thích hợp: 456 m = … km',o:['0,456','4,56','45,6','0,0456']},
- {l:'easy',q:'Bài 12m. Điền số thích hợp: 3 kg 725 g = … kg',o:['3,725','3,0725','372,5','3,25']},
- {l:'mid',q:'Bài 12n. Điền số thích hợp: 8 kg 75 g = … kg',o:['8,075','8,75','8,0075','80,75']},
- {l:'mid',q:'Bài 12o. Điền số thích hợp: 76 mm = … cm',o:['7,6','0,76','76','0,076']}
-]};
-const Q12_ADV={id:'t5-b12-thvd',title:'TOÁN 5 - BÀI 12 - THÔNG HIỂU/VẬN DỤNG',min:0,grade:5,q:[
- {l:'mid',q:'Bài 12p. Điền số thích hợp: 560 g = … kg',o:['0,56','5,6','0,056','56']},
- {l:'mid',q:'Bài 12q. Điền số thích hợp: 1 tấn 5 tạ = … tấn',o:['1,5','1,05','1,005','15']},
- {l:'mid',q:'Bài 12r. Điền số thích hợp: 2 tấn 325 kg = … tấn',o:['2,325','2,0325','23,25','2,25']},
- {l:'mid',q:'Bài 12s. Điền số thích hợp: 1 450 kg = … tấn',o:['1,45','14,5','0,145','1,045']},
- {l:'mid',q:'Bài 12t. Điền số thích hợp: 1 m² 60 dm² = … m²',o:['1,6','1,06','16','0,16']},
- {l:'mid',q:'Bài 12u. Điền số thích hợp: 56 dm² = … m²',o:['0,56','5,6','0,056','56']},
- {l:'mid',q:'Bài 12v. Điền số thích hợp: 8 m² 75 dm² = … m²',o:['8,75','8,075','87,5','0,875']},
- {l:'mid',q:'Bài 12w. Điền số thích hợp: 3 m² 6 dm² = … m²',o:['3,06','3,6','3,006','36']},
- {l:'mid',q:'Bài 12x. Điền số thích hợp: 120 dm² = … m²',o:['1,2','12','0,12','1,02']},
- {l:'mid',q:'Bài 12y. Điền số thích hợp: 4 dm² 25 cm² = … dm²',o:['4,25','4,025','42,5','4,5']},
- {l:'mid',q:'Bài 12z. Điền số thích hợp: 85 cm² = … dm²',o:['0,85','8,5','0,085','85']},
- {l:'mid',q:'Bài 12 (dung tích). Điền số thích hợp: 6 l 260 ml = … l',o:['6,26','6,026','62,6','6,2']},
- {l:'mid',q:'Bài 12 (dung tích). Điền số thích hợp: 5 l 75 ml = … l',o:['5,075','5,75','5,0075','50,75']},
- {l:'hard',q:'Bài 12. Hình A có diện tích 4 cm² 15 mm², hình B có diện tích 3,95 cm². Hình nào có diện tích lớn hơn?',o:['Hình A','Hình B','Hai hình bằng nhau','Không so sánh được']},
- {l:'hard',q:'Bài 12. Đoạn đường AB dài 1,2 km, đoạn đường AC dài 1 km 75 m. Đoạn đường nào dài hơn?',o:['Đoạn AB','Đoạn AC','Hai đoạn bằng nhau','Không so sánh được']},
- {l:'hard',q:'Bài 12. Thỏ nặng 6 kg 75 g, ngỗng nặng 6 100 g, mèo nặng 6,095 kg. Con vật nào nặng nhất?',o:['Ngỗng','Thỏ','Mèo','Ba con nặng bằng nhau']},
- {l:'hard',q:'Bài 12. Bức tranh bảo vệ môi trường rộng 5,3 m²; bức an toàn giao thông rộng 5 m² 8 dm²; bức phòng chống dịch Covid rộng 5 m² 9 dm². Bức tranh nào có diện tích bé nhất?',o:['Bức an toàn giao thông','Bức bảo vệ môi trường','Bức phòng chống dịch Covid','Ba bức bằng nhau']},
- {l:'hard',q:'Bài 12. Nhảy xa: An nhảy được 2 m 5 dm, Bình nhảy được 2,45 m, Chi nhảy được 2 m 40 cm. Bạn nào nhảy xa nhất?',o:['An','Bình','Chi','An và Bình bằng nhau']},
- {l:'hard',q:'Bài 12. Sợi dây dài 1 m 20 cm, Nam cắt đi 45 cm. Đoạn dây còn lại dài bao nhiêu mét?',o:['0,75 m','0,85 m','0,65 m','7,5 m']}
-]};
-
-/* ===== TOÁN 5 – BÀI 13: LÀM TRÒN SỐ THẬP PHÂN (SGK trang 47–50) ===== */
-const Q13_BASIC={id:'t5-b13-cb',title:'TOÁN 5 - BÀI 13 - CƠ BẢN',min:0,grade:5,q:[
- {l:'easy',q:'Bài 13a. Khi làm tròn số thập phân đến số tự nhiên gần nhất, ta so sánh chữ số ở hàng nào với 5?',o:['Hàng phần mười','Hàng đơn vị','Hàng phần trăm','Hàng chục']},
- {l:'easy',q:'Bài 13b. Làm tròn 31,2 đến số tự nhiên gần nhất được:',o:['31','32','30','33']},
- {l:'easy',q:'Bài 13c. Làm tròn 31,75 đến số tự nhiên gần nhất được:',o:['32','31','30','33']},
- {l:'easy',q:'Bài 13d. Làm tròn 9,15 đến số tự nhiên gần nhất được:',o:['9','10','8','9,2']},
- {l:'easy',q:'Bài 13e. Làm tròn 9,82 đến số tự nhiên gần nhất được:',o:['10','9','11','8']},
- {l:'easy',q:'Bài 13g. Làm tròn 42,305 đến số tự nhiên gần nhất được:',o:['42','43','41','42,3']},
- {l:'easy',q:'Bài 13h. Khi làm tròn số thập phân đến hàng phần mười, ta so sánh chữ số ở hàng nào với 5?',o:['Hàng phần trăm','Hàng phần mười','Hàng phần nghìn','Hàng đơn vị']},
- {l:'easy',q:'Bài 13i. Làm tròn 2,52 đến hàng phần mười được:',o:['2,5','2,6','2,52','3']},
- {l:'easy',q:'Bài 13k. Làm tròn 3,25 đến hàng phần mười được:',o:['3,3','3,2','3,25','3']},
- {l:'easy',q:'Bài 13l. Làm tròn 1,57 đến hàng phần mười được:',o:['1,6','1,5','1,57','2']},
- {l:'easy',q:'Bài 13m. Khi làm tròn số thập phân đến hàng phần trăm, ta so sánh chữ số ở hàng nào với 5?',o:['Hàng phần nghìn','Hàng phần trăm','Hàng phần mười','Hàng đơn vị']},
- {l:'easy',q:'Bài 13n. Làm tròn 6,324 đến hàng phần trăm được:',o:['6,32','6,33','6,3','6,324']}
-]};
-const Q13_ADV={id:'t5-b13-thvd',title:'TOÁN 5 - BÀI 13 - THÔNG HIỂU/VẬN DỤNG',min:0,grade:5,q:[
- {l:'mid',q:'Bài 13o. Làm tròn 513,59 đến số tự nhiên gần nhất được:',o:['514','513','515','513,6']},
- {l:'mid',q:'Bài 13p. Làm tròn 0,806 đến số tự nhiên gần nhất được:',o:['1','0','0,8','2']},
- {l:'mid',q:'Bài 13q. Chiều cao chuẩn của bé gái 10 tuổi là 138,6 cm. Làm tròn đến số tự nhiên gần nhất được:',o:['139 cm','138 cm','140 cm','138,6 cm']},
- {l:'mid',q:'Bài 13r. Làm tròn 6,325 đến hàng phần trăm được:',o:['6,33','6,32','6,3','6,4']},
- {l:'mid',q:'Bài 13s. Làm tròn 6,2758 đến hàng phần mười được:',o:['6,3','6,2','6,28','6,27']},
- {l:'mid',q:'Bài 13t. Làm tròn 6,2758 đến hàng phần trăm được:',o:['6,28','6,27','6,3','6,2758']},
- {l:'mid',q:'Bài 13u. Làm tròn 1,624 đến hàng phần trăm được:',o:['1,62','1,63','1,6','1,7']},
- {l:'hard',q:'Bài 13v. Làm tròn 9,345 đến hàng phần mười được (chỉ xét chữ số ngay sau hàng phần mười):',o:['9,3','9,4','9,35','9,5']},
- {l:'mid',q:'Bài 13w. Làm tròn 9,345 đến hàng phần trăm được:',o:['9,35','9,34','9,3','9,4']},
- {l:'mid',q:'Bài 13x. Làm tròn 21,663 đến hàng phần mười được:',o:['21,7','21,6','21,66','22']},
- {l:'mid',q:'Bài 13y. Làm tròn 0,4571 đến hàng phần trăm được:',o:['0,46','0,45','0,5','0,457']},
- {l:'mid',q:'Bài 13z. Quả dưa cân nặng chính xác 2,52 kg. Cô bán hàng làm tròn đến hàng phần mười, quả dưa nặng khoảng:',o:['2,5 kg','2,6 kg','3 kg','2,52 kg']},
- {l:'hard',q:'Bài 13. Đường chéo màn hình ti vi dài 139,7 cm. Làm tròn đến số tự nhiên gần nhất, đường chéo dài khoảng:',o:['140 cm','139 cm','139,7 cm','150 cm']},
- {l:'mid',q:'Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần mười được:',o:['3,1','3,2','3,14','3']},
- {l:'mid',q:'Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần trăm được:',o:['3,14','3,15','3,1','3,142']},
- {l:'hard',q:'Bài 13. Làm tròn 9,95 đến hàng phần mười được:',o:['10,0','9,9','10,5','9,0']},
- {l:'hard',q:'Bài 13. Số nào sau đây khi làm tròn đến số tự nhiên gần nhất được 8?',o:['7,5','8,5','7,4','9,0']},
- {l:'hard',q:'Bài 13. Mai nặng 31,2 kg, Việt nặng 31,75 kg. Bác sĩ làm tròn cân nặng của hai bạn đến số tự nhiên gần nhất. Việt nặng hơn Mai (theo số đã làm tròn) bao nhiêu ki-lô-gam?',o:['1 kg','0,55 kg','0 kg','2 kg']},
- {l:'hard',q:'Bài 13. Có bao nhiêu chữ số thay được cho □ để số 6,□5 làm tròn đến số tự nhiên gần nhất được 7?',o:['5 chữ số','4 chữ số','6 chữ số','10 chữ số']}
-]};
-const QUIZZES=[Q10_BASIC,Q10_ADV,QON_12_13,Q12_BASIC,Q12_ADV,Q13_BASIC,Q13_ADV];
+const QUIZZES=[Q10_BASIC,Q10_ADV];
 let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   if(Z.grade!==curG)return '';
@@ -672,11 +583,83 @@ const Q7D=[
 ["prob", "Q15", "Which statement is ALWAYS true?", ["The product of two negative rational numbers is positive.", "The sum of two rational numbers is positive.", "Every rational number has a reciprocal.", "A power of a negative number is negative."], 0, "(−a)·(−b) = a·b > 0. The other statements have counter-examples (−1 + 0, the number 0, (−1)^2). / Mỗi câu còn lại đều có phản ví dụ."]
 ];
 // Mỗi đề test = một chặng đường. id cũ 'dt-b1-9' được giữ nguyên để không mất tiến độ.
+const T13={tn:"Làm tròn đến số tự nhiên",pm:"Làm tròn đến hàng phần mười",pt:"Làm tròn đến hàng phần trăm",ca:"Nhận biết & cách làm",vd:"Vận dụng"};
+const Q13=[
+["tn","Bài 13","Làm tròn 17,4 đến số tự nhiên gần nhất được:",["17","18","16","17,4"],0,"Chữ số hàng phần mười là 4, bé hơn 5 nên làm tròn xuống: 17,4 ≈ 17."],
+["tn","Bài 13","Làm tròn 204,5 đến số tự nhiên gần nhất được:",["205","204","206","200"],0,"Chữ số hàng phần mười là 5, không bé hơn 5 nên làm tròn lên: 204,5 ≈ 205."],
+["tn","Bài 13","Làm tròn 0,49 đến số tự nhiên gần nhất được:",["0","1","0,5","0,4"],0,"Chỉ xét chữ số hàng phần mười là 4 < 5 nên làm tròn xuống: 0,49 ≈ 0."],
+["tn","Bài 13","Làm tròn 99,6 đến số tự nhiên gần nhất được:",["100","99","90","101"],0,"Chữ số hàng phần mười là 6 > 5 nên làm tròn lên: 99 thêm 1 là 100."],
+["pm","Bài 13","Làm tròn 4,36 đến hàng phần mười được:",["4,4","4,3","4,36","5"],0,"So sánh chữ số hàng phần trăm với 5: 6 > 5 nên làm tròn lên: 4,3 thêm 0,1 là 4,4."],
+["pm","Bài 13","Làm tròn 7,83 đến hàng phần mười được:",["7,8","7,9","7,83","8"],0,"Chữ số hàng phần trăm là 3 < 5 nên làm tròn xuống: 7,83 ≈ 7,8."],
+["pm","Bài 13","Làm tròn 12,95 đến hàng phần mười được:",["13,0","12,9","13,5","12,0"],0,"Chữ số hàng phần trăm là 5 nên làm tròn lên: 12,9 thêm 0,1 là 13,0."],
+["pt","Bài 13","Làm tròn 5,718 đến hàng phần trăm được:",["5,72","5,71","5,7","5,8"],0,"So sánh chữ số hàng phần nghìn với 5: 8 > 5 nên làm tròn lên: 5,71 thêm 0,01 là 5,72."],
+["pt","Bài 13","Làm tròn 0,563 đến hàng phần trăm được:",["0,56","0,57","0,6","0,5"],0,"Chữ số hàng phần nghìn là 3 < 5 nên làm tròn xuống: 0,563 ≈ 0,56."],
+["pt","Bài 13","Làm tròn 3,995 đến hàng phần trăm được:",["4,00","3,99","4,05","3,90"],0,"Chữ số hàng phần nghìn là 5 nên làm tròn lên: 3,99 thêm 0,01 là 4,00."],
+["ca","Bài 13","Muốn làm tròn 8,276 đến hàng phần trăm, ta so sánh chữ số nào với 5?",["Chữ số 6 (hàng phần nghìn)","Chữ số 7 (hàng phần trăm)","Chữ số 2 (hàng phần mười)","Chữ số 8 (hàng đơn vị)"],0,"Làm tròn đến hàng nào thì xét chữ số ở hàng ngay bên phải hàng đó. Làm tròn đến phần trăm thì xét hàng phần nghìn: 6 > 5 nên 8,276 ≈ 8,28."],
+["ca","Bài 13","Số nào sau đây khi làm tròn đến hàng phần mười được 6,5?",["6,46","6,39","6,61","6,7"],0,"6,46: hàng phần trăm là 6 > 5 nên làm tròn lên thành 6,5. Các số còn lại làm tròn thành 6,4; 6,6; 6,7."],
+["vd","Bài 13","Bạn Lan cao 1,457 m. Làm tròn chiều cao đến hàng phần trăm, Lan cao khoảng:",["1,46 m","1,45 m","1,5 m","1,4 m"],0,"Chữ số hàng phần nghìn là 7 > 5 nên làm tròn lên: 1,45 thêm 0,01 là 1,46 m."],
+["vd","Bài 13","Hà chạy 100 m hết 14,36 giây. Làm tròn đến số tự nhiên gần nhất, thời gian của Hà là khoảng:",["14 giây","15 giây","14,4 giây","14,36 giây"],0,"Chữ số hàng phần mười là 3 < 5 nên làm tròn xuống: 14,36 ≈ 14 giây."],
+["vd","Bài 13","Mẹ mua 2,48 kg thịt. Làm tròn đến hàng phần mười, lượng thịt là khoảng:",["2,5 kg","2,4 kg","2,48 kg","3 kg"],0,"Chữ số hàng phần trăm là 8 > 5 nên làm tròn lên: 2,4 thêm 0,1 là 2,5 kg."]
+];
+const TON={dv:"Đổi đơn vị",td:"Phân số → số thập phân",ss:"So sánh"};
+const QON=[
+["dv","Bài 8","Bài 8 (ôn). 1 m = … cm",["100","10","1 000","1"],0,"1 m = 10 dm = 100 cm."],
+["dv","Bài 8","Bài 8 (ôn). 1 km = … m",["1 000","100","10","10 000"],0,"1 km = 1 000 m."],
+["dv","Bài 8","Bài 8 (ôn). 1 kg = … g",["1 000","100","10","10 000"],0,"1 kg = 1 000 g."],
+["dv","Bài 8","Bài 8 (ôn). 1 m² = … dm²",["100","10","1 000","1"],0,"1 m² = 100 dm² (hình vuông cạnh 10 dm có diện tích 100 dm²)."],
+["dv","Bài 8","Bài 8 (ôn). Hai đơn vị đo diện tích liền nhau (ví dụ m² và dm²) hơn kém nhau bao nhiêu lần?",["100 lần","10 lần","1 000 lần","2 lần"],0,"Đơn vị đo diện tích liền nhau hơn kém nhau 100 lần: 1 m² = 100 dm², 1 dm² = 100 cm²."],
+["td","Bài 10","Bài 10 (ôn). Phân số 7/100 viết thành số thập phân là:",["0,07","0,7","0,007","7,100"],0,"Mẫu số 100 nên có 2 chữ số thập phân; tử số chỉ có 1 chữ số nên thêm số 0: 0,07."],
+["td","Bài 10","Bài 10 (ôn). Hỗn số 3 4/10 viết thành số thập phân là:",["3,4","3,04","34,10","0,34"],0,"Phần nguyên là 3, phần thập phân là 4/10 = 0,4 nên bằng 3,4."],
+["td","Bài 10","Bài 10 (ôn). Phân số 6/1000 viết thành số thập phân là:",["0,006","0,06","0,6","6,000"],0,"Mẫu số 1000 nên có 3 chữ số thập phân: 0,006."],
+["td","Bài 10","Bài 10 (ôn). Trong số 8,364, chữ số 6 thuộc hàng nào?",["Hàng phần trăm","Hàng phần mười","Hàng phần nghìn","Hàng đơn vị"],0,"Sau dấu phẩy: 3 là hàng phần mười, 6 là hàng phần trăm, 4 là hàng phần nghìn."],
+["ss","Bài 11","Bài 11 (ôn). So sánh 5,06 và 5,6, kết quả đúng là:",["5,06 < 5,6","5,06 > 5,6","5,06 = 5,6","Không so sánh được"],0,"Viết 5,6 = 5,60. Phần nguyên bằng nhau; hàng phần mười 0 < 6 nên 5,06 < 5,6."],
+["ss","Bài 11","Bài 11 (ôn). Số lớn nhất trong các số 3,09; 3,9; 3,19; 3,091 là:",["3,9","3,19","3,09","3,091"],0,"Phần nguyên đều là 3. Hàng phần mười: 9 là lớn nhất nên 3,9 lớn nhất."]
+];
+const T12L={dd:"Độ dài",kl:"Khối lượng",ds:"Diện tích",vd:"Vận dụng"};
+const Q12L=[
+["dd","Bài 12","Bài 12. Điền số thích hợp: 2 m 15 cm = … m",["2,15","2,015","21,5","215"],0,"15 cm = 15/100 m nên 2 m 15 cm = 2 15/100 m = 2,15 m."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 1 kg 250 g = … kg",["1,25","1,025","12,5","1 250"],0,"250 g = 250/1000 kg nên 1 kg 250 g = 1,250 kg = 1,25 kg."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 275 g = … kg",["0,275","2,75","0,0275","27,5"],0,"275 g = 275/1000 kg = 0,275 kg."],
+["dd","Bài 12","Bài 12. Điền số thích hợp: 125 m = … km",["0,125","1,25","12,5","0,0125"],0,"125 m = 125/1000 km = 0,125 km."],
+["dd","Bài 12","Bài 12. Điền số thích hợp: 3 m 8 cm = … m",["3,08","3,8","3,008","38"],0,"8 cm = 8/100 m = 0,08 m nên 3 m 8 cm = 3,08 m. Nhớ giữ chữ số 0 ở hàng phần mười."],
+["dd","Bài 12","Bài 12. Điền số thích hợp: 7 km 80 m = … km",["7,08","7,8","7,008","78"],0,"80 m = 80/1000 km = 0,08 km nên 7 km 80 m = 7,08 km."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 8 kg 75 g = … kg",["8,075","8,75","8,0075","80,75"],0,"75 g = 75/1000 kg = 0,075 kg nên 8 kg 75 g = 8,075 kg."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 1 tấn 5 tạ = … tấn",["1,5","1,05","1,005","15"],0,"1 tạ = 1/10 tấn nên 5 tạ = 0,5 tấn; 1 tấn 5 tạ = 1,5 tấn."],
+["ds","Bài 12","Bài 12. Điền số thích hợp: 1 m² 60 dm² = … m²",["1,6","1,06","16","0,16"],0,"1 dm² = 1/100 m² nên 1 m² 60 dm² = 1 60/100 m² = 1,60 m² = 1,6 m²."],
+["ds","Bài 12","Bài 12. Điền số thích hợp: 3 m² 6 dm² = … m²",["3,06","3,6","3,006","36"],0,"6 dm² = 6/100 m² = 0,06 m² nên 3 m² 6 dm² = 3,06 m²."],
+["ds","Bài 12","Bài 12. Điền số thích hợp: 2 dm² 5 cm² = … dm²",["2,05","2,5","2,005","25"],0,"1 cm² = 1/100 dm² nên 5 cm² = 0,05 dm²; 2 dm² 5 cm² = 2,05 dm²."],
+["vd","Bài 12","Bài 12. Hình A có diện tích 4 cm² 15 mm², hình B có diện tích 3,95 cm². Hình nào có diện tích lớn hơn?",["Hình A","Hình B","Hai hình bằng nhau","Không so sánh được"],0,"1 cm² = 100 mm² nên 15 mm² = 0,15 cm²; hình A: 4,15 cm². Vì 4,15 > 3,95 nên hình A lớn hơn."],
+["vd","Bài 12","Bài 12. Đoạn đường AB dài 1,2 km, đoạn đường AC dài 1 km 75 m. Đoạn đường nào dài hơn?",["Đoạn AB","Đoạn AC","Hai đoạn bằng nhau","Không so sánh được"],0,"1 km 75 m = 1,075 km. Viết 1,2 = 1,200 > 1,075 nên đoạn AB dài hơn."],
+["vd","Bài 12","Bài 12. Thỏ nặng 6 kg 75 g, ngỗng nặng 6 100 g, mèo nặng 6,095 kg. Con vật nào nặng nhất?",["Ngỗng","Thỏ","Mèo","Ba con nặng bằng nhau"],0,"Đổi cùng đơn vị kg: thỏ 6,075 kg; ngỗng 6,1 kg; mèo 6,095 kg. Vì 6,1 > 6,095 > 6,075 nên ngỗng nặng nhất."],
+["vd","Bài 12","Bài 12. Bức tranh bảo vệ môi trường rộng 5,3 m²; bức an toàn giao thông rộng 5 m² 8 dm²; bức phòng chống dịch Covid rộng 5 m² 9 dm². Bức tranh nào có diện tích bé nhất?",["Bức an toàn giao thông","Bức bảo vệ môi trường","Bức phòng chống dịch Covid","Ba bức bằng nhau"],0,"5 m² 8 dm² = 5,08 m²; 5 m² 9 dm² = 5,09 m². Vì 5,08 < 5,09 < 5,3 nên bức an toàn giao thông bé nhất."]
+];
+const T13L={tn:"Làm tròn đến số tự nhiên",pm:"Hàng phần mười",pt:"Hàng phần trăm",vd:"Vận dụng"};
+const Q13L=[
+["tn","Bài 13","Bài 13. Làm tròn 31,2 đến số tự nhiên gần nhất được:",["31","32","30","33"],0,"Chữ số hàng phần mười là 2 < 5 nên làm tròn xuống: 31,2 ≈ 31."],
+["tn","Bài 13","Bài 13. Làm tròn 31,75 đến số tự nhiên gần nhất được:",["32","31","30","33"],0,"Chữ số hàng phần mười là 7 > 5 nên làm tròn lên: 31,75 ≈ 32."],
+["tn","Bài 13","Bài 13. Làm tròn 9,57 đến số tự nhiên gần nhất được:",["10","9","11","8"],0,"Chữ số hàng phần mười là 5 nên làm tròn lên: 9,57 ≈ 10."],
+["tn","Bài 13","Bài 13. Làm tròn 513,59 đến số tự nhiên gần nhất được:",["514","513","515","513,6"],0,"Chữ số hàng phần mười là 5 nên làm tròn lên: 513 thêm 1 là 514."],
+["tn","Bài 13","Bài 13. Làm tròn 0,806 đến số tự nhiên gần nhất được:",["1","0","0,8","2"],0,"Chữ số hàng phần mười là 8 > 5 nên làm tròn lên: 0 thêm 1 là 1."],
+["pm","Bài 13","Bài 13. Làm tròn 2,52 đến hàng phần mười được:",["2,5","2,6","2,52","3"],0,"So sánh chữ số hàng phần trăm với 5: 2 < 5 nên làm tròn xuống: 2,52 ≈ 2,5."],
+["pm","Bài 13","Bài 13. Làm tròn 3,25 đến hàng phần mười được:",["3,3","3,2","3,25","3"],0,"Chữ số hàng phần trăm là 5 nên làm tròn lên: 3,25 ≈ 3,3."],
+["pm","Bài 13","Bài 13. Làm tròn 1,57 đến hàng phần mười được:",["1,6","1,5","1,57","2"],0,"Chữ số hàng phần trăm là 7 > 5 nên làm tròn lên: 1,57 ≈ 1,6."],
+["pm","Bài 13","Bài 13. Làm tròn 9,345 đến hàng phần mười được (chỉ xét chữ số ngay sau hàng phần mười):",["9,3","9,4","9,35","9,5"],0,"Chỉ xét chữ số hàng phần trăm là 4 < 5 nên làm tròn xuống: 9,3. Không làm tròn hai lần (9,345 → 9,35 → 9,4 là sai)."],
+["pt","Bài 13","Bài 13. Làm tròn 6,324 đến hàng phần trăm được:",["6,32","6,33","6,3","6,324"],0,"So sánh chữ số hàng phần nghìn với 5: 4 < 5 nên làm tròn xuống: 6,32."],
+["pt","Bài 13","Bài 13. Làm tròn 6,325 đến hàng phần trăm được:",["6,33","6,32","6,3","6,4"],0,"Chữ số hàng phần nghìn là 5 nên làm tròn lên: 6,33."],
+["pt","Bài 13","Bài 13. Làm tròn 6,2758 đến hàng phần trăm được:",["6,28","6,27","6,3","6,2758"],0,"Chữ số hàng phần nghìn là 5 nên làm tròn lên: 6,27 thêm 0,01 là 6,28."],
+["vd","Bài 13","Bài 13. Đường chéo màn hình ti vi dài 139,7 cm. Làm tròn đến số tự nhiên gần nhất, đường chéo dài khoảng:",["140 cm","139 cm","139,7 cm","150 cm"],0,"Chữ số hàng phần mười là 7 > 5 nên làm tròn lên: 139 thêm 1 là 140 cm."],
+["vd","Bài 13","Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần trăm được:",["3,14","3,15","3,1","3,142"],0,"Chữ số hàng phần nghìn là 1 < 5 nên làm tròn xuống: 3,14."],
+["vd","Bài 13","Bài 13. Mai nặng 31,2 kg, Việt nặng 31,75 kg. Bác sĩ làm tròn cân nặng của hai bạn đến số tự nhiên gần nhất. Theo số đã làm tròn, Việt nặng hơn Mai bao nhiêu ki-lô-gam?",["1 kg","0,55 kg","0 kg","2 kg"],0,"Mai: 31,2 ≈ 31 kg. Việt: 31,75 ≈ 32 kg. Hiệu: 32 − 31 = 1 kg."]
+];
 const DT_SETS=[
  {id:'dt-b1-9',name:'Bài 1–9',desc:'Ôn tập & bổ sung',T:DT_T,Q:DT_Q,cover:'dm-1'},
  {id:'dt-b10',name:'Bài 10',desc:'Khái niệm số thập phân',T:T10,Q:Q10,cover:'dm-2'},
  {id:'dt-b11',name:'Bài 11',desc:'So sánh các số thập phân',T:T11,Q:Q11,cover:'dm-3'},
+ {id:'dt-on-b12-13',title:'BÀI TẬP ÔN NHANH TRƯỚC BÀI 12–13',name:'Ôn nhanh trước Bài 12–13',desc:'Đổi đơn vị, phân số thập phân, so sánh',T:TON,Q:QON,cover:'dm-1'},
  {id:'dt-b12',name:'Bài 12',desc:'Viết số đo dưới dạng số thập phân',T:T12,Q:Q12,cover:'ds-2'},
+ {id:'dt-b12-lt',title:'BÀI TẬP BÀI 12 · LUYỆN TẬP',name:'Bài 12 · Luyện tập',desc:'Bài tập SGK: độ dài, khối lượng, diện tích',T:T12L,Q:Q12L,cover:'dm-3'},
+ {id:'dt-b13',name:'Bài 13',desc:'Làm tròn số thập phân',T:T13,Q:Q13,cover:'ds-3'},
+ {id:'dt-b13-lt',title:'BÀI TẬP BÀI 13 · LUYỆN TẬP',name:'Bài 13 · Luyện tập',desc:'Bài tập SGK: làm tròn số thập phân',T:T13L,Q:Q13L,cover:'ds-1'},
  {id:'dt7-vocab',grade:7,name:'Rational Numbers · Test 1',desc:'Từ vựng, cách đọc, số đối & số nghịch đảo',T:T7A,Q:Q7A,cover:'dm-1'},
  {id:'dt7-compare',grade:7,name:'Rational Numbers · Test 2',desc:'Phân số bằng nhau, so sánh, sắp xếp',T:T7B,Q:Q7B,cover:'dm-2'},
  {id:'dt7-ops',grade:7,name:'Rational Numbers · Test 3',desc:'Cộng, trừ, nhân, chia, thứ tự phép tính',T:T7C,Q:Q7C,cover:'dm-3'},
@@ -697,7 +680,7 @@ function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cu�
 const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
 function dtCards(){
   return DT_SETS.map((S,k)=>{if((S.grade||5)!==curG)return '';const b=user.done[S.id],n=S.Q.length;
-  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${S.grade===7?'Kiểm tra · '+S.name:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${S.title?S.title:S.grade===7?'Kiểm tra · '+S.name:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
   <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu':'Chơi lại'}</button></div></article>`}).join('');
