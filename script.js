@@ -323,7 +323,96 @@ const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN D
  {l:'hard',q:'Bài 10. Trong các số thập phân lập được từ ba thẻ 2, 5, 0, số lớn nhất là:',o:['5,20','5,02','2,50','0,52']},
  {l:'hard',q:'Bài 10. Số nào sau đây lập được từ ba thẻ 2, 5, 0 (mỗi thẻ dùng một lần)?',o:['5,02','5,22','0,05','2,02']}
 ]};
-const QUIZZES=[Q10_BASIC,Q10_ADV];
+/* ===== TOÁN 5 – ÔN NHANH TRƯỚC BÀI 12–13 (đáp án đúng luôn ở vị trí đầu) ===== */
+const QON_12_13={id:'t5-on-b12-13',title:'TOÁN 5 - ÔN NHANH TRƯỚC BÀI 12–13',min:0,grade:5,q:[
+ {l:'easy',q:'Bài 8 (ôn). 1 m = … cm',o:['100','10','1 000','1']},
+ {l:'easy',q:'Bài 8 (ôn). 1 km = … m',o:['1 000','100','10','10 000']},
+ {l:'easy',q:'Bài 8 (ôn). 1 kg = … g',o:['1 000','100','10','10 000']},
+ {l:'easy',q:'Bài 8 (ôn). 1 m² = … dm²',o:['100','10','1 000','1']},
+ {l:'mid',q:'Bài 8 (ôn). Hai đơn vị đo diện tích liền nhau (ví dụ m² và dm²) hơn kém nhau bao nhiêu lần?',o:['100 lần','10 lần','1 000 lần','2 lần']},
+ {l:'easy',q:'Bài 10 (ôn). Phân số 7/100 viết thành số thập phân là:',o:['0,07','0,7','0,007','7,100']},
+ {l:'easy',q:'Bài 10 (ôn). Hỗn số 3 4/10 viết thành số thập phân là:',o:['3,4','3,04','34,10','0,34']},
+ {l:'mid',q:'Bài 10 (ôn). Phân số 6/1000 viết thành số thập phân là:',o:['0,006','0,06','0,6','6,000']},
+ {l:'mid',q:'Bài 10 (ôn). Trong số 8,364, chữ số 6 thuộc hàng nào?',o:['Hàng phần trăm','Hàng phần mười','Hàng phần nghìn','Hàng đơn vị']},
+ {l:'mid',q:'Bài 11 (ôn). So sánh 5,06 và 5,6, kết quả đúng là:',o:['5,06 < 5,6','5,06 > 5,6','5,06 = 5,6','Không so sánh được']},
+ {l:'mid',q:'Bài 11 (ôn). Số lớn nhất trong các số 3,09; 3,9; 3,19; 3,091 là:',o:['3,9','3,19','3,09','3,091']}
+]};
+
+/* ===== TOÁN 5 – BÀI 12: VIẾT SỐ ĐO ĐẠI LƯỢNG DƯỚI DẠNG SỐ THẬP PHÂN (SGK trang 42–46) ===== */
+const Q12_BASIC={id:'t5-b12-cb',title:'TOÁN 5 - BÀI 12 - CƠ BẢN',min:0,grade:5,q:[
+ {l:'easy',q:'Bài 12a. Điền số thích hợp: 2 m 15 cm = … m',o:['2,15','2,015','21,5','215']},
+ {l:'easy',q:'Bài 12b. Điền số thích hợp: 1 kg 250 g = … kg',o:['1,25','1,025','12,5','1 250']},
+ {l:'easy',q:'Bài 12c. Điền số thích hợp: 275 g = … kg',o:['0,275','2,75','0,0275','27,5']},
+ {l:'easy',q:'Bài 12d. Điền số thích hợp: 125 m = … km',o:['0,125','1,25','12,5','0,0125']},
+ {l:'easy',q:'Bài 12e. Điền số thích hợp: 2 m 5 dm = … m',o:['2,5','2,05','25','0,25']},
+ {l:'easy',q:'Bài 12g. Điền số thích hợp: 6 m 75 cm = … m',o:['6,75','6,075','67,5','6,705']},
+ {l:'mid',q:'Bài 12h. Điền số thích hợp: 3 m 8 cm = … m',o:['3,08','3,8','3,008','38']},
+ {l:'mid',q:'Bài 12i. Điền số thích hợp: 4 km 500 m = … km',o:['4,5','4,05','4,005','45']},
+ {l:'mid',q:'Bài 12k. Điền số thích hợp: 7 km 80 m = … km',o:['7,08','7,8','7,008','78']},
+ {l:'mid',q:'Bài 12l. Điền số thích hợp: 456 m = … km',o:['0,456','4,56','45,6','0,0456']},
+ {l:'easy',q:'Bài 12m. Điền số thích hợp: 3 kg 725 g = … kg',o:['3,725','3,0725','372,5','3,25']},
+ {l:'mid',q:'Bài 12n. Điền số thích hợp: 8 kg 75 g = … kg',o:['8,075','8,75','8,0075','80,75']},
+ {l:'mid',q:'Bài 12o. Điền số thích hợp: 76 mm = … cm',o:['7,6','0,76','76','0,076']}
+]};
+const Q12_ADV={id:'t5-b12-thvd',title:'TOÁN 5 - BÀI 12 - THÔNG HIỂU/VẬN DỤNG',min:0,grade:5,q:[
+ {l:'mid',q:'Bài 12p. Điền số thích hợp: 560 g = … kg',o:['0,56','5,6','0,056','56']},
+ {l:'mid',q:'Bài 12q. Điền số thích hợp: 1 tấn 5 tạ = … tấn',o:['1,5','1,05','1,005','15']},
+ {l:'mid',q:'Bài 12r. Điền số thích hợp: 2 tấn 325 kg = … tấn',o:['2,325','2,0325','23,25','2,25']},
+ {l:'mid',q:'Bài 12s. Điền số thích hợp: 1 450 kg = … tấn',o:['1,45','14,5','0,145','1,045']},
+ {l:'mid',q:'Bài 12t. Điền số thích hợp: 1 m² 60 dm² = … m²',o:['1,6','1,06','16','0,16']},
+ {l:'mid',q:'Bài 12u. Điền số thích hợp: 56 dm² = … m²',o:['0,56','5,6','0,056','56']},
+ {l:'mid',q:'Bài 12v. Điền số thích hợp: 8 m² 75 dm² = … m²',o:['8,75','8,075','87,5','0,875']},
+ {l:'mid',q:'Bài 12w. Điền số thích hợp: 3 m² 6 dm² = … m²',o:['3,06','3,6','3,006','36']},
+ {l:'mid',q:'Bài 12x. Điền số thích hợp: 120 dm² = … m²',o:['1,2','12','0,12','1,02']},
+ {l:'mid',q:'Bài 12y. Điền số thích hợp: 4 dm² 25 cm² = … dm²',o:['4,25','4,025','42,5','4,5']},
+ {l:'mid',q:'Bài 12z. Điền số thích hợp: 85 cm² = … dm²',o:['0,85','8,5','0,085','85']},
+ {l:'mid',q:'Bài 12 (dung tích). Điền số thích hợp: 6 l 260 ml = … l',o:['6,26','6,026','62,6','6,2']},
+ {l:'mid',q:'Bài 12 (dung tích). Điền số thích hợp: 5 l 75 ml = … l',o:['5,075','5,75','5,0075','50,75']},
+ {l:'hard',q:'Bài 12. Hình A có diện tích 4 cm² 15 mm², hình B có diện tích 3,95 cm². Hình nào có diện tích lớn hơn?',o:['Hình A','Hình B','Hai hình bằng nhau','Không so sánh được']},
+ {l:'hard',q:'Bài 12. Đoạn đường AB dài 1,2 km, đoạn đường AC dài 1 km 75 m. Đoạn đường nào dài hơn?',o:['Đoạn AB','Đoạn AC','Hai đoạn bằng nhau','Không so sánh được']},
+ {l:'hard',q:'Bài 12. Thỏ nặng 6 kg 75 g, ngỗng nặng 6 100 g, mèo nặng 6,095 kg. Con vật nào nặng nhất?',o:['Ngỗng','Thỏ','Mèo','Ba con nặng bằng nhau']},
+ {l:'hard',q:'Bài 12. Bức tranh bảo vệ môi trường rộng 5,3 m²; bức an toàn giao thông rộng 5 m² 8 dm²; bức phòng chống dịch Covid rộng 5 m² 9 dm². Bức tranh nào có diện tích bé nhất?',o:['Bức an toàn giao thông','Bức bảo vệ môi trường','Bức phòng chống dịch Covid','Ba bức bằng nhau']},
+ {l:'hard',q:'Bài 12. Nhảy xa: An nhảy được 2 m 5 dm, Bình nhảy được 2,45 m, Chi nhảy được 2 m 40 cm. Bạn nào nhảy xa nhất?',o:['An','Bình','Chi','An và Bình bằng nhau']},
+ {l:'hard',q:'Bài 12. Sợi dây dài 1 m 20 cm, Nam cắt đi 45 cm. Đoạn dây còn lại dài bao nhiêu mét?',o:['0,75 m','0,85 m','0,65 m','7,5 m']}
+]};
+
+/* ===== TOÁN 5 – BÀI 13: LÀM TRÒN SỐ THẬP PHÂN (SGK trang 47–50) ===== */
+const Q13_BASIC={id:'t5-b13-cb',title:'TOÁN 5 - BÀI 13 - CƠ BẢN',min:0,grade:5,q:[
+ {l:'easy',q:'Bài 13a. Khi làm tròn số thập phân đến số tự nhiên gần nhất, ta so sánh chữ số ở hàng nào với 5?',o:['Hàng phần mười','Hàng đơn vị','Hàng phần trăm','Hàng chục']},
+ {l:'easy',q:'Bài 13b. Làm tròn 31,2 đến số tự nhiên gần nhất được:',o:['31','32','30','33']},
+ {l:'easy',q:'Bài 13c. Làm tròn 31,75 đến số tự nhiên gần nhất được:',o:['32','31','30','33']},
+ {l:'easy',q:'Bài 13d. Làm tròn 9,15 đến số tự nhiên gần nhất được:',o:['9','10','8','9,2']},
+ {l:'easy',q:'Bài 13e. Làm tròn 9,82 đến số tự nhiên gần nhất được:',o:['10','9','11','8']},
+ {l:'easy',q:'Bài 13g. Làm tròn 42,305 đến số tự nhiên gần nhất được:',o:['42','43','41','42,3']},
+ {l:'easy',q:'Bài 13h. Khi làm tròn số thập phân đến hàng phần mười, ta so sánh chữ số ở hàng nào với 5?',o:['Hàng phần trăm','Hàng phần mười','Hàng phần nghìn','Hàng đơn vị']},
+ {l:'easy',q:'Bài 13i. Làm tròn 2,52 đến hàng phần mười được:',o:['2,5','2,6','2,52','3']},
+ {l:'easy',q:'Bài 13k. Làm tròn 3,25 đến hàng phần mười được:',o:['3,3','3,2','3,25','3']},
+ {l:'easy',q:'Bài 13l. Làm tròn 1,57 đến hàng phần mười được:',o:['1,6','1,5','1,57','2']},
+ {l:'easy',q:'Bài 13m. Khi làm tròn số thập phân đến hàng phần trăm, ta so sánh chữ số ở hàng nào với 5?',o:['Hàng phần nghìn','Hàng phần trăm','Hàng phần mười','Hàng đơn vị']},
+ {l:'easy',q:'Bài 13n. Làm tròn 6,324 đến hàng phần trăm được:',o:['6,32','6,33','6,3','6,324']}
+]};
+const Q13_ADV={id:'t5-b13-thvd',title:'TOÁN 5 - BÀI 13 - THÔNG HIỂU/VẬN DỤNG',min:0,grade:5,q:[
+ {l:'mid',q:'Bài 13o. Làm tròn 513,59 đến số tự nhiên gần nhất được:',o:['514','513','515','513,6']},
+ {l:'mid',q:'Bài 13p. Làm tròn 0,806 đến số tự nhiên gần nhất được:',o:['1','0','0,8','2']},
+ {l:'mid',q:'Bài 13q. Chiều cao chuẩn của bé gái 10 tuổi là 138,6 cm. Làm tròn đến số tự nhiên gần nhất được:',o:['139 cm','138 cm','140 cm','138,6 cm']},
+ {l:'mid',q:'Bài 13r. Làm tròn 6,325 đến hàng phần trăm được:',o:['6,33','6,32','6,3','6,4']},
+ {l:'mid',q:'Bài 13s. Làm tròn 6,2758 đến hàng phần mười được:',o:['6,3','6,2','6,28','6,27']},
+ {l:'mid',q:'Bài 13t. Làm tròn 6,2758 đến hàng phần trăm được:',o:['6,28','6,27','6,3','6,2758']},
+ {l:'mid',q:'Bài 13u. Làm tròn 1,624 đến hàng phần trăm được:',o:['1,62','1,63','1,6','1,7']},
+ {l:'hard',q:'Bài 13v. Làm tròn 9,345 đến hàng phần mười được (chỉ xét chữ số ngay sau hàng phần mười):',o:['9,3','9,4','9,35','9,5']},
+ {l:'mid',q:'Bài 13w. Làm tròn 9,345 đến hàng phần trăm được:',o:['9,35','9,34','9,3','9,4']},
+ {l:'mid',q:'Bài 13x. Làm tròn 21,663 đến hàng phần mười được:',o:['21,7','21,6','21,66','22']},
+ {l:'mid',q:'Bài 13y. Làm tròn 0,4571 đến hàng phần trăm được:',o:['0,46','0,45','0,5','0,457']},
+ {l:'mid',q:'Bài 13z. Quả dưa cân nặng chính xác 2,52 kg. Cô bán hàng làm tròn đến hàng phần mười, quả dưa nặng khoảng:',o:['2,5 kg','2,6 kg','3 kg','2,52 kg']},
+ {l:'hard',q:'Bài 13. Đường chéo màn hình ti vi dài 139,7 cm. Làm tròn đến số tự nhiên gần nhất, đường chéo dài khoảng:',o:['140 cm','139 cm','139,7 cm','150 cm']},
+ {l:'mid',q:'Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần mười được:',o:['3,1','3,2','3,14','3']},
+ {l:'mid',q:'Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần trăm được:',o:['3,14','3,15','3,1','3,142']},
+ {l:'hard',q:'Bài 13. Làm tròn 9,95 đến hàng phần mười được:',o:['10,0','9,9','10,5','9,0']},
+ {l:'hard',q:'Bài 13. Số nào sau đây khi làm tròn đến số tự nhiên gần nhất được 8?',o:['7,5','8,5','7,4','9,0']},
+ {l:'hard',q:'Bài 13. Mai nặng 31,2 kg, Việt nặng 31,75 kg. Bác sĩ làm tròn cân nặng của hai bạn đến số tự nhiên gần nhất. Việt nặng hơn Mai (theo số đã làm tròn) bao nhiêu ki-lô-gam?',o:['1 kg','0,55 kg','0 kg','2 kg']},
+ {l:'hard',q:'Bài 13. Có bao nhiêu chữ số thay được cho □ để số 6,□5 làm tròn đến số tự nhiên gần nhất được 7?',o:['5 chữ số','4 chữ số','6 chữ số','10 chữ số']}
+]};
+const QUIZZES=[Q10_BASIC,Q10_ADV,QON_12_13,Q12_BASIC,Q12_ADV,Q13_BASIC,Q13_ADV];
 let cur=Q10_BASIC;
 const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
   if(Z.grade!==curG)return '';
