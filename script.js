@@ -651,6 +651,61 @@ const Q13L=[
 ["vd","Bài 13","Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần trăm được:",["3,14","3,15","3,1","3,142"],0,"Chữ số hàng phần nghìn là 1 < 5 nên làm tròn xuống: 3,14."],
 ["vd","Bài 13","Bài 13. Mai nặng 31,2 kg, Việt nặng 31,75 kg. Bác sĩ làm tròn cân nặng của hai bạn đến số tự nhiên gần nhất. Theo số đã làm tròn, Việt nặng hơn Mai bao nhiêu ki-lô-gam?",["1 kg","0,55 kg","0 kg","2 kg"],0,"Mai: 31,2 ≈ 31 kg. Việt: 31,75 ≈ 32 kg. Hiệu: 32 − 31 = 1 kg."]
 ];
+/* ===== TOÁN 3 · TẬP 1 · KẾT NỐI TRI THỨC · BÀI 15, 16, 17 (Đại Thánh) ===== */
+const T15={nh:"Nhân, chia nhẩm",st:"Tìm số còn thiếu",bt:"Bài toán có lời văn",pm:"Một phần mấy",vd:"Vận dụng"};
+const Q15=[
+["nh","Bài 15","Tính nhẩm: 8 × 7 = ?",["56","54","48","63"],0,"Bảng nhân 8: 8 × 7 = 56."],
+["nh","Bài 15","Tính nhẩm: 9 × 4 = ?",["36","32","45","27"],0,"Bảng nhân 9: 9 × 4 = 36."],
+["nh","Bài 15","Tính nhẩm: 56 : 8 = ?",["7","6","8","9"],0,"Vì 8 × 7 = 56 nên 56 : 8 = 7."],
+["nh","Bài 15","Tính nhẩm: 72 : 9 = ?",["8","7","9","6"],0,"Vì 9 × 8 = 72 nên 72 : 9 = 8."],
+["nh","Bài 15","Phép tính nào dưới đây có kết quả bé hơn 8?",["49 : 7","54 : 6","72 : 9","63 : 7"],0,"49 : 7 = 7 (bé hơn 8); 54 : 6 = 9; 72 : 9 = 8; 63 : 7 = 9."],
+["st","Bài 15","Tìm số thích hợp: ? × 7 = 63",["9","8","7","10"],0,"63 : 7 = 9 nên số cần tìm là 9."],
+["st","Bài 15","Tìm số thích hợp: 4 × ? = 36",["9","8","6","32"],0,"36 : 4 = 9 nên số cần tìm là 9."],
+["st","Bài 15","Tìm số thích hợp: ? : 8 = 6",["48","14","54","42"],0,"Số bị chia = thương × số chia = 6 × 8 = 48."],
+["st","Bài 15","Tìm số thích hợp: 35 : ? = 5",["7","5","6","30"],0,"Số chia = số bị chia : thương = 35 : 5 = 7."],
+["bt","Bài 15","Việt xếp mỗi bàn 6 cái ly. Việt xếp 5 bàn. Hỏi Việt xếp tất cả bao nhiêu cái ly?",["30 cái ly","11 cái ly","25 cái ly","36 cái ly"],0,"Phép tính: 6 × 5 = 30 (cái ly)."],
+["bt","Bài 15","Mẹ Mai mua 45 bông hoa, cắm hết vào các lọ, mỗi lọ 9 bông. Hỏi cắm được bao nhiêu lọ hoa?",["5 lọ","54 lọ","36 lọ","4 lọ"],0,"Phép tính: 45 : 9 = 5 (lọ)."],
+["pm","Bài 15","Một hình được chia thành 6 phần bằng nhau, đã tô màu 1 phần. Đã tô màu một phần mấy của hình?",["1/6","1/5","1/7","1/1"],0,"Hình chia làm 6 phần bằng nhau, tô 1 phần thì đã tô 1/6 hình."],
+["pm","Bài 15","Có 18 con ếch. 1/6 số con ếch là bao nhiêu con?",["3 con","6 con","9 con","12 con"],0,"Tìm 1/6 của 18 là lấy 18 : 6 = 3 (con)."],
+["vd","Bài 15","Ở hình tam giác, ô vuông nằm giữa hai vòng tròn ghi tích của hai số ở hai vòng tròn đó. Hai vòng tròn ghi 5 và 7 thì ô vuông giữa hai vòng ghi số nào?",["35","12","42","30"],0,"5 × 7 = 35 (tích, không phải tổng)."],
+["vd","Bài 15","Ngộ Không hái 48 quả đào, chia đều cho 6 chú khỉ. Mỗi chú khỉ ăn 1/2 số đào của mình. Hỏi mỗi chú khỉ ăn mấy quả đào?",["4 quả","8 quả","2 quả","24 quả"],0,"Mỗi chú được 48 : 6 = 8 quả. Ăn 1/2 số đó là 8 : 2 = 4 quả."]
+];
+const T16={tg:"Điểm ở giữa, thẳng hàng",td:"Trung điểm",vd:"Vận dụng"};
+const Q16=[
+["tg","Bài 16","Ba điểm A, B, C cùng nằm trên một đường thẳng. Ba điểm đó gọi là ba điểm:",["thẳng hàng","không thẳng hàng","trung điểm","bằng nhau"],0,"Ba điểm cùng nằm trên một đường thẳng gọi là ba điểm thẳng hàng."],
+["tg","Bài 16","Cho ba điểm thẳng hàng A, B, C. Có mấy điểm nằm ở giữa hai điểm còn lại?",["1 điểm","2 điểm","3 điểm","Không có điểm nào"],0,"Trong ba điểm thẳng hàng luôn có đúng 1 điểm ở giữa hai điểm còn lại."],
+["tg","Bài 16","Ba điểm A, B, C thẳng hàng theo thứ tự đó, AB = 3 cm, BC = 2 cm. Điểm B là điểm ở giữa hai điểm nào?",["A và C","A và B","B và C","Không xác định được"],0,"B nằm giữa A và C trên cùng một đường thẳng."],
+["td","Bài 16","H là điểm ở giữa D và E, DH = 3 cm, HE = 3 cm. Điểm H được gọi là gì của đoạn thẳng DE?",["Trung điểm","Đầu mút","Điểm nằm ngoài đoạn thẳng","Trung điểm của đoạn DH"],0,"H ở giữa D, E và DH = HE nên H là trung điểm của đoạn thẳng DE."],
+["td","Bài 16","M là trung điểm của đoạn thẳng AB. Khẳng định nào đúng?",["AM = MB","AM > MB","AM < MB","AM = AB"],0,"Trung điểm chia đoạn thẳng thành hai đoạn bằng nhau: AM = MB."],
+["td","Bài 16","Đoạn thẳng AB dài 10 cm, M là trung điểm của AB. Độ dài đoạn AM là:",["5 cm","10 cm","20 cm","2 cm"],0,"AM = AB : 2 = 10 : 2 = 5 (cm)."],
+["td","Bài 16","M là trung điểm của đoạn thẳng AB và AM = 4 cm. Độ dài đoạn thẳng AB là:",["8 cm","4 cm","2 cm","12 cm"],0,"AB gấp 2 lần AM: 4 × 2 = 8 (cm)."],
+["td","Bài 16","Mỗi đoạn thẳng có bao nhiêu trung điểm?",["Đúng 1 trung điểm","2 trung điểm","3 trung điểm","Không có trung điểm nào"],0,"Mỗi đoạn thẳng chỉ có đúng một trung điểm."],
+["td","Bài 16","Đoạn AB dài 6 cm có M nằm giữa A và B, AM = 3 cm. Đoạn BC dài 5 cm có N nằm giữa B và C, BN = 3 cm. Khẳng định nào đúng?",["M là trung điểm của đoạn AB","N là trung điểm của đoạn BC","A là trung điểm của đoạn MB","B là trung điểm của đoạn AM"],0,"MB = 6 − 3 = 3 cm = AM nên M là trung điểm của AB. Còn NC = 5 − 3 = 2 cm khác BN = 3 cm nên N không phải trung điểm của BC."],
+["td","Bài 16","Điểm O nằm giữa A và B, OA = 2 cm, OB = 3 cm. O có là trung điểm của đoạn AB không?",["Không, vì OA không bằng OB","Có, vì O nằm giữa A và B","Có, vì AB = 5 cm","Không, vì O nằm ngoài đoạn AB"],0,"Muốn là trung điểm thì phải ở giữa và cách đều hai đầu. Ở đây OA ≠ OB nên O chưa phải trung điểm."],
+["vd","Bài 16","Việt có sợi dây dài 20 cm, không có thước. Làm cách nào để cắt được đoạn dây dài 10 cm?",["Gấp đôi sợi dây sao cho hai đầu trùng nhau rồi cắt ở chỗ gấp","Gấp sợi dây làm ba phần bằng nhau rồi cắt","Cắt ở chỗ cách một đầu dây một gang tay","Gấp sợi dây lại rồi cắt ở đầu dây"],0,"Gấp đôi sao cho hai đầu trùng nhau thì chỗ gấp là trung điểm, mỗi nửa dài 20 : 2 = 10 cm."],
+["vd","Bài 16","Cắt sợi dây dài 18 cm tại trung điểm thành hai đoạn. Mỗi đoạn dài bao nhiêu xăng-ti-mét?",["9 cm","6 cm","18 cm","36 cm"],0,"18 : 2 = 9 (cm)."],
+["vd","Bài 16","Đường từ chân núi A lên đỉnh núi B dài 600 m. Ngộ Không dừng nghỉ ở trạm M là trung điểm của đoạn đường AB. Từ M đến đỉnh B còn bao nhiêu mét?",["300 m","600 m","200 m","1 200 m"],0,"MB = AB : 2 = 600 : 2 = 300 (m)."],
+["vd","Bài 16","Đoạn thẳng PQ dài 14 cm, K là trung điểm của PQ. Điểm L nằm giữa P và K sao cho PL = 3 cm. Độ dài đoạn LK là:",["4 cm","3 cm","7 cm","11 cm"],0,"PK = 14 : 2 = 7 cm. LK = PK − PL = 7 − 3 = 4 (cm)."],
+["vd","Bài 16","AB = 12 cm, M là trung điểm của AB, N là trung điểm của AM. Độ dài đoạn AN là:",["3 cm","6 cm","4 cm","2 cm"],0,"AM = 12 : 2 = 6 cm; AN = 6 : 2 = 3 (cm)."]
+];
+const T17={kn:"Tâm, bán kính, đường kính",qh:"Bán kính – đường kính",dc:"Dùng compa",vd:"Vận dụng"};
+const Q17=[
+["kn","Bài 17","Trong hình tròn tâm O, đoạn thẳng AB đi qua tâm O và có hai đầu A, B nằm trên hình tròn. AB gọi là:",["đường kính","bán kính","tâm","trung điểm"],0,"Đoạn thẳng đi qua tâm, có hai đầu nằm trên hình tròn là đường kính."],
+["kn","Bài 17","Đoạn thẳng nối tâm O với một điểm M trên hình tròn gọi là:",["bán kính","đường kính","tâm","hình tròn"],0,"Đoạn thẳng nối tâm với một điểm trên hình tròn là bán kính OM."],
+["kn","Bài 17","Cho hình tròn tâm O có đường kính AB. Tâm O là gì của đoạn thẳng AB?",["Trung điểm","Một đầu mút","Điểm ngoài đoạn AB","Bán kính"],0,"Tâm O là trung điểm của đường kính AB."],
+["kn","Bài 17","Một hình tròn có bao nhiêu tâm?",["1 tâm","2 tâm","Nhiều tâm","Không có tâm"],0,"Mỗi hình tròn chỉ có đúng một tâm."],
+["kn","Bài 17","Trong một hình tròn, các bán kính như thế nào với nhau?",["Đều bằng nhau","Bán kính đi qua tâm dài hơn","Mỗi bán kính một độ dài khác nhau","Gấp đôi nhau"],0,"Mọi bán kính của cùng một hình tròn đều bằng nhau."],
+["qh","Bài 17","Đường kính của hình tròn gấp bao nhiêu lần bán kính?",["2 lần","1 lần","3 lần","4 lần"],0,"Đường kính dài gấp hai lần bán kính."],
+["qh","Bài 17","Hình tròn có bán kính 5 cm. Đường kính của hình tròn là:",["10 cm","5 cm","15 cm","25 cm"],0,"Đường kính = bán kính × 2 = 5 × 2 = 10 (cm)."],
+["qh","Bài 17","Hình tròn có đường kính 12 cm. Bán kính của hình tròn là:",["6 cm","24 cm","12 cm","4 cm"],0,"Bán kính = đường kính : 2 = 12 : 2 = 6 (cm)."],
+["qh","Bài 17","Hình tròn có bán kính 8 dm. Đường kính của hình tròn bằng bao nhiêu xăng-ti-mét?",["160 cm","16 cm","80 cm","1 600 cm"],0,"Đường kính = 8 × 2 = 16 dm; 1 dm = 10 cm nên 16 dm = 160 cm."],
+["dc","Bài 17","Dùng compa vẽ hình tròn tâm O. Đầu nhọn của compa đặt ở đâu?",["Tại tâm O","Tại một điểm trên đường tròn","Tại đầu bút chì","Ở ngoài hình tròn"],0,"Đặt đầu nhọn tại tâm O, quay đầu có bút chì để vẽ."],
+["dc","Bài 17","Muốn vẽ hình tròn tâm O bán kính 3 cm, ta mở compa sao cho khoảng cách giữa hai đầu compa là:",["3 cm","6 cm","9 cm","2 cm"],0,"Khoảng cách giữa hai đầu compa chính là bán kính: 3 cm."],
+["vd","Bài 17","Hình tròn tâm O có đường kính AB = 14 cm, M là một điểm trên hình tròn. Độ dài đoạn OM là:",["7 cm","14 cm","28 cm","3 cm"],0,"OM là bán kính nên OM = 14 : 2 = 7 (cm)."],
+["vd","Bài 17","Hai hình tròn tâm A và tâm B bằng nhau, bán kính 4 cm, chạm nhau tại một điểm nằm giữa A và B. Khoảng cách AB là:",["8 cm","4 cm","16 cm","2 cm"],0,"Điểm chạm nằm giữa A và B, cách mỗi tâm 4 cm nên AB = 4 + 4 = 8 (cm)."],
+["vd","Bài 17","Bọ ngựa đi theo đường gấp khúc ABCD. Ba hình tròn tâm B, O, C bằng nhau (bán kính 7 cm), xếp thành hàng ngang và chạm nhau. A cách B 7 cm, D cách C 7 cm, BC bằng 4 lần bán kính. Hỏi bọ ngựa đi bao nhiêu xăng-ti-mét?",["42 cm","28 cm","35 cm","21 cm"],0,"AB = 7 cm, CD = 7 cm, BC = 7 × 4 = 28 cm. Cả quãng đường: 7 + 28 + 7 = 42 (cm)."],
+["vd","Bài 17","Ba viên ngọc tròn giống nhau, mỗi viên đường kính 6 cm, xếp thành hàng ngang và chạm nhau. Cả hàng dài bao nhiêu xăng-ti-mét?",["18 cm","12 cm","9 cm","36 cm"],0,"Ba đường kính nối nhau: 6 × 3 = 18 (cm)."]
+];
 const DT_SETS=[
  {id:'dt-b1-9',name:'Bài 1–9',desc:'Ôn tập & bổ sung',T:DT_T,Q:DT_Q,cover:'dm-1'},
  {id:'dt-b10',name:'Bài 10',desc:'Khái niệm số thập phân',T:T10,Q:Q10,cover:'dm-2'},
@@ -660,6 +715,9 @@ const DT_SETS=[
  {id:'dt-b12-lt',title:'BÀI TẬP BÀI 12 · LUYỆN TẬP',name:'Bài 12 · Luyện tập',desc:'Bài tập SGK: độ dài, khối lượng, diện tích',T:T12L,Q:Q12L,cover:'dm-3'},
  {id:'dt-b13',name:'Bài 13',desc:'Làm tròn số thập phân',T:T13,Q:Q13,cover:'ds-3'},
  {id:'dt-b13-lt',title:'BÀI TẬP BÀI 13 · LUYỆN TẬP',name:'Bài 13 · Luyện tập',desc:'Bài tập SGK: làm tròn số thập phân',T:T13L,Q:Q13L,cover:'ds-1'},
+ {id:'dt3-b15',grade:3,title:'BÀI TẬP BÀI 15 · LUYỆN TẬP CHUNG',name:'Toán 3 · Bài 15',desc:'Nhân, chia nhẩm bảng 6–9; một phần mấy',T:T15,Q:Q15,cover:'dm-1'},
+ {id:'dt3-b16',grade:3,title:'BÀI TẬP BÀI 16 · ĐIỂM Ở GIỮA, TRUNG ĐIỂM',name:'Toán 3 · Bài 16',desc:'Điểm ở giữa, trung điểm của đoạn thẳng',T:T16,Q:Q16,cover:'dm-2'},
+ {id:'dt3-b17',grade:3,title:'BÀI TẬP BÀI 17 · HÌNH TRÒN',name:'Toán 3 · Bài 17',desc:'Tâm, bán kính, đường kính của hình tròn',T:T17,Q:Q17,cover:'dm-3'},
  {id:'dt7-vocab',grade:7,name:'Rational Numbers · Test 1',desc:'Từ vựng, cách đọc, số đối & số nghịch đảo',T:T7A,Q:Q7A,cover:'dm-1'},
  {id:'dt7-compare',grade:7,name:'Rational Numbers · Test 2',desc:'Phân số bằng nhau, so sánh, sắp xếp',T:T7B,Q:Q7B,cover:'dm-2'},
  {id:'dt7-ops',grade:7,name:'Rational Numbers · Test 3',desc:'Cộng, trừ, nhân, chia, thứ tự phép tính',T:T7C,Q:Q7C,cover:'dm-3'},

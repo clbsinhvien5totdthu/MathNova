@@ -151,6 +151,7 @@ function detail(id){
 /* ===== GIAO BÀI ===== */
 // Danh mục bài có thể giao: id phải trùng id trong script.js. Thêm bài mới vào script.js thì thêm 1 dòng ở đây.
 const CAT=[{g:5,items:[['t5-b10-cb','TOÁN 5 - BÀI 10 - CƠ BẢN (bài tập)'],['t5-b10-thvd','TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG (bài tập)'],['dt-b1-9','Đề test Bài 1–9 (Đại Thánh)'],['dt-b10','BÀI TẬP BÀI 10 (Đại Thánh)'],['dt-b11','BÀI TẬP BÀI 11 (Đại Thánh)'],['dt-b12','Đề test Bài 12 (Đại Thánh)']]},
+ {g:3,items:[['dt3-b15','Toán 3 · Bài 15 Luyện tập chung (Đại Thánh)'],['dt3-b16','Toán 3 · Bài 16 Điểm ở giữa, trung điểm (Đại Thánh)'],['dt3-b17','Toán 3 · Bài 17 Hình tròn (Đại Thánh)']]},
  {g:7,items:[['t7-hw-ex','Toán 7 · Rational Numbers – Exercises Q1–Q16 + Bonus (tự luận, nộp ảnh)'],['t7-hw-home','Toán 7 · Rational Numbers – Homework 1–9 (tự luận, nộp ảnh)'],['dt7-vocab','Toán 7 · Kiểm tra 1: Từ vựng & cách đọc'],['dt7-compare','Toán 7 · Kiểm tra 2: So sánh & sắp xếp'],['dt7-ops','Toán 7 · Kiểm tra 3: Bốn phép tính'],['dt7-power','Toán 7 · Kiểm tra 4: Lũy thừa, phương trình, bài toán']]}];
 const ITEMS=CAT.flatMap(c=>c.items.map(i=>({g:c.g,id:i[0],t:i[1]})));
 let AS=[],asErr='';
