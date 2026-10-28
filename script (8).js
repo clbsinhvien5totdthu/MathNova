@@ -1,0 +1,1327 @@
+/* ===== KẾT NỐI SUPABASE =====
+   Điền 2 giá trị lấy ở Supabase → Project Settings → API.
+   Project URL và Publishable key (hoặc anon key) được phép để công khai.
+   TUYỆT ĐỐI KHÔNG dán secret key / service_role key vào đây. */
+const SUPABASE_URL='https://odyiqvstagtynvbdcxvn.supabase.co';
+const SUPABASE_KEY='sb_publishable_JNXaQa2vdN12IwLCYuraDg_TgOVtpWB';
+const EMAIL_SUFFIX='@mathnova.vn'; // phải trùng đuôi email khi tạo user trong Supabase
+const sb=(window.supabase&&SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('YOUR-PROJECT'))
+  ?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+// Thêm tài liệu mới: {t:'Tên', type:'PDF', topic:'Chủ đề', file:'assets/ten-file.pdf', img:'assets/anh-bia.png'}
+// (không có img thì tự dùng ảnh bìa mặc định)
+const DOCS = [
+  {t:'Tài liệu tổng ôn Toán 5: Lý thuyết & Bài tập (Bài 1–11)', type:'PDF', grade:5, topic:'Tổng ôn · Số thập phân', file:'assets/Lý-thuyết-tổng-ôn-toan-5.pdf'},
+  {t:'Rational Numbers – Lý thuyết & Ví dụ mẫu (song ngữ Anh–Việt)', type:'PDF', grade:7, topic:'Số hữu tỉ · Rational Numbers', file:'assets/toan-7/Ly-thuyet-toan-7-so-huu-ti.pdf'}
+];
+const $ = id => document.getElementById(id);
+let user = null, uid = null;
+
+/* ---- Âm thanh: tự tổng hợp bằng Web Audio, không cần file ---- */
+const SFX=(()=>{let ac=null;
+  const muted=()=>{try{return localStorage.getItem('mute')==='1'}catch(_){return false}};
+  const ctx=()=>{try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch(_){return null}};
+  const tone=(f,d,s=0,ty='sine',v=.1,f2)=>{const a=ctx();if(!a)return;const t=a.currentTime+s,o=a.createOscillator(),g=a.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)};
+  const noise=(d,f1,f2,v)=>{const a=ctx();if(!a)return;const n=Math.floor(a.sampleRate*d),b=a.createBuffer(1,n,a.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),t=a.currentTime;s.buffer=b;f.type='bandpass';f.Q.value=.8;f.frequency.setValueAtTime(f1,t);f.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+d*.45);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t)};
+  const P={
+    tap:()=>tone(540,.07,0,'triangle',.08),
+    tab:()=>{tone(440,.08,0,'triangle',.09);tone(660,.1,.06,'triangle',.09)},
+    tick:n=>{tone(400+n*120,.12,0,'square',.045);tone(800+n*240,.1,.05,'triangle',.05)},
+    launch:()=>{noise(1.4,250,5200,.28);tone(120,1.3,0,'sawtooth',.07,900);tone(60,1.2,0,'sine',.12,200)},
+    pop:()=>tone(880,.12,0,'sine',.08,1320),
+    win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.28,i*.12,'triangle',.12))
+  };
+  return{play(k,a){if(muted())return;try{P[k]&&P[k](a)}catch(_){}},unlock(){ctx();document.body.classList.add('sfx-on')},muted,
+    toggle(){const m=!muted();try{localStorage.setItem('mute',m?'1':'0')}catch(_){}try{dtMuted=m}catch(_){}document.getElementById('sfxBtn').textContent=m?'🔇':'🔊';if(!m){this.unlock();this.play('pop')}}}
+})();
+document.addEventListener('DOMContentLoaded',()=>{const b=$('sfxBtn');b.textContent=SFX.muted()?'🔇':'🔊';b.onclick=()=>SFX.toggle()});
+document.addEventListener('pointerdown',e=>{SFX.unlock();const t=e.target.closest&&e.target.closest('button,a,.btn,[onclick]');
+  if(!t||t.id==='sfxBtn'||t.closest('#dt'))return;SFX.play(t.closest('.tabs,.gswitch,.nav,.filters')?'tab':'tap')},true);
+new MutationObserver(m=>m.forEach(r=>r.addedNodes.forEach(n=>{if(n.id==='rankup')SFX.play('win')}))).observe(document.body,{childList:true});
+
+const stk=(n,c='')=>`<img class="${c}" src="assets/stk/${n}.webp" alt="">`;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');SFX.play('pop');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
+function show(id){['login','app'].forEach(s=>$(s).classList.toggle('hidden',s!==id))}
+function view(id){['levels','grade','stats'].forEach(v=>$(v).classList.toggle('hidden',v!==id));window.scrollTo(0,0);if(id==='levels'&&user)renderBoard();if(id==='stats')renderStats()}
+
+/* ---- Màn hình chờ ---- */
+(function splash(){
+  const boot=restoreSession(); // kiểm tra phiên đăng nhập ngay trong lúc chờ
+  const STK=['op-plus','op-minus','op-times','op-div','num-1','num-2','num-3','pi','sqrt','star-sm'];
+  for(let i=0;i<16;i++){
+    const s=document.createElement('img');s.className='sym';s.alt='';s.src='assets/stk/'+STK[i%STK.length]+'.webp';
+    s.style.left=Math.random()*100+'%';s.style.width=(30+Math.random()*34)+'px';
+    s.style.animationDuration=(7+Math.random()*7)+'s';s.style.animationDelay=(-Math.random()*8)+'s';
+    $('syms').appendChild(s);
+  }
+  const msgs=['Đang khởi động tên lửa Nova…','Đang xếp hàng các con số…','Đang mài bút chì thần kỳ…','Sắp xong rồi, chuẩn bị nhé!'];
+  let p=0;
+  const timer=setInterval(()=>{
+    p+=25;SFX.play('tick',p/25);$('loadfill').style.width=p+'%';$('loadmsg').textContent=msgs[Math.min(p/25-1,3)];
+    if(p>=100){clearInterval(timer);setTimeout(done,500)}
+  },750);
+  async function done(){
+    const p=await boot;
+    $('loadmsg').textContent='Phóng tên lửa Nova!';$('splash').classList.add('launch');SFX.play('launch');
+    await new Promise(r=>setTimeout(r,1300));
+    $('splash').classList.add('out');
+    if(p)enter(p);else show('login');
+    setTimeout(()=>$('splash').classList.add('hidden'),650);
+  }
+})();
+
+/* ---- Đăng nhập (tài khoản do thầy cô cấp, không có đăng ký) ---- */
+async function fetchProfile(id){
+  const {data,error}=await sb.from('profiles').select('*').eq('id',id).single();
+  if(error)throw error;
+  return data;
+}
+async function restoreSession(){
+  if(!sb)return null;
+  try{const {data}=await sb.auth.getSession();return data.session?await fetchProfile(data.session.user.id):null}
+  catch(_){return null}
+}
+$('loginForm').onsubmit=async e=>{
+  e.preventDefault();
+  const name=$('u').value.trim().toLowerCase(),btn=$('loginBtn'),err=$('err');
+  if(!sb){err.textContent='Hệ thống chưa được kết nối. Hãy báo thầy cô nhé.';return}
+  if(!/^[a-z0-9._-]{2,40}$/.test(name)){err.textContent='Tên đăng nhập chỉ gồm chữ không dấu và số. Hãy kiểm tra lại.';return}
+  btn.disabled=true;btn.textContent='Đang đăng nhập…';err.textContent='';
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:name+EMAIL_SUFFIX,password:$('p').value});
+    if(error){
+      err.textContent=/invalid|credentials/i.test(error.message||'')
+        ?'Tên đăng nhập hoặc mật khẩu chưa đúng. Hãy kiểm tra lại hoặc hỏi thầy cô.'
+        :'Chưa đăng nhập được. Hãy thử lại sau ít phút hoặc hỏi thầy cô.';
+      return;
+    }
+    let p;
+    try{p=await fetchProfile(data.user.id)}
+    catch(_){await sb.auth.signOut();err.textContent='Tài khoản này chưa có hồ sơ học sinh. Hãy báo thầy cô nhé.';return}
+    $('p').value='';enter(p);
+  }catch(_){err.textContent='Không kết nối được máy chủ. Hãy kiểm tra mạng rồi thử lại.'}
+  finally{btn.disabled=false;btn.textContent='Vào học'}
+};
+function enter(p){
+  uid=p.id;
+  user={id:p.id,username:p.username,name:p.name,grade:p.grade||5,xp:Number(p.xp)||0,
+    done:p.done&&typeof p.done==='object'?p.done:{},doc:p.doc&&typeof p.doc==='object'?p.doc:{},gd:p.gd||null,av:avNum(p.avatar)||avLocalGet(p.id)};
+  show('app');view('levels');refreshMe();renderEx();
+  $('navTeacher').classList.add('hidden');
+  if(sb)sb.from('teachers').select('user_id').eq('user_id',uid).maybeSingle().then(({data})=>{if(data&&user)$('navTeacher').classList.remove('hidden')},()=>{});
+  loadTeachers().then(()=>{renderEx();renderAssign()});
+  loadSubs().then(()=>{renderEx();renderAssign();checkNotif(true)});startPoll();
+  loadAtt().then(async()=>{renderEx();if(!$('stats').classList.contains('hidden'))renderStats();await loadAssign();renderAssign();renderEx();showRemind()});
+  document.querySelector('.tabs button').click();
+  toast('Xin chào '+user.name+'! 👋');
+}
+$('logout').onclick=async()=>{
+  const btn=$('logout');btn.disabled=true;
+  stopGame();$('arena').classList.add('hidden');
+  await saveQ.catch(()=>{}); // chờ lưu xong tiến độ rồi mới thoát
+  try{if(sb)await sb.auth.signOut()}catch(_){}
+  user=null;uid=null;boardRows=null;ATT=[];ASG=[];SUBS=[];stopPoll();NSEEN=null;NANN=new Set();TCH=[];hwTeacher=null;closeNotif();drawBell();closeHw();renderAssign();closeRemind();$('navTeacher').classList.add('hidden');$('u').value='';$('p').value='';$('err').textContent='';
+  btn.disabled=false;show('login');
+};
+$('goHome').onclick=e=>{e.preventDefault();view('levels')};
+$('open5').onclick=()=>$('levelsPick').scrollIntoView({behavior:'smooth'});
+document.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();view('levels');const t=a.dataset.go;setTimeout(()=>t==='top'?window.scrollTo(0,0):$(t).scrollIntoView({behavior:'smooth'}),60)});
+$('backLevels').onclick=()=>view('levels');
+
+/* ---- Toán 5 ---- */
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['docs','ex','test','games'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.tab));
+});
+const COV={doc:'formula',ex:'al-pencil',test:'board',game:'rk-blue'}; // ảnh bìa mặc định theo loại thẻ
+const cov=(s,k='doc')=>`<div class="cover${s?'':' stk-cover'}"><img src="${s||'assets/stk/'+COV[k]+'.webp'}" alt="" loading="lazy"></div>`;
+let curG=5;
+const LEVELS=[
+ {n:'Tiểu học',r:'Lớp 1 – Lớp 5',ic:'al-idea',c:'#2F8F83',g:[1,2,3,4,5]},
+ {n:'Trung học cơ sở',r:'Lớp 6 – Lớp 9',ic:'protractor',c:'#DC6F2A',g:[6,7,8,9]},
+ {n:'Trung học phổ thông',r:'Lớp 10 – Lớp 12',ic:'pi',c:'#7D69B0',g:[10,11,12]}];
+$('levelGrid').innerHTML=LEVELS.map(L=>`<article class="lv" style="--c:${L.c}"><div class="lvic">${stk(L.ic)}</div><h3>${L.n}</h3><p>${L.r}</p><div class="gchips">${L.g.map(g=>`<button type="button" onclick="openGrade(${g})">Lớp ${g}</button>`).join('')}</div></article>`).join('');
+function openGrade(g){
+  curG=g;stopGame();$('arena').classList.add('hidden');
+  $('crumb').textContent=LEVELS.find(x=>x.g.includes(g)).n;$('gTitle').textContent='Toán lớp '+g;
+  $('gswitch').innerHTML=LEVELS.flatMap(x=>x.g).map(n=>`<button type="button" class="${n===g?'on':''}" onclick="openGrade(${n})">${n}</button>`).join('');
+  renderEx();view('grade');document.querySelector('.tabs button').click();
+}
+const docsHtml=()=>DOCS.filter(d=>d.grade===curG).map(d=>
+  `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${DOCS.indexOf(d)})">Xem tài liệu</button></div></article>`).join('');
+const gameCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" onclick="startGame()">${stk('ic-play','bi')} Bắt đầu chơi</button></div></article>`;
+const phoCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Ôn thi VioEdu</span><h3>Phở Anh Hai · Tuần 3</h3><small>30 câu tự điền, sai thì Cậu Vàng bị bắt và phải ôn lại</small><button class="btn go" style="width:auto" onclick="openPho()">${stk('ic-play','bi')} Vào quán phở</button></div></article>`;
+const phoCard5=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Ôn giữa học kì I</span><h3>Phở Anh Hai · Toán 5</h3><small>30 câu số thập phân: đọc viết, đổi đơn vị, so sánh, làm tròn, phân số</small><button class="btn go" style="width:auto" onclick="openPho('pho-anh-hai-toan5.html')">${stk('ic-play','bi')} Vào quán phở</button></div></article>`;
+function openPho(file='pho-anh-hai.html'){ // mở game Phở Anh Hai toàn màn hình, nhận kết quả để cộng XP
+  const d=document.createElement('div');d.id='phoOv';d.style.cssText='position:fixed;inset:0;z-index:9999;background:#000';
+  d.innerHTML='<iframe src="'+file+'" title="Phở Anh Hai" style="border:0;width:100%;height:100%"></iframe><button type="button" aria-label="Đóng game" style="position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:2;padding:6px 12px;border-radius:99px;border:2px solid #3b2412;background:#fffdf6;font-weight:700;cursor:pointer">✕ Thoát</button>';
+  d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d);
+}
+addEventListener('message',e=>{
+  const f=document.querySelector('#phoOv iframe'),m=e.data;
+  if(!f||e.source!==f.contentWindow||!m||m.type!=='pho-done'||!user)return;
+  const xp=gameXp(m.score);
+  if(m.game==='toan5-giuaki1')logAttempt({k:'game',id:'game-pho-toan5-gk1',t:'Phở Anh Hai · Toán 5 giữa học kì I',g:5,ok:m.score,n:m.total,s:0,xp,tp:{'Số thập phân giữa kì I':[m.score,m.total]}});
+  else logAttempt({k:'game',id:'game-pho-tuan3',t:'Phở Anh Hai · VioEdu Tuần 3',g:3,ok:m.score,n:m.total,s:0,xp,tp:{'VioEdu Toán 3 tuần 3':[m.score,m.total]}});
+  toast(xp?`+${xp} XP từ Phở Anh Hai`:'Hôm nay bạn đã nhận đủ XP trò chơi');
+});
+const emp=h=>h.trim()?h:`<p class="empty">Nội dung lớp ${curG} đang được thầy cô biên soạn và sẽ sớm có tại đây.</p>`;
+
+/* ---- Game nhẩm nhanh ---- */
+let g=null,gTimer=null;
+const vn=n=>String(n).replace('.',','); // số thập phân kiểu Việt Nam: 5,5
+function stopGame(){clearInterval(gTimer);gTimer=null;g=null}
+function startGame(){
+  clearInterval(gTimer); // dọn đồng hồ cũ, tránh chạy 2 đồng hồ và nhận XP 2 lần
+  const me=g={score:0,tot:0,time:30,ans:0,end:Date.now()+30000};
+  $('arena').classList.remove('hidden');$('score').textContent=0;$('time').textContent=30;$('gmsg').textContent='';
+  $('ga').disabled=false;$('gok').disabled=false;$('ga').value='';$('ga').focus();next();
+  gTimer=setInterval(()=>{
+    if(g!==me){clearInterval(gTimer);return}
+    g.time=Math.max(0,Math.ceil((g.end-Date.now())/1000));$('time').textContent=g.time;
+    if(g.time<=0){
+      clearInterval(gTimer);gTimer=null;$('ga').disabled=true;$('gok').disabled=true;
+      const xp=gameXp(g.score);
+      if(g.tot>0)logAttempt({k:'game',id:'game-nham',t:'Nhẩm nhanh 30 giây',g:curG,ok:g.score,n:g.tot,s:30,xp,tp:{'Cộng trừ số thập phân':[g.score,g.tot]}});
+      $('gq').textContent='Hết giờ!';
+      $('gmsg').textContent=xp>0?`Bạn đúng ${g.score} câu và nhận +${xp} XP 🎉`
+        :g.score>0?`Bạn đúng ${g.score} câu. Hôm nay bạn đã nhận đủ 30 XP từ trò chơi, mai chơi tiếp nhé!`
+        :'Bạn chưa đúng câu nào, thử lại nhé! 💪';
+    }
+  },250);
+}
+function next(){
+  const a=Math.round((Math.random()*20+1)*10)/10,b=Math.round((Math.random()*9+1)*10)/10,op=Math.random()<.5?'+':'−';
+  const r=op==='+'?a+b:a-b;
+  if(r<0){g.ans=Math.round((b-a)*10)/10;$('gq').textContent=`${vn(b)} − ${vn(a)} = ?`}
+  else{g.ans=Math.round(r*10)/10;$('gq').textContent=`${vn(a)} ${op} ${vn(b)} = ?`}
+}
+function submitAns(){
+  if(!g||g.time<=0)return;
+  const raw=$('ga').value.trim().replace(',','.');
+  if(raw===''||isNaN(Number(raw))){$('gmsg').textContent='Hãy nhập một số nhé!';return}
+  g.tot++;
+  if(Math.abs(Number(raw)-g.ans)<0.001){g.score++;$('score').textContent=g.score;$('gmsg').textContent='Đúng rồi! ✔'}
+  else $('gmsg').textContent='Chưa đúng, đáp án là '+vn(g.ans);
+  $('ga').value='';next();$('ga').focus();
+}
+$('ga').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submitAns()}};
+$('gok').onclick=submitAns;
+
+/* ===== HỆ THỐNG XP & HẠNG ===== */
+// Ngưỡng hạng cao dần: Thách đấu cần 24.000 XP (~150 bài kiểm tra làm tốt lần đầu)
+const RANKS=[
+ {n:'Đồng',k:'dong',min:0,c:'#E0A56B',i:'🥉'},{n:'Bạc',k:'bac',min:600,c:'#C5CEDC',i:'🥈'},
+ {n:'Vàng',k:'vang',min:1800,c:'#FFC93C',i:'🥇'},{n:'Bạch kim',k:'bachkim',min:4000,c:'#7FD6FF',i:'💠'},
+ {n:'Kim cương',k:'kimcuong',min:8000,c:'#6FA8FF',i:'💎'},{n:'Tinh anh',k:'tinhanh',min:14000,c:'#C99BFF',i:'🔮'},
+ {n:'Thách đấu',k:'thachdau',min:24000,c:'#FF7B7B',i:'👑'}];
+// Hệ số XP theo lớp: lớp càng cao, bài càng khó, XP càng nhiều
+const GRADE_MULT={1:.5,2:.6,3:.75,4:.9,5:1,6:1.1,7:1.2,8:1.3,9:1.4,10:1.5,11:1.6,12:1.7};
+const LEVEL_XP={easy:4,mid:8,hard:14}, LV_NAME={easy:'Nhận biết',mid:'Thông hiểu',hard:'Vận dụng'};
+const REPLAY=.2; // làm lại chỉ nhận 20% XP để chống cày
+const rkImg=(r,c='rk')=>`<img class="${c}" src="assets/rank/${r.k}.webp" alt="Hạng ${r.n}">`;
+function rankOf(xp){let r=RANKS[0];RANKS.forEach(x=>{if(xp>=x.min)r=x});return r}
+let saveQ=Promise.resolve();
+function save(){ // ghi tiến độ lên Supabase, xếp hàng để không bị ghi chồng
+  if(!sb||!user)return;
+  const id=uid,row={xp:user.xp,done:{...user.done},doc:{...user.doc},gd:user.gd?{...user.gd}:null};
+  saveQ=saveQ.then(async()=>{
+    try{const {error}=await sb.from('profiles').update(row).eq('id',id);if(error)throw error}
+    catch(_){toast('⚠️ Chưa lưu được tiến độ. Hãy kiểm tra mạng nhé.')}
+  });
+}
+
+/* ===== ẢNH ĐẠI DIỆN (35 nhân vật, chọn trong hộp thoại) ===== */
+const AV_NAMES=['Bác nông dân','Bé nghe nhạc','Cầu thủ','Nhà khoa học','Thủy thủ','Đầu bếp','Kỹ sư','Cô bé mũ nồi','Chú bộ đội','Cô gái nón lá','Mèo game thủ','Cô gái kimono','Bé ba lô xanh','Cô bé tết tóc','Cậu bé kính tròn','Phi hành gia','Cô bé áo mưa','Nhà thám hiểm','Cô bé thỏ bông','Cầu thủ bóng rổ','Chim cánh cụt','Cáo nhỏ','Voi xanh','Vịt con','Khủng long','Cánh cụt mũ len','Thỏ trắng','Ếch xanh','Gấu nâu','Gấu trúc','Husky','Sư tử','Hươu nhỏ','Mèo trắng','Corgi'];
+const AV_N=AV_NAMES.length;
+const avNum=v=>{v=Number(v);return v>=1&&v<=AV_N?v:0};
+function avDefault(id){let h=0;for(const c of String(id||''))h=(h*31+c.charCodeAt(0))>>>0;return h%AV_N+1}
+const avOf=(num,id)=>avNum(num)||avDefault(id);
+const avImg=(num,id,c='av-img')=>`<img class="${c}" src="assets/avatar/a${String(avOf(num,id)).padStart(2,'0')}.webp" alt="" draggable="false">`;
+function avLocalGet(id){try{return avNum(localStorage.getItem('avatar:'+id))}catch(_){return 0}}
+function avLocalSet(id,n){try{localStorage.setItem('avatar:'+id,String(n))}catch(_){}}
+async function saveAvatar(n){
+  user.av=n;avLocalSet(uid,n);refreshMe();
+  if(typeof boardRows!=='undefined'&&boardRows){const r=boardRows.find(x=>x.id===uid);if(r)r.avatar=n}
+  if(typeof drawBoard==='function')drawBoard();
+  if(!sb)return;
+  try{
+    const {data,error}=await sb.from('profiles').update({avatar:n}).eq('id',uid).select('id');
+    if(error){console.error('avatar',error);
+      toast(/column|schema|avatar/i.test(error.message||'')?'⚠️ Supabase chưa có cột "avatar". Hãy chạy lệnh SQL tạo cột rồi thử lại.':'⚠️ Chưa lưu được ảnh lên hệ thống: '+(error.message||'lỗi không rõ'));return}
+    if(!data||!data.length){toast('⚠️ Supabase từ chối ghi ảnh (thiếu quyền cập nhật). Hãy kiểm tra chính sách RLS của bảng profiles.');return}
+    toast('Đã lưu ảnh đại diện lên hệ thống! ✨');
+  }catch(e){console.error(e);toast('⚠️ Không kết nối được máy chủ. Ảnh mới chỉ lưu trên máy này.')}
+}
+function openAvatarPicker(){
+  const old=$('avpick');if(old)old.remove();
+  const r=rankOf(user.xp);let sel=avOf(user.av,uid);
+  const d=document.createElement('div');d.id='avpick';d.className='quiz';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.style.setProperty('--c',r.c);
+  d.innerHTML=`<div class="qbox avbox"><h2>Chọn ảnh đại diện</h2>
+  <div class="av-prev"><span class="av-frame">${avImg(sel,uid,'av-img')}</span><div><b id="avName"></b><small>Khung đổi màu theo hạng <b>${r.n}</b> của bạn</small></div></div>
+  <div class="av-grid" role="radiogroup" aria-label="Danh sách ảnh đại diện">${AV_NAMES.map((n,i)=>`<button type="button" role="radio" data-n="${i+1}" aria-label="${n}" class="av-opt">${avImg(i+1,uid,'av-img')}</button>`).join('')}</div>
+  <div class="qnav"><button type="button" class="btn ghost" data-act="x">Hủy</button><button type="button" class="btn go" data-act="ok" style="width:auto">Lưu ảnh</button></div></div>`;
+  const paint=()=>{d.querySelectorAll('.av-opt').forEach(b=>{const on=+b.dataset.n===sel;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
+    d.querySelector('.av-prev .av-img').src=`assets/avatar/a${String(sel).padStart(2,'0')}.webp`;$('avName').textContent=AV_NAMES[sel-1]};
+  d.onclick=e=>{
+    if(e.target===d||e.target.dataset.act==='x'){d.remove();return}
+    const o=e.target.closest('.av-opt');if(o){sel=+o.dataset.n;paint();return}
+    if(e.target.dataset.act==='ok'){d.remove();if(sel!==avOf(user.av,uid)||!user.av)saveAvatar(sel)}
+  };
+  document.body.appendChild(d);paint();
+}
+function refreshMe(){
+  const r=rankOf(user.xp),nx=RANKS[RANKS.indexOf(r)+1];
+  $('meName').innerHTML='<button type="button" class="me-av" id="meAv" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện" style="--c:'+rankOf(user.xp).c+'">'+avImg(user.av,uid)+'<i>✎</i></button> '+esc(user.name);
+  $('meAv').onclick=openAvatarPicker;$('meXp').textContent=user.xp+' XP';
+  $('meRank').innerHTML=rkImg(r)+' '+esc(r.n);$('meRank').style.background=r.c;
+  $('rankFill').style.width=(nx?(user.xp-r.min)/(nx.min-r.min)*100:100)+'%';
+  $('rankFill').style.background=r.c;
+  $('rankTxt').textContent=nx?`Còn ${nx.min-user.xp} XP để lên ${nx.n}`:'Bạn đã đạt hạng cao nhất!';
+}
+function addXp(n){
+  const b=rankOf(user.xp);user.xp+=n;save();refreshMe();
+  const a=rankOf(user.xp);if(a.n!==b.n)setTimeout(()=>showRankUp(a),700);
+}
+function showRankUp(r){ // màn chúc mừng lên hạng với huy hiệu lớn
+  const old=$('rankup');if(old)old.remove();
+  const d=document.createElement('div');d.id='rankup';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.style.setProperty('--c',r.c);
+  d.innerHTML=`<div class="ru"><small>LÊN HẠNG!</small>${rkImg(r,'ru-img')}<h2>${r.n}</h2><p>Chúc mừng ${esc(user.name)}! Bạn đã đạt hạng <b>${r.n}</b> với ${user.xp} XP.</p><button type="button" class="btn go" style="width:auto">Tiếp tục</button></div>`;
+  d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};
+  document.body.appendChild(d);dtSfx('win');d.querySelector('button').focus({preventScroll:true});
+}
+function gameXp(s){ // trò chơi: 2 XP/câu, tối đa 30 XP mỗi ngày
+  const d=new Date().toDateString();if(!user.gd||user.gd.d!==d)user.gd={d,x:0};
+  const x=Math.max(0,Math.min(s*2,30-user.gd.x));user.gd.x+=x;addXp(x);return x;
+}
+function openDoc(i){
+  const d=DOCS[i];
+  if(!d.file){toast('Tài liệu sẽ được gắn file ở bước sau');return}
+  window.open(d.file,'_blank');
+  if(!user.doc[d.file]){user.doc[d.file]=1;addXp(5);logAttempt({k:'doc',id:d.file,t:d.t,g:d.grade,xp:5});toast('+5 XP vì mở tài liệu mới')}
+}
+
+/* ===== TOÁN 5 – BÀI 10 (đáp án đúng luôn ở vị trí đầu, được xáo khi làm) ===== */
+const Q10_BASIC={id:'t5-b10-cb',title:'TOÁN 5 - BÀI 10 - CƠ BẢN',min:0,grade:5,q:[
+ {l:'easy',q:'Bài 1a. Điền số thích hợp: 2/10 = …',o:['0,2','0,02','2,10','0,12']},
+ {l:'easy',q:'Bài 1b. Điền số thích hợp: 53/100 = …',o:['0,53','5,3','0,053','53,100']},
+ {l:'easy',q:'Bài 1c. Điền số thích hợp: 7/1000 = …',o:['0,007','0,07','0,7','7,000']},
+ {l:'easy',q:'Bài 1d. Điền số thích hợp: 5 9/100 = …',o:['5,09','5,9','5,009','59,100']},
+ {l:'easy',q:'Bài 1e. Điền số thích hợp: 12 3/1000 = …',o:['12,003','12,03','12,3','12,0003']},
+ {l:'easy',q:'Bài 2. Số thập phân 0,07 đọc là:',o:['không phẩy không bảy','không phẩy bảy','không phẩy bảy mươi','không phẩy không không bảy']},
+ {l:'easy',q:'Bài 2. Số thập phân 14,125 đọc là:',o:['mười bốn phẩy một trăm hai mươi lăm','mười bốn phẩy một trăm hai mươi','mười bốn phẩy hai mươi lăm','bốn mươi mốt phẩy một trăm hai mươi lăm']},
+ {l:'easy',q:'Bài 3a. Viết số thập phân: Hai phẩy năm.',o:['2,5','2,05','25','0,25']},
+ {l:'easy',q:'Bài 3b. Viết số thập phân: Không phẩy không chín.',o:['0,09','0,9','0,009','0,19']},
+ {l:'easy',q:'Bài 3c. Viết số thập phân: Mười sáu phẩy tám mươi lăm.',o:['16,85','16,085','16,805','60,85']},
+ {l:'easy',q:'Bài 4. Chữ số 5 trong số 5,17 thuộc hàng nào?',o:['Hàng đơn vị (phần nguyên)','Hàng phần mười (phần thập phân)','Hàng phần trăm (phần thập phân)','Hàng chục (phần nguyên)']},
+ {l:'easy',q:'Bài 4. Chữ số 5 trong số 0,853 thuộc hàng nào?',o:['Hàng phần trăm','Hàng phần mười','Hàng phần nghìn','Hàng đơn vị']},
+ {l:'easy',q:'Bài 4. Chữ số 5 trong số 136,005 thuộc hàng nào?',o:['Hàng phần nghìn','Hàng phần trăm','Hàng đơn vị','Hàng trăm']},
+ {l:'easy',q:'Bài 5. Trong số 9,305, chữ số 3 thuộc hàng nào?',o:['Hàng phần mười','Hàng phần trăm','Hàng phần nghìn','Hàng đơn vị']},
+ {l:'easy',q:'Bài 5. Khẳng định nào sau đây đúng?',o:['4/5 = 8/10 = 0,8','0,25 = 25/10','Số 12,07 có phần thập phân là 7','0,5 = 5/100']}
+]};
+const Q10_ADV={id:'t5-b10-thvd',title:'TOÁN 5 - BÀI 10 - THÔNG HIỂU/VẬN DỤNG',min:0,grade:5,q:[
+ {l:'mid',q:'Bài 6a. Số thập phân gồm 8 đơn vị, 4 phần mười, 6 phần trăm là:',o:['8,46','8,64','8,046','84,6']},
+ {l:'mid',q:'Bài 6b. Số thập phân gồm 2 chục, 0 đơn vị, 5 phần mười, 9 phần nghìn là:',o:['20,509','20,59','2,509','20,905']},
+ {l:'mid',q:'Bài 6c. Số thập phân gồm 0 đơn vị, 3 phần trăm, 5 phần nghìn là:',o:['0,035','0,35','0,053','0,0035']},
+ {l:'mid',q:'Bài 7a. Viết 3/5 thành số thập phân (đưa về phân số thập phân trước):',o:['0,6','0,35','0,3','0,5']},
+ {l:'mid',q:'Bài 7b. Viết 1/4 thành số thập phân:',o:['0,25','0,14','0,4','0,1']},
+ {l:'mid',q:'Bài 7c. Viết 9/20 thành số thập phân:',o:['0,45','0,9','0,2','0,18']},
+ {l:'mid',q:'Bài 7d. Viết 13/25 thành số thập phân:',o:['0,52','0,13','1,325','0,25']},
+ {l:'hard',q:'Bài 7e. Viết 3/8 thành số thập phân (gợi ý: đưa về mẫu số 1 000):',o:['0,375','0,38','0,35','0,125']},
+ {l:'mid',q:'Bài 8a. Điền số thích hợp: 3 dm = … m',o:['0,3','0,03','30','3']},
+ {l:'mid',q:'Bài 8b. Điền số thích hợp: 47 cm = … m',o:['0,47','4,7','0,047','470']},
+ {l:'mid',q:'Bài 8c. Điền số thích hợp: 8 g = … kg',o:['0,008','0,08','0,8','8000']},
+ {l:'mid',q:'Bài 8d. Điền số thích hợp: 920 m = … km',o:['0,92','9,2','0,092','92']},
+ {l:'mid',q:'Bài 8e. Điền số thích hợp: 6 ml = … l',o:['0,006','0,06','0,6','6000']},
+ {l:'hard',q:'Bài 9. Chai nước chứa 1 lít. Mẹ rót ra 250 ml. Mẹ đã rót ra bao nhiêu lít nước?',o:['0,25 lít','2,5 lít','0,025 lít','25 lít']},
+ {l:'hard',q:'Bài 9 (mở rộng). Chai chứa 1 lít, mẹ rót ra 250 ml. Trong chai còn lại bao nhiêu lít?',o:['0,75 lít','0,25 lít','0,65 lít','1,25 lít']},
+ {l:'hard',q:'Bài 10. Từ ba thẻ 2, 5, 0 và dấu phẩy, lập số thập phân có phần nguyên một chữ số, phần thập phân hai chữ số (dùng cả 3 thẻ). Lập được tất cả bao nhiêu số?',o:['6 số','4 số','3 số','9 số']},
+ {l:'hard',q:'Bài 10. Trong các số thập phân lập được từ ba thẻ 2, 5, 0, số lớn nhất là:',o:['5,20','5,02','2,50','0,52']},
+ {l:'hard',q:'Bài 10. Số nào sau đây lập được từ ba thẻ 2, 5, 0 (mỗi thẻ dùng một lần)?',o:['5,02','5,22','0,05','2,02']}
+]};
+const QUIZZES=[Q10_BASIC,Q10_ADV];
+let cur=Q10_BASIC;
+const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
+  if(Z.grade!==curG)return '';
+  const best=user.done[Z.id];
+  return `<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Bài tập · Không giới hạn thời gian</span>${asgTag(Z.id)}<h3>${Z.title}</h3>
+  <small>${Z.q.length} câu trắc nghiệm · tối đa ${quizMax(Z)} XP lần đầu</small>
+  <small>${best===undefined?'Chưa làm':'Điểm cao nhất: '+best+'/'+Z.q.length+' · làm lại nhận 20% XP'}</small>
+  <button class="btn go" style="width:auto" onclick="startQuiz(${k})">${best===undefined?'Làm bài':'Làm lại'}</button></div></article>`;
+}).join('');
+function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
+function renderEx(){
+  $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE()+hwCards());
+  $('testList').innerHTML=emp(dtCards());$('gameList').innerHTML=emp(curG===5?gameCard()+phoCard5():curG===3?phoCard():'');renderAssign();
+}
+const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+let qz=null;
+function startQuiz(k){
+  if(k!==undefined)cur=QUIZZES[k];
+  qz={i:0,sel:[],t0:Date.now(),t:cur.min*60,end:Date.now()+cur.min*60000,qs:cur.q.map(q=>({...q,opts:sh(q.o)}))};
+  $('quiz').classList.remove('hidden');$('qres').classList.add('hidden');$('qmain').classList.remove('hidden');
+  $('qtitle').textContent=cur.title;document.body.style.overflow='hidden';$('quiz').scrollTop=0;
+  $('qtime').parentElement.style.display=cur.min?'':'none'; // không giới hạn thời gian thì ẩn đồng hồ
+  if(cur.min){
+    qz.timer=setInterval(()=>{qz.t=Math.max(0,Math.ceil((qz.end-Date.now())/1000));tick();if(qz.t<=0){toast('Hết giờ! Bài đã được nộp.');finishQuiz()}},500);
+    tick();
+  }
+  showQ();
+}
+function tick(){$('qtime').textContent=Math.floor(qz.t/60)+':'+String(qz.t%60).padStart(2,'0')}
+function showQ(){
+  const q=qz.qs[qz.i],n=qz.qs.length;
+  $('qbar').style.width=(qz.i/n*100)+'%';
+  $('qlv').textContent=`Câu ${qz.i+1}/${n} · ${LV_NAME[q.l]}`;
+  $('qtext').innerHTML=fmt(q.q);$('qopts').innerHTML='';
+  q.opts.forEach((o,k)=>{
+    const b=document.createElement('button');b.type='button';b.innerHTML=String.fromCharCode(65+k)+'. '+fmt(o);
+    b.className=qz.sel[qz.i]===o?'on':'';
+    b.onclick=()=>{qz.sel[qz.i]=o;[...$('qopts').children].forEach(x=>x.classList.toggle('on',x===b));$('qnext').disabled=false};
+    $('qopts').appendChild(b);
+  });
+  $('qnext').disabled=qz.sel[qz.i]===undefined;
+  $('qnext').textContent=qz.i===n-1?'Nộp bài':'Câu tiếp';
+}
+$('qnext').onclick=()=>{qz.i<qz.qs.length-1?(qz.i++,showQ()):finishQuiz()};
+$('qquit').onclick=()=>{if(confirm('Thoát bây giờ sẽ không được tính điểm. Bạn chắc chứ?'))closeQuiz()};
+function closeQuiz(){clearInterval(qz.timer);$('quiz').classList.add('hidden');document.body.style.overflow='';renderEx()}
+function finishQuiz(){
+  clearInterval(qz.timer);
+  let ok=0,raw=0;
+  qz.qs.forEach((q,i)=>{if(qz.sel[i]===q.o[0]){ok++;raw+=LEVEL_XP[q.l]}});
+  const n=qz.qs.length;if(ok>=Math.ceil(n*.6))raw+=10;if(ok===n)raw+=30;
+  const rv=!!cur.review,first=!rv&&!(cur.id in user.done),gain=rv?0:Math.round(raw*GRADE_MULT[cur.grade]*(first?1:REPLAY));
+  if(!rv)user.done[cur.id]=Math.max(user.done[cur.id]||0,ok);if(gain)addXp(gain);
+  {const tp={},w=[],r=[];qz.qs.forEach((q,i)=>{const t=topicOf(q.q),c=qz.sel[i]===q.o[0];(tp[t]=tp[t]||[0,0])[1]++;if(c){tp[t][0]++;r.push(q.q)}else w.push({q:q.q,o:q.o,t})});
+   logAttempt({k:rv?'review':'quiz',id:cur.id,t:cur.title,g:cur.grade,ok,n,s:Math.round((Date.now()-qz.t0)/1000),xp:gain,tp,w,r})}
+  const wrong=qz.qs.map((q,i)=>({q,i})).filter(x=>qz.sel[x.i]!==x.q.o[0]);
+  $('qmain').classList.add('hidden');$('qres').classList.remove('hidden');$('quiz').scrollTop=0;
+  $('qres').innerHTML=`<h2>${ok}/${n} câu đúng ${stk(ok===n?'star-gold':ok>=n*.6?'al-idea':'al-pencil','res-ic')}</h2>
+  <p class="gain">+${gain} XP</p><p class="muted">${rv?'Bài ôn tập không tính XP.':first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} Tổng: ${user.xp} XP · Hạng ${rankOf(user.xp).n}</p>
+  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(x=>`<div class="rv"><b>Câu ${x.i+1}.</b> ${fmt(x.q.q)}<br><span class="bad">Bạn chọn: ${fmt(qz.sel[x.i]??'(bỏ trống)')}</span><br><span class="good">Đáp án: ${fmt(x.q.o[0])}</span></div>`).join(''):'<p>Bạn trả lời đúng tất cả!</p>'}
+  <div class="qnav"><button class="btn ghost" onclick="closeQuiz()">Đóng</button><button class="btn go" style="width:auto" onclick="startQuiz()">Làm lại</button></div>`;
+}
+const DT_T={tn:"Số tự nhiên",pt:"Phép tính",ps:"Phân số",tp:"Phân số thập phân",pp:"Phép tính phân số",hs:"Hỗn số",hh:"Hình học & đo lường"};
+const DT_Q=[
+["tn","Bài 1","Số 863 749 đọc là:",["tám trăm sáu mươi ba nghìn bảy trăm bốn mươi chín","tám trăm sáu mươi nghìn ba trăm bảy mươi bốn","tám mươi sáu nghìn ba trăm bảy mươi bốn","tám trăm ba mươi sáu nghìn bảy trăm bốn mươi chín"],0,"Đọc từng lớp: lớp nghìn (863) rồi lớp đơn vị (749)."],
+["tn","Bài 1","Trong số 863 749, chữ số 6 thuộc hàng nào?",["Hàng chục nghìn (60 000)","Hàng nghìn (6 000)","Hàng trăm nghìn (600 000)","Hàng chục (60)"],0,"863 749 = 800 000 + 60 000 + 3 000 + 700 + 40 + 9."],
+["tn","Bài 1","Làm tròn số 2 545 000 đến hàng chục nghìn được:",["2 550 000","2 500 000","2 540 000","2 600 000"],0,"Chữ số hàng nghìn là 5 nên tăng chữ số hàng chục nghìn thêm 1: 4 → 5."],
+["pt","Bài 2","Giá trị của biểu thức 36 − 4 × 5 + 8 : 2 là:",["20","164","16","24"],0,"Nhân, chia trước: 36 − 20 + 4 = 16 + 4 = 20."],
+["pt","Bài 2","Phép chia 58 : 7 có thương và số dư là:",["thương 8, dư 2","thương 7, dư 9","thương 8, dư 1","thương 9, dư 2"],0,"58 = 7 × 8 + 2 và số dư 2 bé hơn số chia 7."],
+["ps","Bài 3","Phân số nào bằng phân số 3/4?",["6/8","6/7","4/3","9/16"],0,"Nhân cả tử và mẫu với 2: 3×2 / 4×2 = 6/8."],
+["ps","Bài 3","Trong các phân số 2/3; 3/4; 5/6, phân số nào lớn nhất?",["5/6","3/4","2/3","Bằng nhau"],0,"Quy đồng mẫu 12: 8/12; 9/12; 10/12 → 5/6 lớn nhất."],
+["tp","Bài 4","Phân số nào sau đây là phân số thập phân?",["57/100","9/20","3/8","7/25"],0,"Phân số thập phân có mẫu số là 10; 100; 1 000; …"],
+["tp","Bài 4","Viết 9/20 thành phân số thập phân ta được:",["45/100","18/100","9/100","90/100"],0,"Nhân cả tử và mẫu với 5: 9×5 / 20×5 = 45/100."],
+["pp","Bài 5","Kết quả của 2/3 : 4/5 là:",["5/6","8/15","6/5","4/3"],0,"Chia phân số: nhân với phân số đảo ngược. 2/3 × 5/4 = 10/12 = 5/6."],
+["pp","Bài 6","Kết quả của 3/4 − 1/6 là:",["7/12","2/10","5/12","3/2"],0,"Quy đồng mẫu 12: 9/12 − 2/12 = 7/12."],
+["hs","Bài 7","Hỗn số 2 3/4 viết thành phân số là:",["11/4","9/4","6/4","5/4"],0,"(2 × 4 + 3) / 4 = 11/4."],
+["tp","Bài 9","Phân số 1/2 bằng phân số thập phân nào?",["5/10","1/10","2/10","12/100"],0,"Nhân cả tử và mẫu với 5: 1×5 / 2×5 = 5/10."],
+["hh","Bài 8","1 tạ 5 yến bằng bao nhiêu ki-lô-gam?",["150 kg","105 kg","1 050 kg","15 kg"],0,"1 tạ = 100 kg; 5 yến = 50 kg; 100 + 50 = 150 kg."],
+["hh","Bài 8","Hình thoi có hai đường chéo 10 cm và 6 cm. Diện tích là:",["30 cm²","60 cm²","16 cm²","32 cm²"],0,"S = m × n : 2 = 10 × 6 : 2 = 30 (cm²)."]
+];
+
+/* ===== ĐỀ TEST BÀI 10, 11, 12 (đáp án đúng luôn ở vị trí đầu, được xáo khi chơi) ===== */
+const T10={ct:"Cấu tạo & hàng",dv:"Đọc – viết số",cd:"Phân số, hỗn số → số thập phân",sd:"Số đo",vd:"Vận dụng"};
+const Q10=[
+["ct","Bài 10","Số thập phân 63,28 có phần nguyên và phần thập phân lần lượt là:",["63 và 28","6 và 328","63,2 và 8","28 và 63"],0,"Bên trái dấu phẩy là phần nguyên (63), bên phải dấu phẩy là phần thập phân (28)."],
+["ct","Bài 10","Trong số 63,28, chữ số 2 thuộc hàng nào?",["Hàng phần mười","Hàng phần trăm","Hàng chục","Hàng đơn vị"],0,"Chữ số đứng ngay sau dấu phẩy là hàng phần mười (giá trị 2/10); chữ số 8 là hàng phần trăm."],
+["ct","Bài 10","Chữ số 7 trong số 9,257 thuộc hàng nào?",["Hàng phần nghìn","Hàng phần trăm","Hàng phần mười","Hàng đơn vị"],0,"Sau dấu phẩy: 2 là hàng phần mười, 5 là hàng phần trăm, 7 là hàng phần nghìn."],
+["dv","Bài 10","Số thập phân 4,05 đọc là:",["bốn phẩy không năm","bốn phẩy năm","bốn phẩy năm mươi","bốn không phẩy năm"],0,"Chữ số 0 ngay sau dấu phẩy phải đọc là “không”: 4,05 đọc là bốn phẩy không năm."],
+["dv","Bài 10","Số thập phân 6,015 đọc là:",["sáu phẩy không mười lăm","sáu phẩy mười lăm","sáu phẩy một trăm năm mươi","sáu phẩy không một năm"],0,"Phần thập phân bắt đầu bằng chữ số 0 nên đọc “không”, rồi đọc phần còn lại: sáu phẩy không mười lăm."],
+["dv","Bài 10","Viết số thập phân: không phẩy không bốn mươi ba.",["0,043","0,43","0,0043","0,403"],0,"“Không” là chữ số 0 ở hàng phần mười, rồi “bốn mươi ba” là 43: 0,043."],
+["dv","Bài 10","Số thập phân gồm 4 chục, 6 đơn vị, 2 phần mười, 5 phần trăm là:",["46,25","46,52","4,625","64,25"],0,"Phần nguyên: 4 chục 6 đơn vị = 46. Phần thập phân: 2 phần mười 5 phần trăm = 25. Vậy 46,25."],
+["cd","Bài 10","Viết 25/1000 thành số thập phân:",["0,025","0,25","2,5","0,0025"],0,"Mẫu số 1000 nên có 3 chữ số thập phân. Tử số 25 chỉ có 2 chữ số, thêm 0 vào đầu: 0,025."],
+["cd","Bài 10","Viết hỗn số 4 57/100 thành số thập phân:",["4,57","45,7","4,057","457,100"],0,"Phần nguyên là 4, phần thập phân là 57/100 nên bằng 4,57."],
+["cd","Bài 10","Viết 149/10 thành số thập phân:",["14,9","1,49","149,10","0,149"],0,"Tách thành hỗn số: 149/10 = 14 9/10 = 14,9 (vì 149 = 14 × 10 + 9)."],
+["cd","Bài 10","Viết 7/125 thành số thập phân:",["0,056","0,56","0,175","0,07"],0,"Nhân cả tử và mẫu với 8: 7×8 / 125×8 = 56/1000 = 0,056."],
+["sd","Bài 10","Điền số thích hợp: 564 m = … km",["0,564","5,64","56,4","0,0564"],0,"564 m = 564/1000 km = 0,564 km."],
+["sd","Bài 10","Điền số thích hợp: 3,2 m = … mm",["3 200","320","32","3 020"],0,"3,2 m = 3 2/10 m = 3 m 2 dm = 3 200 mm."],
+["vd","Bài 10","Phần cầu dẫn của cầu Nhật Tân dài 5,27 km. Đổi ra mét ta được:",["5 270 m","527 m","5 027 m","52 700 m"],0,"5,27 km = 5 27/100 km = 5 km 270 m = 5 270 m."],
+["vd","Bài 10","Từ ba thẻ chữ số 1; 0; 4 và một thẻ dấu phẩy, lập số thập phân có phần nguyên một chữ số, phần thập phân hai chữ số (dùng đủ các thẻ). Lập được bao nhiêu số?",["6 số","3 số","4 số","9 số"],0,"Có 3 cách chọn phần nguyên, hai chữ số còn lại xếp theo 2 cách: 3 × 2 = 6 số (1,04; 1,40; 0,14; 0,41; 4,01; 4,10)."]
+];
+const T11={ss:"So sánh",bg:"Số thập phân bằng nhau",sx:"Sắp xếp",ch:"Tìm chữ số",vd:"Vận dụng"};
+const Q11=[
+["ss","Bài 11","So sánh 15,2 và 9,87. Kết quả đúng là:",["15,2 > 9,87","15,2 < 9,87","15,2 = 9,87","Không so sánh được"],0,"Phần nguyên khác nhau: 15 > 9 nên 15,2 > 9,87, không cần xét phần thập phân."],
+["ss","Bài 11","Chọn kết quả đúng:",["7,28 < 7,3","7,28 > 7,3","7,28 = 7,3","7,3 < 7,28"],0,"Phần nguyên bằng nhau (7). Viết 7,3 = 7,30; hàng phần mười 2 < 3 nên 7,28 < 7,3."],
+["bg","Bài 11","Số nào dưới đây bằng 0,6?",["0,60","0,06","6,0","0,606"],0,"Thêm chữ số 0 vào tận cùng bên phải phần thập phân thì giá trị không đổi: 0,6 = 0,60."],
+["bg","Bài 11","Bỏ các chữ số 0 ở tận cùng phần thập phân, số 50,6030 viết gọn là:",["50,603","50,63","5,0603","56,03"],0,"Chỉ bỏ chữ số 0 nằm sát cuối: 50,6030 = 50,603. Chữ số 0 ở giữa phải giữ lại."],
+["bg","Bài 11","Khẳng định nào sau đây đúng?",["8,3000 = 8,3","8,05 = 8,5","10,507 = 10,57","0,50 = 0,05"],0,"Chỉ được thêm hoặc bỏ chữ số 0 ở tận cùng bên phải phần thập phân. Chữ số 0 ở giữa hoặc ở đầu phần thập phân thì không được bỏ."],
+["ss","Bài 11","Số có nhiều chữ số hơn chưa chắc đã lớn hơn. Chọn kết quả đúng:",["0,5 > 0,45","0,5 < 0,45","0,5 = 0,45","0,5 = 0,045"],0,"Viết 0,5 = 0,50; vì 50 > 45 nên 0,5 > 0,45."],
+["ss","Bài 11","So sánh 3,405 và 3,45:",["3,405 < 3,45","3,405 > 3,45","3,405 = 3,45","Không so sánh được"],0,"Phần nguyên 3 = 3; hàng phần mười 4 = 4; hàng phần trăm 0 < 5. Vậy 3,405 < 3,45."],
+["ss","Bài 11","So sánh 24,8 và 24,79:",["24,8 > 24,79","24,8 < 24,79","24,8 = 24,79","Không so sánh được"],0,"Viết 24,8 = 24,80; hàng phần mười 8 > 7 nên 24,8 > 24,79."],
+["sx","Bài 11","Số lớn nhất trong các số 6,38; 6,8; 6,083; 6,83 là:",["6,83","6,8","6,38","6,083"],0,"Cả bốn số đều có phần nguyên 6. Hàng phần mười: 8 là lớn nhất (6,8 và 6,83). Viết 6,8 = 6,80, so hàng phần trăm: 3 > 0 nên 6,83 lớn nhất."],
+["sx","Bài 11","Sắp xếp các số 2,35; 2,5; 2,05; 3,2; 2,305 theo thứ tự từ bé đến lớn:",["2,05; 2,305; 2,35; 2,5; 3,2","2,05; 2,35; 2,305; 2,5; 3,2","3,2; 2,5; 2,35; 2,305; 2,05","2,05; 2,305; 2,5; 2,35; 3,2"],0,"3,2 có phần nguyên lớn nhất. Với phần nguyên 2, hàng phần mười: 0 < 3 < 5. So 2,305 và 2,35: hàng phần trăm 0 < 5. Vậy 2,05 < 2,305 < 2,35 < 2,5 < 3,2."],
+["sx","Bài 11","Sắp xếp các số 0,4; 0,44; 0,404; 0,04 theo thứ tự từ lớn đến bé:",["0,44; 0,404; 0,4; 0,04","0,404; 0,44; 0,4; 0,04","0,44; 0,4; 0,404; 0,04","0,04; 0,4; 0,404; 0,44"],0,"Viết 0,4 = 0,400; 0,44 = 0,440; 0,04 = 0,040. Vậy 0,44 > 0,404 > 0,4 > 0,04."],
+["ch","Bài 11","Chữ số nào có thể thay cho □ để 2,7□ > 2,75?",["8","5","4","0"],0,"Phần nguyên và hàng phần mười đều bằng nhau (2 và 7). Hàng phần trăm phải có □ > 5, nên □ là 6; 7; 8 hoặc 9."],
+["ch","Bài 11","Có bao nhiêu chữ số thay được cho □ để 4,□5 < 4,25?",["2 chữ số (0 và 1)","1 chữ số","3 chữ số","Nhiều hơn 3 chữ số"],0,"Hàng phần mười phải có □ < 2. Nếu □ = 2 thì hai số bằng nhau (không thỏa mãn). Vậy □ = 0 hoặc 1: có 2 chữ số."],
+["vd","Bài 11","Nhảy xa: An 2,35 m; Bình 2,4 m; Chi 2,305 m. Bạn nào nhảy xa nhất?",["Bình","An","Chi","An và Chi bằng nhau"],0,"Viết 2,4 = 2,40. Ta có 2,40 > 2,35 > 2,305. Vậy Bình nhảy xa nhất."],
+["vd","Bài 11","Chạy 50 m: Nam 9,8 giây; Hùng 9,75 giây; Tuấn 9,08 giây. Bạn nào chạy nhanh nhất?",["Tuấn","Hùng","Nam","Hùng và Nam"],0,"Chạy càng nhanh thì thời gian càng ít. Viết 9,8 = 9,80: ta có 9,08 < 9,75 < 9,80. Tuấn có thời gian ít nhất nên nhanh nhất."]
+];
+const T12={dd:"Độ dài",kl:"Khối lượng",dg:"Dung tích",ds:"Diện tích",vd:"Vận dụng"};
+const Q12=[
+["dd","Bài 12","Điền số thích hợp: 6 dm = … m",["0,6","0,06","6","60"],0,"1 dm = 1/10 m nên 6 dm = 6/10 m = 0,6 m."],
+["dd","Bài 12","Điền số thích hợp: 245 cm = … m",["2,45","24,5","0,245","2 045"],0,"245 cm = 245/100 m = 2 45/100 m = 2,45 m."],
+["dd","Bài 12","Điền số thích hợp: 35 mm = … cm",["3,5","0,35","35","350"],0,"1 mm = 1/10 cm nên 35 mm = 35/10 cm = 3,5 cm."],
+["dd","Bài 12","Điền số thích hợp: 750 m = … km",["0,75","7,5","0,075","75"],0,"750 m = 750/1000 km = 0,750 km = 0,75 km."],
+["dd","Bài 12","Điền số thích hợp: 3,2 m = … cm",["320","32","3 200","302"],0,"3,2 m = 3 m 2 dm = 300 cm + 20 cm = 320 cm."],
+["dd","Bài 12","Viết 2 m 5 dm dưới dạng số đo có đơn vị là mét:",["2,5 m","2,05 m","25 m","0,25 m"],0,"5 dm = 5/10 m = 0,5 m nên 2 m 5 dm = 2,5 m."],
+["dd","Bài 12","Viết 4 m 7 cm dưới dạng số đo có đơn vị là mét:",["4,07 m","4,7 m","47 m","4,007 m"],0,"7 cm = 7/100 m = 0,07 m nên 4 m 7 cm = 4,07 m. Nhớ giữ chữ số 0 ở hàng phần mười!"],
+["kl","Bài 12","Viết 2 kg 50 g dưới dạng số đo có đơn vị là ki-lô-gam:",["2,05 kg","2,5 kg","2,005 kg","250 kg"],0,"50 g = 50/1000 kg = 0,05 kg nên 2 kg 50 g = 2,05 kg."],
+["kl","Bài 12","Điền số thích hợp: 35 kg = … tấn",["0,035","0,35","3,5","0,0035"],0,"1 kg = 1/1000 tấn nên 35 kg = 35/1000 tấn = 0,035 tấn."],
+["kl","Bài 12","Điền số thích hợp: 0,5 kg = … g",["500","50","5","5 000"],0,"0,5 kg = 5/10 kg = 500/1000 kg = 500 g."],
+["dg","Bài 12","Điền số thích hợp: 148 ml = … l",["0,148","1,48","14,8","0,0148"],0,"1 ml = 1/1000 l nên 148 ml = 148/1000 l = 0,148 l."],
+["dg","Bài 12","Điền số thích hợp: 2,5 l = … ml",["2 500","250","25","2 050"],0,"2,5 l = 2 5/10 l = 2 l 500 ml = 2 500 ml."],
+["ds","Bài 12","Điền số thích hợp: 35 dm² = … m²",["0,35","3,5","0,035","35"],0,"1 m² = 100 dm² nên 1 dm² = 1/100 m². Vậy 35 dm² = 35/100 m² = 0,35 m²."],
+["ds","Bài 12","Viết 5 m² 8 dm² dưới dạng số đo có đơn vị là mét vuông:",["5,08 m²","5,8 m²","58 m²","5,008 m²"],0,"8 dm² = 8/100 m² = 0,08 m² nên 5 m² 8 dm² = 5,08 m²."],
+["vd","Bài 12","Bình có sợi dây dài 100 cm, cắt đi 35 cm. Đoạn dây còn lại dài bao nhiêu mét?",["0,65 m","0,35 m","6,5 m","65 m"],0,"Còn lại 100 − 35 = 65 (cm) = 65/100 m = 0,65 m."]
+];
+
+/* ===== BẢNG VINH DANH (xếp theo XP của tất cả học sinh, đọc từ database) ===== */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fr=(n,d)=>`<span class="fr"><i>${n}</i><i>${d}</i></span>`;
+// Chuyển "2 3/4" thành hỗn số và "3/5" thành phân số xếp chồng (đã escape HTML)
+const fx=s=>String(s)
+  .replace(/(?<![\d,])(\d+) (\d+)\/(\d+)(?![\d])/g,(_,w,n,d)=>`<span class="mx">${w}${fr(n,d)}</span>`)
+  .replace(/(?<![\d,])(\d+)\/(\d+)(?![\d])/g,(_,n,d)=>fr(n,d))
+  .replace(/\^(\d+|□)/g,'<sup>$1</sup>'); // mũ: (−1/2)^4 → (−½)⁴
+const fmt=s=>fx(esc(s));
+const countDone=d=>d&&typeof d==='object'?Object.keys(d).length:0;
+let boardF='all',boardRows=null,boardSeq=0;
+function setBoard(f){boardF=f;drawBoard()}
+async function renderBoard(){
+  const seq=++boardSeq;
+  if(!sb)return;
+  if(!boardRows)$('rankBoard').innerHTML='<h2>'+stk('star-gold','h-ic')+' Bảng vinh danh</h2><p class="muted">Đang tải bảng xếp hạng…</p>';
+  try{
+    let {data,error}=await sb.from('profiles').select('id,name,grade,xp,done,avatar').order('xp',{ascending:false}).limit(500);
+    if(error)({data,error}=await sb.from('profiles').select('id,name,grade,xp,done').order('xp',{ascending:false}).limit(500)); // cột avatar chưa tạo
+    if(error)throw error;
+    if(seq!==boardSeq||!user)return;
+    boardRows=data||[];
+  }catch(_){
+    if(seq!==boardSeq||!user)return;
+    if(!boardRows){$('rankBoard').innerHTML='<h2>'+stk('star-gold','h-ic')+' Bảng vinh danh</h2><p class="muted">Chưa tải được bảng xếp hạng. Hãy kiểm tra mạng rồi thử lại.</p><button class="btn ghost sm" onclick="renderBoard()">↻ Thử lại</button>';return}
+  }
+  drawBoard();
+}
+function drawBoard(){
+  if(!user||!boardRows)return;
+  const all=boardRows.filter(r=>r.id!==uid).map(r=>({id:r.id,name:r.name,av:r.avatar,g:Number(r.grade)||5,xp:Number(r.xp)||0,n:countDone(r.done)}));
+  all.push({id:uid,name:user.name,av:user.av,g:user.grade||5,xp:user.xp,n:countDone(user.done)}); // dòng của mình luôn dùng số liệu mới nhất
+  all.sort((a,b)=>b.xp-a.xp||String(a.name).localeCompare(String(b.name),'vi'));
+  const gs=[...new Set(all.map(x=>x.g))].sort((a,b)=>a-b);
+  if(boardF!=='all'&&!gs.includes(+boardF))boardF='all';
+  const list=boardF==='all'?all:all.filter(x=>String(x.g)===boardF);
+  const medals=['🥇','🥈','🥉'],me=all.findIndex(x=>x.id===uid),mr=rankOf(user.xp);
+  $('rankBoard').innerHTML=`<h2>${stk('star-gold','h-ic')} Bảng vinh danh</h2>
+  <p class="muted">Xếp theo tổng XP của tất cả các khối. Làm bài kiểm tra và chơi trò chơi để leo hạng!</p>
+  <p class="mine">Vị trí của bạn: <b>#${me+1}</b>/${all.length} · ${rkImg(mr)} ${mr.n} · ${user.xp} XP</p>
+  <div class="filters"><button class="${boardF==='all'?'on':''}" onclick="setBoard('all')">Tất cả</button>${gs.map(g=>`<button class="${String(g)===boardF?'on':''}" onclick="setBoard('${g}')">Lớp ${g}</button>`).join('')}<button class="btn ghost sm refresh" onclick="renderBoard()">↻ Làm mới</button></div>
+  ${podiumHtml(list,medals)}<ol class="hlist" start="4">${list.slice(3).map((x,j)=>{const i=j+3;const r=rankOf(x.xp);return `<li class="${x.id===uid?'me':''}"><span class="pos">${medals[i]||i+1}</span><span class="av-frame sm" style="--c:${r.c}">${avImg(x.av,x.id)}</span><span class="hn">${esc(x.name)}<small>Lớp ${x.g} · ${x.n} bài đã làm</small></span><span class="hr" style="background:${r.c}">${rkImg(r)} ${r.n}</span><b>${x.xp} XP</b></li>`}).join('')}</ol>
+  ${myRankHtml(mr)}<h3>Các hạng</h3><div class="ladder">${RANKS.map(r=>`<span class="${r.n===mr.n?'on':''}" style="--c:${r.c}">${rkImg(r)} ${r.n}<small>${r.min} XP</small></span>`).join('')}</div>`;
+}
+
+/* ===== HÀNH TRÌNH ĐẠI THÁNH v2: Tôn Ngộ Không đại chiến yêu quái (pixel) ===== */
+const PXD='assets/px/';
+const pimg=(n,c='')=>`<img class="${c}" src="${PXD}${n}.webp" alt="" draggable="false">`;
+/* ===== TOÁN 7 – SỐ HỮU TỈ (Rational Numbers): 4 đề kiểm tra trắc nghiệm rèn phản xạ ===== */
+const T7A={"voc": "Vocabulary", "read": "Reading maths aloud", "opp": "Opposite & reciprocal", "cls": "Rational numbers"};
+const Q7A=[
+["voc", "Q1", "What is the English for “số hữu tỉ”?", ["rational number", "reciprocal", "fraction", "exponent"], 0, "số hữu tỉ = rational number /ˈræʃənəl ˈnʌmbə(r)/."],
+["voc", "Q2", "What is the English for “tử số”?", ["numerator", "denominator", "exponent", "reciprocal"], 0, "tử số = numerator; mẫu số = denominator."],
+["voc", "Q3", "What is the English for “mẫu số chung”?", ["common denominator", "equivalent fraction", "opposite number", "order of operations"], 0, "mẫu số chung = common denominator: used to add, subtract and compare fractions."],
+["voc", "Q4", "What is the English for “số nghịch đảo”?", ["reciprocal", "opposite number", "exponent", "numerator"], 0, "số nghịch đảo = reciprocal; số đối = opposite number."],
+["voc", "Q5", "What is the English for “thứ tự giảm dần”?", ["decreasing order", "increasing order", "order of operations", "equation"], 0, "giảm dần = decreasing (large → small); tăng dần = increasing."],
+["voc", "Q6", "In the fraction 7/9, the number 9 is the:", ["denominator", "numerator", "exponent", "reciprocal"], 0, "The bottom number is the denominator (mẫu số); the top is the numerator (tử số)."],
+["voc", "Q7", "In 5^3, the number 3 is called the:", ["exponent", "numerator", "denominator", "opposite number"], 0, "In a power, the small raised number is the exponent (số mũ); 5 is the base (cơ số)."],
+["read", "Q8", "How do we read −3/4 in English?", ["minus three over four", "three minus over four", "minus four over three", "three over minus four"], 0, "Say the sign first, then “three over four”."],
+["read", "Q9", "Which sentence reads (−1/2)^4 correctly?", ["open parenthesis minus one over two close parenthesis raised to the fourth power", "minus one over two times four", "one over two raised to the minus fourth", "minus one over two raised to the second power"], 0, "“Raised to the fourth power” means exponent 4."],
+["read", "Q10", "Which expression is read “two over five plus open parenthesis minus two over five close parenthesis equals zero”?", ["2/5 + (−2/5) = 0", "2/5 − (−2/5) = 0", "2/5 × (−2/5) = 0", "2/5 + (−5/2) = 0"], 0, "A number plus its opposite equals zero."],
+["opp", "Q11", "The opposite number of 3/5 is:", ["−3/5", "5/3", "−5/3", "3/5"], 0, "Opposite of x is −x, so x + (−x) = 0 / số đối của 3/5 là −3/5."],
+["opp", "Q12", "The reciprocal of −2/7 is:", ["−7/2", "7/2", "2/7", "−2/7"], 0, "Flip the fraction and keep the sign: reciprocal of a/b is b/a / số nghịch đảo giữ nguyên dấu."],
+["opp", "Q13", "Which number has NO reciprocal?", ["0", "1", "−1", "1/2"], 0, "We cannot divide by 0, so 0 has no reciprocal / số 0 không có số nghịch đảo."],
+["cls", "Q14", "0.6 can be written as the fraction:", ["3/5", "6/5", "1/6", "3/50"], 0, "0.6 = 6/10 = 3/5 / viết 0,6 = 6/10 rồi rút gọn."],
+["cls", "Q15", "Which statement is TRUE?", ["Every integer is a rational number.", "Every rational number is an integer.", "The number 0 has a reciprocal.", "The opposite of x is 1/x."], 0, "For example −4 = −4/1, so every integer is rational (ℤ ⊂ ℚ)."]
+];
+const T7B={"eq": "Equivalent fractions", "cmp": "Comparing", "ord": "Ordering", "btw": "Numbers in between"};
+const Q7B=[
+["eq", "Q1", "Complete: 3/4 = ?/20", ["15", "19", "−15", "17"], 0, "20 ÷ 4 = 5, so multiply the top by 5 too: 3 × 5 = 15. / Nhân cả tử và mẫu với 5."],
+["eq", "Q2", "Complete: −5/6 = ?/18", ["−15", "7", "15", "−13"], 0, "18 ÷ 6 = 3, so multiply the top by 3 too: -5 × 3 = -15. / Nhân cả tử và mẫu với 3."],
+["eq", "Q3", "Complete: 2/7 = 8/?", ["28", "14", "21", "56"], 0, "2 × 4 = 8, so multiply the denominator by 4: 7 × 4 = 28. / Nhân tử và mẫu với 4."],
+["eq", "Q4", "Which fraction is equivalent to 0.4?", ["2/5", "4/5", "1/4", "4/100"], 0, "0.4 = 4/10 = 2/5 / 0,4 = 4/10 = 2/5."],
+["eq", "Q5", "Complete: −2 = ?/7", ["−14", "−9", "14", "−5"], 0, "−2 = −2/1 = (−2×7)/(1×7) = −14/7."],
+["cmp", "Q6", "Choose the correct symbol: −2/3 □ −3/4", [">", "<", "=", "cannot be compared"], 0, "Convert to a common form: −2/3 = −0.666667, −3/4 = −0.75. Hence −2/3 > −3/4. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q7", "Choose the correct symbol: −0.6 □ −3/5", ["=", ">", "<", "cannot be compared"], 0, "Convert to a common form: −0.6 = −0.6, −3/5 = −0.6. Hence −0.6 = −3/5. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q8", "Choose the correct symbol: 5/8 □ 0.6", [">", "<", "=", "cannot be compared"], 0, "Convert to a common form: 5/8 = 0.625, 0.6 = 0.6. Hence 5/8 > 0.6. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q9", "Choose the correct symbol: −4/5 □ −0.75", ["<", ">", "=", "cannot be compared"], 0, "Convert to a common form: −4/5 = −0.8, −0.75 = −0.75. Hence −4/5 < −0.75. / Đổi về cùng dạng rồi so sánh."],
+["cmp", "Q10", "Choose the correct symbol: 7/12 □ 5/8", ["<", ">", "=", "cannot be compared"], 0, "Convert to a common form: 7/12 = 0.583333, 5/8 = 0.625. Hence 7/12 < 5/8. / Đổi về cùng dạng rồi so sánh."],
+["ord", "Q11", "Write in increasing order:  1/2; −3/4; 0.4; −1/3", ["−3/4; −1/3; 0.4; 1/2", "1/2; 0.4; −1/3; −3/4", "−3/4; 0.4; −1/3; 1/2", "−1/3; −3/4; 0.4; 1/2"], 0, "Compare as decimals: 1/2 = 0.5, −3/4 = −0.75, 0.4 = 0.4, −1/3 = −0.333333. Small → large."],
+["ord", "Q12", "Write in decreasing order:  −0.6; 2/3; 0; −5/8", ["2/3; 0; −0.6; −5/8", "−5/8; −0.6; 0; 2/3", "2/3; −0.6; 0; −5/8", "0; 2/3; −0.6; −5/8"], 0, "Compare as decimals: −0.6 = −0.6, 2/3 = 0.666667, 0 = 0, −5/8 = −0.625. Large → small."],
+["ord", "Q13", "Which is the smallest?", ["−5/6", "−3/4", "−0.7", "−2/3"], 0, "−5/6 ≈ −0.833 is farthest to the left on the number line, so it is the smallest. / Số càng xa về bên trái càng bé."],
+["btw", "Q14", "Which number lies between −2/3 and −1/2?", ["−7/12", "−3/4", "−5/12", "−1/3"], 0, "Use denominator 12: −8/12 < x < −6/12, so x = −7/12. / Quy đồng mẫu 12."],
+["btw", "Q15", "Which number lies between 1/4 and 1/3?", ["7/24", "3/8", "1/5", "1/2"], 0, "Use denominator 24: 6/24 < x < 8/24, so x = 7/24. / Quy đồng mẫu 24."]
+];
+const T7C={"addsub": "Add & subtract", "muldiv": "Multiply & divide", "order": "Order of operations", "err": "Find the mistake"};
+const Q7C=[
+["addsub", "Q1", "Calculate: −1/6 + 2/3", ["1/2", "1/9", "−5/6", "−1/2"], 0, "Common denominator 6: −1/6 + 4/6 = 3/6 = 1/2. / Quy đồng mẫu 6."],
+["addsub", "Q2", "Calculate: 3/5 − 7/10", ["−1/10", "−4/15", "13/10", "1/10"], 0, "Common denominator 10: 6/10 − 7/10 = −1/10."],
+["addsub", "Q3", "Calculate: −5/8 − 1/4", ["−7/8", "−1/2", "−3/8", "7/8"], 0, "Common denominator 8: −5/8 − 2/8 = −7/8."],
+["addsub", "Q4", "Calculate: 4/9 − (−1/6)", ["11/18", "1/3", "5/18", "−11/18"], 0, "Subtracting a negative = adding: 4/9 + 1/6 = 8/18 + 3/18 = 11/18. / Trừ số âm = cộng số dương."],
+["addsub", "Q5", "Calculate: −3/4 + 5/6", ["1/12", "1/5", "−19/12", "−1/12"], 0, "Common denominator 12: −9/12 + 10/12 = 1/12."],
+["muldiv", "Q6", "Calculate: −3/5 × 10/9", ["−2/3", "2/3", "23/45", "−27/50"], 0, "−(3×10)/(5×9) = −30/45 = −2/3. Different signs → negative."],
+["muldiv", "Q7", "Calculate: −7/12 × (−6/7)", ["1/2", "−1/2", "−121/84", "49/72"], 0, "Two negatives → positive: (7×6)/(12×7) = 42/84 = 1/2."],
+["muldiv", "Q8", "Calculate: 4/15 × (−5/8)", ["−1/6", "1/6", "−43/120", "−32/75"], 0, "−(4×5)/(15×8) = −20/120 = −1/6."],
+["muldiv", "Q9", "Calculate: −5/6 : 10/9", ["−3/4", "−25/27", "3/4", "−4/3"], 0, "Multiply by the reciprocal: −5/6 × 9/10 = −45/60 = −3/4. / Nhân với số nghịch đảo của số chia."],
+["muldiv", "Q10", "Calculate: 3/8 : (−9/16)", ["−2/3", "−27/128", "2/3", "−3/2"], 0, "3/8 × (−16/9) = −48/72 = −2/3."],
+["order", "Q11", "Calculate: 1/2 − 3/4 × 2/3", ["0", "−1/6", "1/6", "1/4"], 0, "Multiply first: 3/4 × 2/3 = 1/2. Then 1/2 − 1/2 = 0. / Nhân trước, trừ sau."],
+["order", "Q12", "Calculate: (−1/3 + 5/6) : 3/2", ["1/3", "3/4", "−1/3", "1/2"], 0, "Brackets: −2/6 + 5/6 = 1/2. Then 1/2 : 3/2 = 1/2 × 2/3 = 1/3."],
+["order", "Q13", "Calculate: 1 − [1/2 − (−1/4)]", ["1/4", "3/4", "5/4", "−1/4"], 0, "Inner bracket: 1/2 + 1/4 = 3/4. Then 1 − 3/4 = 1/4."],
+["order", "Q14", "Calculate: (−1/2)^3 + 3/4 : 3", ["1/8", "−3/8", "−1/8", "3/8"], 0, "Power: (−1/2)^3 = −1/8. Division: 3/4 : 3 = 1/4. Sum: −1/8 + 2/8 = 1/8."],
+["err", "Q15", "A learner writes 1/3 + 1/4 = 2/7. What is the mistake?", ["Added numerators and denominators separately", "Forgot to simplify", "Used the wrong common denominator 6", "There is no mistake"], 0, "Fractions must have a common denominator first: 1/3 + 1/4 = 4/12 + 3/12 = 7/12. / Phải quy đồng mẫu số rồi mới cộng tử."]
+];
+const T7D={"pow": "Powers", "eqn": "Equations", "prob": "Word problems"};
+const Q7D=[
+["pow", "Q1", "Calculate (−2/3)^3", ["−8/27", "8/27", "−8/9", "−2/9"], 0, "(−2)^3 / 3^3 = −8/27. Odd exponent → the result stays negative. / Số mũ lẻ → kết quả âm."],
+["pow", "Q2", "Calculate (−1/2)^4", ["1/16", "−1/16", "1/8", "−1/8"], 0, "(−1)^4 / 2^4 = 1/16. Even exponent → positive. / Số mũ chẵn → kết quả dương."],
+["pow", "Q3", "(3/4)^2 · (3/4)^3 = ?", ["(3/4)^5", "(3/4)^6", "(9/16)^3", "(3/4)^1"], 0, "Same base: add the exponents, 2 + 3 = 5. / Cùng cơ số: cộng số mũ."],
+["pow", "Q4", "(−5/6)^7 : (−5/6)^4 = ?", ["(−5/6)^3", "(−5/6)^11", "(−5/6)^28", "(−5/6)^2"], 0, "Same base: subtract the exponents, 7 − 4 = 3. / Cùng cơ số: trừ số mũ."],
+["pow", "Q5", "((2/5)^2)^3 = ?", ["(2/5)^6", "(2/5)^5", "(2/5)^8", "(2/5)^9"], 0, "Power of a power: multiply the exponents, 2 × 3 = 6. / Lũy thừa của lũy thừa: nhân số mũ."],
+["eqn", "Q6", "Find x: x + 1/2 = 3/4", ["1/4", "5/4", "−1/4", "3/8"], 0, "x = 3/4 − 1/2 = 3/4 − 2/4 = 1/4. / Chuyển vế: đổi dấu."],
+["eqn", "Q7", "Find x: x − 2/3 = −1/6", ["1/2", "−5/6", "5/6", "−1/2"], 0, "x = −1/6 + 2/3 = −1/6 + 4/6 = 3/6 = 1/2."],
+["eqn", "Q8", "Find x: 2/5 · x = −4/15", ["−2/3", "2/3", "−8/75", "−3/2"], 0, "x = −4/15 : 2/5 = −4/15 × 5/2 = −20/30 = −2/3."],
+["eqn", "Q9", "Find x: (−5/6) · x = 5/12", ["−1/2", "1/2", "−25/72", "−2"], 0, "x = 5/12 : (−5/6) = 5/12 × (−6/5) = −30/60 = −1/2."],
+["eqn", "Q10", "Find x: x : 3/4 = 4/9", ["1/3", "16/27", "3/16", "−1/3"], 0, "x = 4/9 × 3/4 = 12/36 = 1/3. / Số bị chia = thương × số chia."],
+["prob", "Q11", "At 6 a.m. the temperature is −4.2°C. It rises by 9.0°C by noon, then falls by 3.8°C in the evening. The evening temperature is:", ["1.0°C", "−1.0°C", "8.6°C", "4.8°C"], 0, "−4.2 + 9.0 = 4.8; then 4.8 − 3.8 = 1.0. Answer 1.0°C."],
+["prob", "Q12", "A tank is 5/6 full. Then 1/3 of the tank’s total capacity is used. What fraction of the tank is still full?", ["1/2", "5/18", "7/6", "4/3"], 0, "5/6 − 1/3 = 5/6 − 2/6 = 3/6 = 1/2. / Cả hai phân số đều tính trên cả bể."],
+["prob", "Q13", "A 4.5 m ribbon is cut into two pieces: 1 1/2 m and 2 1/4 m. How much ribbon is left?", ["0.75 m", "3.75 m", "2.25 m", "1.25 m"], 0, "1 1/2 + 2 1/4 = 3.75 m; 4.5 − 3.75 = 0.75 m (= 3/4 m)."],
+["prob", "Q14", "A bottle holds 3.2 L of juice. 3/4 L is used at lunch and another 0.55 L later. How much juice remains?", ["1.9 L", "2.45 L", "2.31 L", "4.5 L"], 0, "3/4 L = 0.75 L. 3.2 − 0.75 − 0.55 = 1.9 L."],
+["prob", "Q15", "Which statement is ALWAYS true?", ["The product of two negative rational numbers is positive.", "The sum of two rational numbers is positive.", "Every rational number has a reciprocal.", "A power of a negative number is negative."], 0, "(−a)·(−b) = a·b > 0. The other statements have counter-examples (−1 + 0, the number 0, (−1)^2). / Mỗi câu còn lại đều có phản ví dụ."]
+];
+// Mỗi đề test = một chặng đường. id cũ 'dt-b1-9' được giữ nguyên để không mất tiến độ.
+const T13={tn:"Làm tròn đến số tự nhiên",pm:"Làm tròn đến hàng phần mười",pt:"Làm tròn đến hàng phần trăm",ca:"Nhận biết & cách làm",vd:"Vận dụng"};
+const Q13=[
+["tn","Bài 13","Làm tròn 17,4 đến số tự nhiên gần nhất được:",["17","18","16","17,4"],0,"Chữ số hàng phần mười là 4, bé hơn 5 nên làm tròn xuống: 17,4 ≈ 17."],
+["tn","Bài 13","Làm tròn 204,5 đến số tự nhiên gần nhất được:",["205","204","206","200"],0,"Chữ số hàng phần mười là 5, không bé hơn 5 nên làm tròn lên: 204,5 ≈ 205."],
+["tn","Bài 13","Làm tròn 0,49 đến số tự nhiên gần nhất được:",["0","1","0,5","0,4"],0,"Chỉ xét chữ số hàng phần mười là 4 < 5 nên làm tròn xuống: 0,49 ≈ 0."],
+["tn","Bài 13","Làm tròn 99,6 đến số tự nhiên gần nhất được:",["100","99","90","101"],0,"Chữ số hàng phần mười là 6 > 5 nên làm tròn lên: 99 thêm 1 là 100."],
+["pm","Bài 13","Làm tròn 4,36 đến hàng phần mười được:",["4,4","4,3","4,36","5"],0,"So sánh chữ số hàng phần trăm với 5: 6 > 5 nên làm tròn lên: 4,3 thêm 0,1 là 4,4."],
+["pm","Bài 13","Làm tròn 7,83 đến hàng phần mười được:",["7,8","7,9","7,83","8"],0,"Chữ số hàng phần trăm là 3 < 5 nên làm tròn xuống: 7,83 ≈ 7,8."],
+["pm","Bài 13","Làm tròn 12,95 đến hàng phần mười được:",["13,0","12,9","13,5","12,0"],0,"Chữ số hàng phần trăm là 5 nên làm tròn lên: 12,9 thêm 0,1 là 13,0."],
+["pt","Bài 13","Làm tròn 5,718 đến hàng phần trăm được:",["5,72","5,71","5,7","5,8"],0,"So sánh chữ số hàng phần nghìn với 5: 8 > 5 nên làm tròn lên: 5,71 thêm 0,01 là 5,72."],
+["pt","Bài 13","Làm tròn 0,563 đến hàng phần trăm được:",["0,56","0,57","0,6","0,5"],0,"Chữ số hàng phần nghìn là 3 < 5 nên làm tròn xuống: 0,563 ≈ 0,56."],
+["pt","Bài 13","Làm tròn 3,995 đến hàng phần trăm được:",["4,00","3,99","4,05","3,90"],0,"Chữ số hàng phần nghìn là 5 nên làm tròn lên: 3,99 thêm 0,01 là 4,00."],
+["ca","Bài 13","Muốn làm tròn 8,276 đến hàng phần trăm, ta so sánh chữ số nào với 5?",["Chữ số 6 (hàng phần nghìn)","Chữ số 7 (hàng phần trăm)","Chữ số 2 (hàng phần mười)","Chữ số 8 (hàng đơn vị)"],0,"Làm tròn đến hàng nào thì xét chữ số ở hàng ngay bên phải hàng đó. Làm tròn đến phần trăm thì xét hàng phần nghìn: 6 > 5 nên 8,276 ≈ 8,28."],
+["ca","Bài 13","Số nào sau đây khi làm tròn đến hàng phần mười được 6,5?",["6,46","6,39","6,61","6,7"],0,"6,46: hàng phần trăm là 6 > 5 nên làm tròn lên thành 6,5. Các số còn lại làm tròn thành 6,4; 6,6; 6,7."],
+["vd","Bài 13","Bạn Lan cao 1,457 m. Làm tròn chiều cao đến hàng phần trăm, Lan cao khoảng:",["1,46 m","1,45 m","1,5 m","1,4 m"],0,"Chữ số hàng phần nghìn là 7 > 5 nên làm tròn lên: 1,45 thêm 0,01 là 1,46 m."],
+["vd","Bài 13","Hà chạy 100 m hết 14,36 giây. Làm tròn đến số tự nhiên gần nhất, thời gian của Hà là khoảng:",["14 giây","15 giây","14,4 giây","14,36 giây"],0,"Chữ số hàng phần mười là 3 < 5 nên làm tròn xuống: 14,36 ≈ 14 giây."],
+["vd","Bài 13","Mẹ mua 2,48 kg thịt. Làm tròn đến hàng phần mười, lượng thịt là khoảng:",["2,5 kg","2,4 kg","2,48 kg","3 kg"],0,"Chữ số hàng phần trăm là 8 > 5 nên làm tròn lên: 2,4 thêm 0,1 là 2,5 kg."]
+];
+const TON={dv:"Đổi đơn vị",td:"Phân số → số thập phân",ss:"So sánh"};
+const QON=[
+["dv","Bài 8","Bài 8 (ôn). 1 m = … cm",["100","10","1 000","1"],0,"1 m = 10 dm = 100 cm."],
+["dv","Bài 8","Bài 8 (ôn). 1 km = … m",["1 000","100","10","10 000"],0,"1 km = 1 000 m."],
+["dv","Bài 8","Bài 8 (ôn). 1 kg = … g",["1 000","100","10","10 000"],0,"1 kg = 1 000 g."],
+["dv","Bài 8","Bài 8 (ôn). 1 m² = … dm²",["100","10","1 000","1"],0,"1 m² = 100 dm² (hình vuông cạnh 10 dm có diện tích 100 dm²)."],
+["dv","Bài 8","Bài 8 (ôn). Hai đơn vị đo diện tích liền nhau (ví dụ m² và dm²) hơn kém nhau bao nhiêu lần?",["100 lần","10 lần","1 000 lần","2 lần"],0,"Đơn vị đo diện tích liền nhau hơn kém nhau 100 lần: 1 m² = 100 dm², 1 dm² = 100 cm²."],
+["td","Bài 10","Bài 10 (ôn). Phân số 7/100 viết thành số thập phân là:",["0,07","0,7","0,007","7,100"],0,"Mẫu số 100 nên có 2 chữ số thập phân; tử số chỉ có 1 chữ số nên thêm số 0: 0,07."],
+["td","Bài 10","Bài 10 (ôn). Hỗn số 3 4/10 viết thành số thập phân là:",["3,4","3,04","34,10","0,34"],0,"Phần nguyên là 3, phần thập phân là 4/10 = 0,4 nên bằng 3,4."],
+["td","Bài 10","Bài 10 (ôn). Phân số 6/1000 viết thành số thập phân là:",["0,006","0,06","0,6","6,000"],0,"Mẫu số 1000 nên có 3 chữ số thập phân: 0,006."],
+["td","Bài 10","Bài 10 (ôn). Trong số 8,364, chữ số 6 thuộc hàng nào?",["Hàng phần trăm","Hàng phần mười","Hàng phần nghìn","Hàng đơn vị"],0,"Sau dấu phẩy: 3 là hàng phần mười, 6 là hàng phần trăm, 4 là hàng phần nghìn."],
+["ss","Bài 11","Bài 11 (ôn). So sánh 5,06 và 5,6, kết quả đúng là:",["5,06 < 5,6","5,06 > 5,6","5,06 = 5,6","Không so sánh được"],0,"Viết 5,6 = 5,60. Phần nguyên bằng nhau; hàng phần mười 0 < 6 nên 5,06 < 5,6."],
+["ss","Bài 11","Bài 11 (ôn). Số lớn nhất trong các số 3,09; 3,9; 3,19; 3,091 là:",["3,9","3,19","3,09","3,091"],0,"Phần nguyên đều là 3. Hàng phần mười: 9 là lớn nhất nên 3,9 lớn nhất."]
+];
+const T12L={dd:"Độ dài",kl:"Khối lượng",ds:"Diện tích",vd:"Vận dụng"};
+const Q12L=[
+["dd","Bài 12","Bài 12. Điền số thích hợp: 2 m 15 cm = … m",["2,15","2,015","21,5","215"],0,"15 cm = 15/100 m nên 2 m 15 cm = 2 15/100 m = 2,15 m."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 1 kg 250 g = … kg",["1,25","1,025","12,5","1 250"],0,"250 g = 250/1000 kg nên 1 kg 250 g = 1,250 kg = 1,25 kg."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 275 g = … kg",["0,275","2,75","0,0275","27,5"],0,"275 g = 275/1000 kg = 0,275 kg."],
+["dd","Bài 12","Bài 12. Điền số thích hợp: 125 m = … km",["0,125","1,25","12,5","0,0125"],0,"125 m = 125/1000 km = 0,125 km."],
+["dd","Bài 12","Bài 12. Điền số thích hợp: 3 m 8 cm = … m",["3,08","3,8","3,008","38"],0,"8 cm = 8/100 m = 0,08 m nên 3 m 8 cm = 3,08 m. Nhớ giữ chữ số 0 ở hàng phần mười."],
+["dd","Bài 12","Bài 12. Điền số thích hợp: 7 km 80 m = … km",["7,08","7,8","7,008","78"],0,"80 m = 80/1000 km = 0,08 km nên 7 km 80 m = 7,08 km."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 8 kg 75 g = … kg",["8,075","8,75","8,0075","80,75"],0,"75 g = 75/1000 kg = 0,075 kg nên 8 kg 75 g = 8,075 kg."],
+["kl","Bài 12","Bài 12. Điền số thích hợp: 1 tấn 5 tạ = … tấn",["1,5","1,05","1,005","15"],0,"1 tạ = 1/10 tấn nên 5 tạ = 0,5 tấn; 1 tấn 5 tạ = 1,5 tấn."],
+["ds","Bài 12","Bài 12. Điền số thích hợp: 1 m² 60 dm² = … m²",["1,6","1,06","16","0,16"],0,"1 dm² = 1/100 m² nên 1 m² 60 dm² = 1 60/100 m² = 1,60 m² = 1,6 m²."],
+["ds","Bài 12","Bài 12. Điền số thích hợp: 3 m² 6 dm² = … m²",["3,06","3,6","3,006","36"],0,"6 dm² = 6/100 m² = 0,06 m² nên 3 m² 6 dm² = 3,06 m²."],
+["ds","Bài 12","Bài 12. Điền số thích hợp: 2 dm² 5 cm² = … dm²",["2,05","2,5","2,005","25"],0,"1 cm² = 1/100 dm² nên 5 cm² = 0,05 dm²; 2 dm² 5 cm² = 2,05 dm²."],
+["vd","Bài 12","Bài 12. Hình A có diện tích 4 cm² 15 mm², hình B có diện tích 3,95 cm². Hình nào có diện tích lớn hơn?",["Hình A","Hình B","Hai hình bằng nhau","Không so sánh được"],0,"1 cm² = 100 mm² nên 15 mm² = 0,15 cm²; hình A: 4,15 cm². Vì 4,15 > 3,95 nên hình A lớn hơn."],
+["vd","Bài 12","Bài 12. Đoạn đường AB dài 1,2 km, đoạn đường AC dài 1 km 75 m. Đoạn đường nào dài hơn?",["Đoạn AB","Đoạn AC","Hai đoạn bằng nhau","Không so sánh được"],0,"1 km 75 m = 1,075 km. Viết 1,2 = 1,200 > 1,075 nên đoạn AB dài hơn."],
+["vd","Bài 12","Bài 12. Thỏ nặng 6 kg 75 g, ngỗng nặng 6 100 g, mèo nặng 6,095 kg. Con vật nào nặng nhất?",["Ngỗng","Thỏ","Mèo","Ba con nặng bằng nhau"],0,"Đổi cùng đơn vị kg: thỏ 6,075 kg; ngỗng 6,1 kg; mèo 6,095 kg. Vì 6,1 > 6,095 > 6,075 nên ngỗng nặng nhất."],
+["vd","Bài 12","Bài 12. Bức tranh bảo vệ môi trường rộng 5,3 m²; bức an toàn giao thông rộng 5 m² 8 dm²; bức phòng chống dịch Covid rộng 5 m² 9 dm². Bức tranh nào có diện tích bé nhất?",["Bức an toàn giao thông","Bức bảo vệ môi trường","Bức phòng chống dịch Covid","Ba bức bằng nhau"],0,"5 m² 8 dm² = 5,08 m²; 5 m² 9 dm² = 5,09 m². Vì 5,08 < 5,09 < 5,3 nên bức an toàn giao thông bé nhất."]
+];
+const T13L={tn:"Làm tròn đến số tự nhiên",pm:"Hàng phần mười",pt:"Hàng phần trăm",vd:"Vận dụng"};
+const Q13L=[
+["tn","Bài 13","Bài 13. Làm tròn 31,2 đến số tự nhiên gần nhất được:",["31","32","30","33"],0,"Chữ số hàng phần mười là 2 < 5 nên làm tròn xuống: 31,2 ≈ 31."],
+["tn","Bài 13","Bài 13. Làm tròn 31,75 đến số tự nhiên gần nhất được:",["32","31","30","33"],0,"Chữ số hàng phần mười là 7 > 5 nên làm tròn lên: 31,75 ≈ 32."],
+["tn","Bài 13","Bài 13. Làm tròn 9,57 đến số tự nhiên gần nhất được:",["10","9","11","8"],0,"Chữ số hàng phần mười là 5 nên làm tròn lên: 9,57 ≈ 10."],
+["tn","Bài 13","Bài 13. Làm tròn 513,59 đến số tự nhiên gần nhất được:",["514","513","515","513,6"],0,"Chữ số hàng phần mười là 5 nên làm tròn lên: 513 thêm 1 là 514."],
+["tn","Bài 13","Bài 13. Làm tròn 0,806 đến số tự nhiên gần nhất được:",["1","0","0,8","2"],0,"Chữ số hàng phần mười là 8 > 5 nên làm tròn lên: 0 thêm 1 là 1."],
+["pm","Bài 13","Bài 13. Làm tròn 2,52 đến hàng phần mười được:",["2,5","2,6","2,52","3"],0,"So sánh chữ số hàng phần trăm với 5: 2 < 5 nên làm tròn xuống: 2,52 ≈ 2,5."],
+["pm","Bài 13","Bài 13. Làm tròn 3,25 đến hàng phần mười được:",["3,3","3,2","3,25","3"],0,"Chữ số hàng phần trăm là 5 nên làm tròn lên: 3,25 ≈ 3,3."],
+["pm","Bài 13","Bài 13. Làm tròn 1,57 đến hàng phần mười được:",["1,6","1,5","1,57","2"],0,"Chữ số hàng phần trăm là 7 > 5 nên làm tròn lên: 1,57 ≈ 1,6."],
+["pm","Bài 13","Bài 13. Làm tròn 9,345 đến hàng phần mười được (chỉ xét chữ số ngay sau hàng phần mười):",["9,3","9,4","9,35","9,5"],0,"Chỉ xét chữ số hàng phần trăm là 4 < 5 nên làm tròn xuống: 9,3. Không làm tròn hai lần (9,345 → 9,35 → 9,4 là sai)."],
+["pt","Bài 13","Bài 13. Làm tròn 6,324 đến hàng phần trăm được:",["6,32","6,33","6,3","6,324"],0,"So sánh chữ số hàng phần nghìn với 5: 4 < 5 nên làm tròn xuống: 6,32."],
+["pt","Bài 13","Bài 13. Làm tròn 6,325 đến hàng phần trăm được:",["6,33","6,32","6,3","6,4"],0,"Chữ số hàng phần nghìn là 5 nên làm tròn lên: 6,33."],
+["pt","Bài 13","Bài 13. Làm tròn 6,2758 đến hàng phần trăm được:",["6,28","6,27","6,3","6,2758"],0,"Chữ số hàng phần nghìn là 5 nên làm tròn lên: 6,27 thêm 0,01 là 6,28."],
+["vd","Bài 13","Bài 13. Đường chéo màn hình ti vi dài 139,7 cm. Làm tròn đến số tự nhiên gần nhất, đường chéo dài khoảng:",["140 cm","139 cm","139,7 cm","150 cm"],0,"Chữ số hàng phần mười là 7 > 5 nên làm tròn lên: 139 thêm 1 là 140 cm."],
+["vd","Bài 13","Bài 13. Số Pi bằng 3,141592… Làm tròn đến hàng phần trăm được:",["3,14","3,15","3,1","3,142"],0,"Chữ số hàng phần nghìn là 1 < 5 nên làm tròn xuống: 3,14."],
+["vd","Bài 13","Bài 13. Mai nặng 31,2 kg, Việt nặng 31,75 kg. Bác sĩ làm tròn cân nặng của hai bạn đến số tự nhiên gần nhất. Theo số đã làm tròn, Việt nặng hơn Mai bao nhiêu ki-lô-gam?",["1 kg","0,55 kg","0 kg","2 kg"],0,"Mai: 31,2 ≈ 31 kg. Việt: 31,75 ≈ 32 kg. Hiệu: 32 − 31 = 1 kg."]
+];
+/* ===== TOÁN 3 · TẬP 1 · KẾT NỐI TRI THỨC · BÀI 15, 16, 17 (Đại Thánh) ===== */
+const T15={nh:"Nhân, chia nhẩm",st:"Tìm số còn thiếu",bt:"Bài toán có lời văn",pm:"Một phần mấy",vd:"Vận dụng"};
+const Q15=[
+["nh","Bài 15","Tính nhẩm: 8 × 7 = ?",["56","54","48","63"],0,"Bảng nhân 8: 8 × 7 = 56."],
+["nh","Bài 15","Tính nhẩm: 9 × 4 = ?",["36","32","45","27"],0,"Bảng nhân 9: 9 × 4 = 36."],
+["nh","Bài 15","Tính nhẩm: 56 : 8 = ?",["7","6","8","9"],0,"Vì 8 × 7 = 56 nên 56 : 8 = 7."],
+["nh","Bài 15","Tính nhẩm: 72 : 9 = ?",["8","7","9","6"],0,"Vì 9 × 8 = 72 nên 72 : 9 = 8."],
+["nh","Bài 15","Phép tính nào dưới đây có kết quả bé hơn 8?",["49 : 7","54 : 6","72 : 9","63 : 7"],0,"49 : 7 = 7 (bé hơn 8); 54 : 6 = 9; 72 : 9 = 8; 63 : 7 = 9."],
+["st","Bài 15","Tìm số thích hợp: ? × 7 = 63",["9","8","7","10"],0,"63 : 7 = 9 nên số cần tìm là 9."],
+["st","Bài 15","Tìm số thích hợp: 4 × ? = 36",["9","8","6","32"],0,"36 : 4 = 9 nên số cần tìm là 9."],
+["st","Bài 15","Tìm số thích hợp: ? : 8 = 6",["48","14","54","42"],0,"Số bị chia = thương × số chia = 6 × 8 = 48."],
+["st","Bài 15","Tìm số thích hợp: 35 : ? = 5",["7","5","6","30"],0,"Số chia = số bị chia : thương = 35 : 5 = 7."],
+["bt","Bài 15","Việt xếp mỗi bàn 6 cái ly. Việt xếp 5 bàn. Hỏi Việt xếp tất cả bao nhiêu cái ly?",["30 cái ly","11 cái ly","25 cái ly","36 cái ly"],0,"Phép tính: 6 × 5 = 30 (cái ly)."],
+["bt","Bài 15","Mẹ Mai mua 45 bông hoa, cắm hết vào các lọ, mỗi lọ 9 bông. Hỏi cắm được bao nhiêu lọ hoa?",["5 lọ","54 lọ","36 lọ","4 lọ"],0,"Phép tính: 45 : 9 = 5 (lọ)."],
+["pm","Bài 15","Một hình được chia thành 6 phần bằng nhau, đã tô màu 1 phần. Đã tô màu một phần mấy của hình?",["1/6","1/5","1/7","1/1"],0,"Hình chia làm 6 phần bằng nhau, tô 1 phần thì đã tô 1/6 hình."],
+["pm","Bài 15","Có 18 con ếch. 1/6 số con ếch là bao nhiêu con?",["3 con","6 con","9 con","12 con"],0,"Tìm 1/6 của 18 là lấy 18 : 6 = 3 (con)."],
+["vd","Bài 15","Ở hình tam giác, ô vuông nằm giữa hai vòng tròn ghi tích của hai số ở hai vòng tròn đó. Hai vòng tròn ghi 5 và 7 thì ô vuông giữa hai vòng ghi số nào?",["35","12","42","30"],0,"5 × 7 = 35 (tích, không phải tổng)."],
+["vd","Bài 15","Ngộ Không hái 48 quả đào, chia đều cho 6 chú khỉ. Mỗi chú khỉ ăn 1/2 số đào của mình. Hỏi mỗi chú khỉ ăn mấy quả đào?",["4 quả","8 quả","2 quả","24 quả"],0,"Mỗi chú được 48 : 6 = 8 quả. Ăn 1/2 số đó là 8 : 2 = 4 quả."]
+];
+const T16={tg:"Điểm ở giữa, thẳng hàng",td:"Trung điểm",vd:"Vận dụng"};
+const Q16=[
+["tg","Bài 16","Ba điểm A, B, C cùng nằm trên một đường thẳng. Ba điểm đó gọi là ba điểm:",["thẳng hàng","không thẳng hàng","trung điểm","bằng nhau"],0,"Ba điểm cùng nằm trên một đường thẳng gọi là ba điểm thẳng hàng."],
+["tg","Bài 16","Cho ba điểm thẳng hàng A, B, C. Có mấy điểm nằm ở giữa hai điểm còn lại?",["1 điểm","2 điểm","3 điểm","Không có điểm nào"],0,"Trong ba điểm thẳng hàng luôn có đúng 1 điểm ở giữa hai điểm còn lại."],
+["tg","Bài 16","Ba điểm A, B, C thẳng hàng theo thứ tự đó, AB = 3 cm, BC = 2 cm. Điểm B là điểm ở giữa hai điểm nào?",["A và C","A và B","B và C","Không xác định được"],0,"B nằm giữa A và C trên cùng một đường thẳng."],
+["td","Bài 16","H là điểm ở giữa D và E, DH = 3 cm, HE = 3 cm. Điểm H được gọi là gì của đoạn thẳng DE?",["Trung điểm","Đầu mút","Điểm nằm ngoài đoạn thẳng","Trung điểm của đoạn DH"],0,"H ở giữa D, E và DH = HE nên H là trung điểm của đoạn thẳng DE."],
+["td","Bài 16","M là trung điểm của đoạn thẳng AB. Khẳng định nào đúng?",["AM = MB","AM > MB","AM < MB","AM = AB"],0,"Trung điểm chia đoạn thẳng thành hai đoạn bằng nhau: AM = MB."],
+["td","Bài 16","Đoạn thẳng AB dài 10 cm, M là trung điểm của AB. Độ dài đoạn AM là:",["5 cm","10 cm","20 cm","2 cm"],0,"AM = AB : 2 = 10 : 2 = 5 (cm)."],
+["td","Bài 16","M là trung điểm của đoạn thẳng AB và AM = 4 cm. Độ dài đoạn thẳng AB là:",["8 cm","4 cm","2 cm","12 cm"],0,"AB gấp 2 lần AM: 4 × 2 = 8 (cm)."],
+["td","Bài 16","Mỗi đoạn thẳng có bao nhiêu trung điểm?",["Đúng 1 trung điểm","2 trung điểm","3 trung điểm","Không có trung điểm nào"],0,"Mỗi đoạn thẳng chỉ có đúng một trung điểm."],
+["td","Bài 16","Đoạn AB dài 6 cm có M nằm giữa A và B, AM = 3 cm. Đoạn BC dài 5 cm có N nằm giữa B và C, BN = 3 cm. Khẳng định nào đúng?",["M là trung điểm của đoạn AB","N là trung điểm của đoạn BC","A là trung điểm của đoạn MB","B là trung điểm của đoạn AM"],0,"MB = 6 − 3 = 3 cm = AM nên M là trung điểm của AB. Còn NC = 5 − 3 = 2 cm khác BN = 3 cm nên N không phải trung điểm của BC."],
+["td","Bài 16","Điểm O nằm giữa A và B, OA = 2 cm, OB = 3 cm. O có là trung điểm của đoạn AB không?",["Không, vì OA không bằng OB","Có, vì O nằm giữa A và B","Có, vì AB = 5 cm","Không, vì O nằm ngoài đoạn AB"],0,"Muốn là trung điểm thì phải ở giữa và cách đều hai đầu. Ở đây OA ≠ OB nên O chưa phải trung điểm."],
+["vd","Bài 16","Việt có sợi dây dài 20 cm, không có thước. Làm cách nào để cắt được đoạn dây dài 10 cm?",["Gấp đôi sợi dây sao cho hai đầu trùng nhau rồi cắt ở chỗ gấp","Gấp sợi dây làm ba phần bằng nhau rồi cắt","Cắt ở chỗ cách một đầu dây một gang tay","Gấp sợi dây lại rồi cắt ở đầu dây"],0,"Gấp đôi sao cho hai đầu trùng nhau thì chỗ gấp là trung điểm, mỗi nửa dài 20 : 2 = 10 cm."],
+["vd","Bài 16","Cắt sợi dây dài 18 cm tại trung điểm thành hai đoạn. Mỗi đoạn dài bao nhiêu xăng-ti-mét?",["9 cm","6 cm","18 cm","36 cm"],0,"18 : 2 = 9 (cm)."],
+["vd","Bài 16","Đường từ chân núi A lên đỉnh núi B dài 600 m. Ngộ Không dừng nghỉ ở trạm M là trung điểm của đoạn đường AB. Từ M đến đỉnh B còn bao nhiêu mét?",["300 m","600 m","200 m","1 200 m"],0,"MB = AB : 2 = 600 : 2 = 300 (m)."],
+["vd","Bài 16","Đoạn thẳng PQ dài 14 cm, K là trung điểm của PQ. Điểm L nằm giữa P và K sao cho PL = 3 cm. Độ dài đoạn LK là:",["4 cm","3 cm","7 cm","11 cm"],0,"PK = 14 : 2 = 7 cm. LK = PK − PL = 7 − 3 = 4 (cm)."],
+["vd","Bài 16","AB = 12 cm, M là trung điểm của AB, N là trung điểm của AM. Độ dài đoạn AN là:",["3 cm","6 cm","4 cm","2 cm"],0,"AM = 12 : 2 = 6 cm; AN = 6 : 2 = 3 (cm)."]
+];
+const T17={kn:"Tâm, bán kính, đường kính",qh:"Bán kính – đường kính",dc:"Dùng compa",vd:"Vận dụng"};
+const Q17=[
+["kn","Bài 17","Trong hình tròn tâm O, đoạn thẳng AB đi qua tâm O và có hai đầu A, B nằm trên hình tròn. AB gọi là:",["đường kính","bán kính","tâm","trung điểm"],0,"Đoạn thẳng đi qua tâm, có hai đầu nằm trên hình tròn là đường kính."],
+["kn","Bài 17","Đoạn thẳng nối tâm O với một điểm M trên hình tròn gọi là:",["bán kính","đường kính","tâm","hình tròn"],0,"Đoạn thẳng nối tâm với một điểm trên hình tròn là bán kính OM."],
+["kn","Bài 17","Cho hình tròn tâm O có đường kính AB. Tâm O là gì của đoạn thẳng AB?",["Trung điểm","Một đầu mút","Điểm ngoài đoạn AB","Bán kính"],0,"Tâm O là trung điểm của đường kính AB."],
+["kn","Bài 17","Một hình tròn có bao nhiêu tâm?",["1 tâm","2 tâm","Nhiều tâm","Không có tâm"],0,"Mỗi hình tròn chỉ có đúng một tâm."],
+["kn","Bài 17","Trong một hình tròn, các bán kính như thế nào với nhau?",["Đều bằng nhau","Bán kính đi qua tâm dài hơn","Mỗi bán kính một độ dài khác nhau","Gấp đôi nhau"],0,"Mọi bán kính của cùng một hình tròn đều bằng nhau."],
+["qh","Bài 17","Đường kính của hình tròn gấp bao nhiêu lần bán kính?",["2 lần","1 lần","3 lần","4 lần"],0,"Đường kính dài gấp hai lần bán kính."],
+["qh","Bài 17","Hình tròn có bán kính 5 cm. Đường kính của hình tròn là:",["10 cm","5 cm","15 cm","25 cm"],0,"Đường kính = bán kính × 2 = 5 × 2 = 10 (cm)."],
+["qh","Bài 17","Hình tròn có đường kính 12 cm. Bán kính của hình tròn là:",["6 cm","24 cm","12 cm","4 cm"],0,"Bán kính = đường kính : 2 = 12 : 2 = 6 (cm)."],
+["qh","Bài 17","Hình tròn có bán kính 8 dm. Đường kính của hình tròn bằng bao nhiêu xăng-ti-mét?",["160 cm","16 cm","80 cm","1 600 cm"],0,"Đường kính = 8 × 2 = 16 dm; 1 dm = 10 cm nên 16 dm = 160 cm."],
+["dc","Bài 17","Dùng compa vẽ hình tròn tâm O. Đầu nhọn của compa đặt ở đâu?",["Tại tâm O","Tại một điểm trên đường tròn","Tại đầu bút chì","Ở ngoài hình tròn"],0,"Đặt đầu nhọn tại tâm O, quay đầu có bút chì để vẽ."],
+["dc","Bài 17","Muốn vẽ hình tròn tâm O bán kính 3 cm, ta mở compa sao cho khoảng cách giữa hai đầu compa là:",["3 cm","6 cm","9 cm","2 cm"],0,"Khoảng cách giữa hai đầu compa chính là bán kính: 3 cm."],
+["vd","Bài 17","Hình tròn tâm O có đường kính AB = 14 cm, M là một điểm trên hình tròn. Độ dài đoạn OM là:",["7 cm","14 cm","28 cm","3 cm"],0,"OM là bán kính nên OM = 14 : 2 = 7 (cm)."],
+["vd","Bài 17","Hai hình tròn tâm A và tâm B bằng nhau, bán kính 4 cm, chạm nhau tại một điểm nằm giữa A và B. Khoảng cách AB là:",["8 cm","4 cm","16 cm","2 cm"],0,"Điểm chạm nằm giữa A và B, cách mỗi tâm 4 cm nên AB = 4 + 4 = 8 (cm)."],
+["vd","Bài 17","Bọ ngựa đi theo đường gấp khúc ABCD. Ba hình tròn tâm B, O, C bằng nhau (bán kính 7 cm), xếp thành hàng ngang và chạm nhau. A cách B 7 cm, D cách C 7 cm, BC bằng 4 lần bán kính. Hỏi bọ ngựa đi bao nhiêu xăng-ti-mét?",["42 cm","28 cm","35 cm","21 cm"],0,"AB = 7 cm, CD = 7 cm, BC = 7 × 4 = 28 cm. Cả quãng đường: 7 + 28 + 7 = 42 (cm)."],
+["vd","Bài 17","Ba viên ngọc tròn giống nhau, mỗi viên đường kính 6 cm, xếp thành hàng ngang và chạm nhau. Cả hàng dài bao nhiêu xăng-ti-mét?",["18 cm","12 cm","9 cm","36 cm"],0,"Ba đường kính nối nhau: 6 × 3 = 18 (cm)."]
+];
+const T15K={kn:"Nhận biết km², ha",dd:"Đổi km², ha, m²",ss:"So sánh & chọn đơn vị",vd:"Vận dụng"};
+const Q15K=[
+["kn","Bài 15","1 km² bằng bao nhiêu mét vuông?",["1 000 000 m²","1 000 m²","100 000 m²","10 000 m²"],0,"Cạnh 1 km = 1 000 m nên 1 km² = 1 000 × 1 000 = 1 000 000 m² (đủ sáu chữ số 0)."],
+["kn","Bài 15","1 héc-ta (ha) bằng bao nhiêu mét vuông?",["10 000 m²","100 m²","1 000 m²","100 000 m²"],0,"1 ha là diện tích hình vuông cạnh 100 m: 100 × 100 = 10 000 m²."],
+["kn","Bài 15","1 km² bằng bao nhiêu héc-ta?",["100 ha","10 ha","1 000 ha","10 000 ha"],0,"Hình vuông cạnh 1 km chia thành 10 × 10 = 100 hình vuông cạnh 100 m, mỗi hình là 1 ha."],
+["kn","Bài 15","Héc-ta là diện tích của hình vuông có cạnh dài:",["100 m","10 m","1 km","1 000 m"],0,"1 ha = diện tích hình vuông cạnh 100 m."],
+["kn","Bài 15","Viết “không phẩy bốn mươi tư ki-lô-mét vuông”:",["0,44 km²","0,044 km²","4,4 km²","44 km²"],0,"Không phẩy bốn mươi tư = 0,44 nên viết 0,44 km²."],
+["kn","Bài 15","Câu nào dưới đây ĐÚNG?",["1 km² = 1 000 000 m²","1 km² = 1 000 m²","1 ha = 100 m²","1 km² = 10 ha"],0,"Sai lầm hay gặp: km và m hơn kém 1 000 lần nhưng km² và m² hơn kém 1 000 × 1 000 = 1 000 000 lần."],
+["dd","Bài 15","5 km² = … m²",["5 000 000","500 000","50 000","5 000"],0,"Đổi km² sang m² thì nhân với 1 000 000: 5 × 1 000 000 = 5 000 000."],
+["dd","Bài 15","8 km² 600 m² = … m²",["8 000 600","8 600","8 000 060","800 600"],0,"8 km² = 8 000 000 m²; cộng 600 m² được 8 000 600 m²."],
+["dd","Bài 15","2 500 000 m² = … km²",["2,5","25","0,25","250"],0,"2 500 000 : 1 000 000 = 2,5 (km²)."],
+["dd","Bài 15","4 ha = … m²",["40 000","4 000","400","400 000"],0,"1 ha = 10 000 m² nên 4 ha = 4 × 10 000 = 40 000 m²."],
+["dd","Bài 15","60 000 m² = … ha",["6","60","0,6","600"],0,"Đổi m² sang ha thì chia cho 10 000: 60 000 : 10 000 = 6 (ha)."],
+["dd","Bài 15","7 ha 500 m² = … m²",["70 500","7 500","75 000","700 500"],0,"7 ha = 70 000 m²; 70 000 + 500 = 70 500 m²."],
+["ss","Bài 15","Điền dấu: 2,5 km² … 240 ha",[">","<","=","Không so sánh được"],0,"2,5 km² = 250 ha mà 250 > 240 nên 2,5 km² > 240 ha."],
+["ss","Bài 15","Điền dấu: 8 000 m² … 1 ha",["<",">","=","Không so sánh được"],0,"1 ha = 10 000 m² mà 8 000 < 10 000 nên 8 000 m² < 1 ha."],
+["ss","Bài 15","Diện tích Thành phố Hồ Chí Minh khoảng 2 095 … Đơn vị thích hợp là:",["km²","ha","m²","dm²"],0,"Thành phố rất rộng nên dùng ki-lô-mét vuông."],
+["ss","Bài 15","Diện tích một khu rừng khoảng 80 … Đơn vị thích hợp là:",["ha","m²","km²","mm²"],0,"Ruộng đồng, khu rừng thường đo bằng héc-ta."],
+["ss","Bài 15","Ba thửa ruộng: A 2,5 ha; B 24 000 m²; C 0,3 km². Thứ tự từ bé đến lớn là:",["B, A, C","A, B, C","C, A, B","B, C, A"],0,"Đổi về m²: A = 25 000; B = 24 000; C = 300 000. Vì 24 000 < 25 000 < 300 000 nên B < A < C."],
+["vd","Bài 15","Cánh đồng hình chữ nhật dài 2 km, rộng 500 m. Diện tích cánh đồng là bao nhiêu héc-ta?",["100 ha","10 ha","1 000 ha","1 ha"],0,"2 km = 2 000 m; 2 000 × 500 = 1 000 000 m² = 100 ha."],
+["vd","Bài 15","Mảnh A dài 8 km, rộng 3 km; mảnh B hình vuông cạnh 5 km; mảnh C dài 7 km, rộng 4 km. Mảnh nào có diện tích lớn nhất?",["Mảnh C (28 km²)","Mảnh B (25 km²)","Mảnh A (24 km²)","Ba mảnh bằng nhau"],0,"A: 8 × 3 = 24; B: 5 × 5 = 25; C: 7 × 4 = 28 (km²). Lớn nhất là C."],
+["vd","Bài 15","Bác An có 1,2 ha đất, dùng ¾ diện tích để trồng lúa. Diện tích đất còn lại là bao nhiêu mét vuông?",["3 000 m²","9 000 m²","300 m²","30 000 m²"],0,"1,2 ha = 12 000 m². Trồng lúa: 12 000 × ¾ = 9 000 m². Còn lại: 12 000 − 9 000 = 3 000 m²."],
+["vd","Bài 15","Mảnh đất hình chữ nhật có chiều dài gấp đôi chiều rộng và diện tích 2 ha. Chiều rộng là:",["100 m","200 m","50 m","141 m"],0,"2 ha = 20 000 m² gồm 2 hình vuông bằng nhau, mỗi hình 10 000 m² nên cạnh 100 m. Rộng 100 m, dài 200 m."],
+["vd","Bài 15","Vườn quốc gia Tràm Chim rộng hơn 7 500 ha. Đổi 7 500 ha sang ki-lô-mét vuông được:",["75 km²","750 km²","7,5 km²","7 500 km²"],0,"Đổi ha sang km² thì chia cho 100: 7 500 : 100 = 75 (km²)."],
+["vd","Bài 15","Mảnh đất vuông cạnh 2 km và mảnh đất vuông cạnh 500 m. Mảnh thứ nhất hơn mảnh thứ hai bao nhiêu héc-ta?",["375 ha","400 ha","425 ha","3 750 ha"],0,"Mảnh 1: 2 × 2 = 4 km² = 400 ha. Mảnh 2: 500 × 500 = 250 000 m² = 25 ha. Hơn: 400 − 25 = 375 ha."]
+];
+const T16K={bd:"Bảng đơn vị đo diện tích",dd:"Đổi số đo",tp:"Viết số thập phân",vd:"Vận dụng"};
+const Q16K=[
+["bd","Bài 16","1 m² bằng bao nhiêu đề-xi-mét vuông?",["100 dm²","10 dm²","1 000 dm²","10 000 dm²"],0,"Hình vuông cạnh 1 m gồm 10 × 10 = 100 ô, mỗi ô là 1 dm²."],
+["bd","Bài 16","Trong m², dm², cm², mm², hai đơn vị liền nhau hơn kém nhau:",["100 lần","10 lần","1 000 lần","10 000 lần"],0,"Đơn vị độ dài hơn kém 10 lần, còn đơn vị diện tích hơn kém 10 × 10 = 100 lần."],
+["bd","Bài 16","Câu nào dưới đây SAI?",["1 dm² = 10 cm²","1 m² = 100 dm²","1 km² = 100 ha","1 ha = 10 000 m²"],0,"1 dm² = 100 cm² (không phải 10 cm²)."],
+["bd","Bài 16","Xếp các đơn vị đo diện tích từ lớn đến bé:",["km², ha, m², dm², cm², mm²","ha, km², m², dm², cm², mm²","km², m², ha, dm², cm², mm²","mm², cm², dm², m², ha, km²"],0,"Thứ tự đúng: km² > ha > m² > dm² > cm² > mm²."],
+["bd","Bài 16","Đổi từ m² sang dm² (xuống một bậc) thì ta làm thế nào?",["Nhân với 100","Nhân với 10","Chia cho 100","Chia cho 10"],0,"Đổi sang đơn vị bé hơn thì nhân; hai đơn vị liền nhau hơn kém 100 lần nên nhân với 100."],
+["dd","Bài 16","5 m² = … dm²",["500","50","5 000","0,05"],0,"5 × 100 = 500 (dm²)."],
+["dd","Bài 16","6 dm² = … cm²",["600","60","6 000","0,06"],0,"Đừng nhân với 10: 6 × 100 = 600 cm²."],
+["dd","Bài 16","4 m² 25 dm² = … dm²",["425","4 025","4 250","4 000 025"],0,"4 m² = 400 dm²; 400 + 25 = 425 dm²."],
+["dd","Bài 16","3 dm² 8 cm² = … cm²",["308","38","380","3 008"],0,"3 dm² = 300 cm²; 300 + 8 = 308 cm²."],
+["dd","Bài 16","5 km² 30 ha = … ha",["530","5 030","80","5 300"],0,"5 km² = 500 ha; 500 + 30 = 530 ha."],
+["dd","Bài 16","615 dm² = … m² … dm²",["6 m² 15 dm²","61 m² 5 dm²","615 m²","6 m² 150 dm²"],0,"615 = 600 + 15; 600 dm² = 6 m² nên 615 dm² = 6 m² 15 dm²."],
+["tp","Bài 16","30 dm² = … m²",["0,3","3","0,03","30"],0,"30 dm² = 30/100 m² = 0,3 m²."],
+["tp","Bài 16","271 mm² = … cm²",["2,71","27,1","0,271","271"],0,"mm² và cm² hơn kém 100 lần: 271/100 = 2,71 cm²."],
+["tp","Bài 16","3 m² 7 dm² = … m²",["3,07","3,7","3,007","37"],0,"3 m² 7 dm² = 3 7/100 m² = 3,07 m² (mỗi bậc cần hai chữ số thập phân)."],
+["tp","Bài 16","12 km² 50 ha = … km²",["12,5","12,05","12,005","125"],0,"50 ha = 50/100 km² = 0,5 km² nên được 12,5 km²."],
+["tp","Bài 16","700 m² = … ha",["0,07","0,7","7","0,007"],0,"ha và m² hơn kém 10 000 lần: 700/10 000 = 0,07 ha."],
+["tp","Bài 16","4 km² 20 ha = … km²",["4,2","4,02","4,002","42"],0,"20 ha = 20/100 km² = 0,2 km² nên được 4,2 km²."],
+["vd","Bài 16","Mặt sàn ngôi nhà bìa cứng hình vuông có diện tích 4 m². Tính theo đề-xi-mét vuông là:",["400 dm²","40 dm²","4/100 dm²","1/400 dm²"],0,"4 m² = 4 × 100 = 400 dm²."],
+["vd","Bài 16","Sắp xếp từ bé đến lớn: 2,5 dm²; 240 cm²; 0,02 m²; 2 500 mm².",["2 500 mm² < 0,02 m² < 240 cm² < 2,5 dm²","0,02 m² < 2 500 mm² < 240 cm² < 2,5 dm²","2 500 mm² < 240 cm² < 0,02 m² < 2,5 dm²","2,5 dm² < 240 cm² < 0,02 m² < 2 500 mm²"],0,"Đổi về cm²: 250; 240; 200; 25. Vì 25 < 200 < 240 < 250 nên thứ tự như đáp án."],
+["vd","Bài 16","Sàn phòng hình chữ nhật dài 8 m, rộng 5 m, lát gạch vuông cạnh 50 cm. Cần bao nhiêu viên gạch?",["160 viên","80 viên","320 viên","16 viên"],0,"Theo chiều dài: 8 m : 0,5 m = 16 viên; chiều rộng: 5 : 0,5 = 10 viên. 16 × 10 = 160 viên."],
+["vd","Bài 16","Ô cửa sổ hình chữ nhật dài 1,2 m, rộng 5 dm. Diện tích là bao nhiêu đề-xi-mét vuông?",["60 dm²","6 dm²","600 dm²","17 dm²"],0,"Đổi 1,2 m = 12 dm; diện tích 12 × 5 = 60 dm² (= 0,6 m²)."],
+["vd","Bài 16","Bác Tư có 1 ha đất, dùng 9/10 để trồng cây và làm đường, phần còn lại xây nhà. Diện tích xây nhà là:",["1 000 m²","9 000 m²","100 m²","10 000 m²"],0,"Phần xây nhà: 1 − 9/10 = 1/10. 1 ha = 10 000 m² nên 10 000 × 1/10 = 1 000 m²."],
+["vd","Bài 16","Tìm chữ số thích hợp: 4,□ ha = 45 000 m²",["5","4","0","9"],0,"45 000 m² = 4,5 ha nên □ = 5."],
+["vd","Bài 16","Sàn nhà 4 m² được trải kín bằng các tấm thảm hình vuông cạnh 5 dm. Cần bao nhiêu tấm thảm?",["16 tấm","8 tấm","80 tấm","20 tấm"],0,"4 m² = 400 dm²; mỗi tấm 5 × 5 = 25 dm²; 400 : 25 = 16 tấm."]
+];
+const TGK={"kn": "Khái niệm, đọc, viết", "ps": "Phân số, hỗn số", "dv": "Đổi đơn vị đo", "ss": "So sánh, sắp xếp", "lt": "Làm tròn", "vd": "Vận dụng"};
+const QGK1=[
+["kn", "Đề 1", "Số “ba mươi lăm phẩy không bảy” viết là:", ["35,07", "35,7", "35,007", "305,07"], 0, "Phần nguyên 35; phần thập phân “không bảy” = 07 nên viết 35,07."],
+["kn", "Đề 1", "Trong số 47,865, chữ số 6 thuộc hàng nào?", ["phần trăm", "phần mười", "phần nghìn", "đơn vị"], 0, "Sau dấu phẩy: 8 phần mười, 6 phần trăm, 5 phần nghìn."],
+["kn", "Đề 1", "Trong số 12,094, chữ số 9 có giá trị là:", ["9/100", "9/10", "9/1000", "9"], 0, "Chữ số 9 ở hàng phần trăm nên có giá trị 9/100."],
+["ps", "Đề 1", "Phân số 3/25 viết thành số thập phân là:", ["0,12", "0,3", "0,325", "1,2"], 0, "3/25 = 12/100 = 0,12 (nhân cả tử và mẫu với 4)."],
+["ps", "Đề 1", "Hỗn số 3 2/5 viết thành phân số là:", ["17/5", "11/5", "15/5", "32/5"], 0, "3 2/5 = (3 × 5 + 2)/5 = 17/5."],
+["ps", "Đề 1", "2/3 + 1/6 = ?", ["5/6", "3/9", "3/6", "2/9"], 0, "Quy đồng: 2/3 = 4/6; 4/6 + 1/6 = 5/6."],
+["ps", "Đề 1", "3/4 × 2/5 = ?", ["3/10", "5/9", "6/9", "5/20"], 0, "Tử nhân tử, mẫu nhân mẫu: 6/20 = 3/10."],
+["dv", "Đề 1", "5 m 6 cm = … m", ["5,06", "5,6", "5,006", "56"], 0, "6 cm = 6/100 m nên 5 m 6 cm = 5,06 m."],
+["dv", "Đề 1", "3 kg 70 g = … kg", ["3,07", "3,7", "3,007", "37"], 0, "70 g = 70/1000 kg = 0,07 kg nên được 3,07 kg."],
+["dv", "Đề 1", "2,4 m² = … ", ["2 m² 40 dm²", "2 m² 4 dm²", "24 m²", "2 m² 400 dm²"], 0, "0,4 m² = 40 dm² (mỗi bậc cần hai chữ số) nên 2,4 m² = 2 m² 40 dm²."],
+["dv", "Đề 1", "0,6 km = … m", ["600 m", "60 m", "6 000 m", "6 m"], 0, "1 km = 1 000 m nên 0,6 km = 600 m."],
+["ss", "Đề 1", "Số lớn nhất trong các số 4,56; 4,6; 4,506; 4,065 là:", ["4,6", "4,56", "4,506", "4,065"], 0, "Phần nguyên bằng nhau; hàng phần mười: 6 lớn nhất nên 4,6 lớn nhất."],
+["ss", "Đề 1", "So sánh 7,3 và 7,30:", ["7,3 = 7,30", "7,3 < 7,30", "7,3 > 7,30", "Không so sánh được"], 0, "Thêm chữ số 0 ở tận cùng phần thập phân thì giá trị không đổi."],
+["ss", "Đề 1", "Sắp xếp từ bé đến lớn: 0,5; 0,05; 0,55; 0,505.", ["0,05; 0,5; 0,505; 0,55", "0,05; 0,5; 0,55; 0,505", "0,5; 0,05; 0,505; 0,55", "0,55; 0,505; 0,5; 0,05"], 0, "Viết ba chữ số: 0,500; 0,050; 0,550; 0,505. Thứ tự: 0,050 < 0,500 < 0,505 < 0,550."],
+["lt", "Đề 1", "Làm tròn 8,372 đến hàng phần mười được:", ["8,4", "8,3", "8,37", "8"], 0, "Hàng phần trăm là 7 ≥ 5 nên hàng phần mười tăng 1: 8,3 → 8,4."],
+["lt", "Đề 1", "Làm tròn 15,5 đến số tự nhiên gần nhất được:", ["16", "15", "15,5", "17"], 0, "Hàng phần mười là 5 nên làm tròn lên: 16."],
+["vd", "Đề 1", "Hình chữ nhật dài 15 cm, rộng 8 cm. Chu vi là:", ["46 cm", "23 cm", "120 cm", "38 cm"], 0, "Chu vi = (15 + 8) × 2 = 46 cm."],
+["vd", "Đề 1", "Mai cao 1 m 28 cm, Việt cao 1,3 m, Nam cao 125 cm. Ai thấp nhất?", ["Nam", "Mai", "Việt", "Mai và Việt"], 0, "Đổi về mét: Mai 1,28; Việt 1,30; Nam 1,25. Nam thấp nhất."],
+["vd", "Đề 1", "Chữ số thích hợp thay □ để 4,7□ > 4,78 là:", ["9", "8", "7", "0"], 0, "4,79 > 4,78; với 8 thì hai số bằng nhau, nhỏ hơn thì bé hơn. Vậy □ = 9."],
+["vd", "Đề 1", "Có bao nhiêu số thập phân có một chữ số ở phần thập phân, lớn hơn 1,2 và bé hơn 1,6?", ["3", "4", "2", "5"], 0, "Đó là 1,3; 1,4; 1,5: có 3 số."],
+["vd", "Đề 1", "Hình bình hành có đáy 12 cm, chiều cao 7 cm. Diện tích là:", ["84 cm²", "38 cm²", "42 cm²", "19 cm²"], 0, "S = đáy × chiều cao = 12 × 7 = 84 cm²."]
+];
+const QGK2=[
+["kn", "Đề 2", "Số gồm 5 đơn vị, 0 phần mười, 8 phần trăm, 3 phần nghìn là:", ["5,083", "5,83", "5,0083", "50,83"], 0, "Phần thập phân: 0 phần mười, 8 phần trăm, 3 phần nghìn → 083. Số là 5,083."],
+["kn", "Đề 2", "Số 0,305 đọc là:", ["không phẩy ba trăm linh năm", "không phẩy ba mươi lăm", "không phẩy ba không năm", "ba trăm linh năm"], 0, "Phần thập phân 305 đọc như số tự nhiên: ba trăm linh năm."],
+["kn", "Đề 2", "Số nào dưới đây bằng 0,50?", ["0,5", "0,05", "5,0", "0,005"], 0, "Bỏ chữ số 0 ở tận cùng phần thập phân: 0,50 = 0,5."],
+["kn", "Đề 2", "Phân số thập phân bằng 0,009 là:", ["9/1000", "9/100", "9/10", "90/1000"], 0, "0,009 có ba chữ số thập phân nên mẫu số là 1 000: 9/1000."],
+["ps", "Đề 2", "5/8 − 1/4 = ?", ["3/8", "4/4", "4/8", "1/4"], 0, "1/4 = 2/8; 5/8 − 2/8 = 3/8."],
+["ps", "Đề 2", "4/5 : 2 = ?", ["2/5", "8/5", "4/7", "1/5"], 0, "Chia phân số cho số tự nhiên: 4/(5 × 2) = 4/10 = 2/5."],
+["ps", "Đề 2", "Hỗn số 2 3/4 viết thành số thập phân là:", ["2,75", "2,34", "2,25", "3,4"], 0, "3/4 = 75/100 = 0,75 nên 2 3/4 = 2,75."],
+["dv", "Đề 2", "9 dm² 5 cm² = … dm²", ["9,05", "9,5", "9,005", "95"], 0, "5 cm² = 5/100 dm² = 0,05 dm² nên được 9,05 dm²."],
+["dv", "Đề 2", "4,02 tấn = …", ["4 tấn 20 kg", "4 tấn 2 kg", "4 tấn 200 kg", "42 tấn"], 0, "0,02 tấn = 20 kg nên 4,02 tấn = 4 tấn 20 kg."],
+["dv", "Đề 2", "750 g = … kg", ["0,75", "7,5", "0,075", "75"], 0, "750 g = 750/1000 kg = 0,75 kg."],
+["dv", "Đề 2", "3,5 km = …", ["3 km 500 m", "3 km 50 m", "3 km 5 m", "35 km"], 0, "0,5 km = 500 m nên 3,5 km = 3 km 500 m."],
+["ss", "Đề 2", "So sánh 4 m 8 cm và 4,8 m:", ["4 m 8 cm < 4,8 m", "4 m 8 cm > 4,8 m", "4 m 8 cm = 4,8 m", "Không so sánh được"], 0, "4 m 8 cm = 4,08 m mà 4,08 < 4,8."],
+["ss", "Đề 2", "Số bé nhất trong các số 0,91; 0,19; 0,109; 0,9 là:", ["0,109", "0,19", "0,9", "0,91"], 0, "Hàng phần mười: 0,109 có 1 và hàng phần trăm 0 nên bé nhất."],
+["ss", "Đề 2", "Sắp xếp từ lớn đến bé: 3,4; 3,04; 3,44; 3,404.", ["3,44; 3,404; 3,4; 3,04", "3,404; 3,44; 3,4; 3,04", "3,04; 3,4; 3,404; 3,44", "3,44; 3,4; 3,404; 3,04"], 0, "Viết ba chữ số: 3,400; 3,040; 3,440; 3,404. Lớn đến bé: 3,440 > 3,404 > 3,400 > 3,040."],
+["lt", "Đề 2", "Làm tròn 6,985 đến hàng phần trăm được:", ["6,99", "6,98", "7,0", "6,9"], 0, "Hàng phần nghìn là 5 nên hàng phần trăm tăng 1: 6,98 → 6,99."],
+["lt", "Đề 2", "Làm tròn 49,49 đến số tự nhiên gần nhất được:", ["49", "50", "49,5", "48"], 0, "Hàng phần mười là 4 < 5 nên giữ nguyên phần nguyên: 49."],
+["lt", "Đề 2", "Làm tròn 0,95 đến hàng phần mười được:", ["1,0", "0,9", "0,10", "0,95"], 0, "Hàng phần trăm là 5 nên hàng phần mười tăng 1: 0,9 + 0,1 = 1,0."],
+["vd", "Đề 2", "Mận nặng 3 kg 80 g, cam nặng 3,8 kg, nhãn nặng 3 kg 8 g. Loại nào nặng nhất?", ["Cam", "Mận", "Nhãn", "Mận và nhãn bằng nhau"], 0, "Đổi: mận 3,08 kg; cam 3,8 kg; nhãn 3,008 kg. Cam nặng nhất."],
+["vd", "Đề 2", "Vườn hình chữ nhật dài 30 m, rộng bằng 2/3 chiều dài. Chu vi vườn tính theo ki-lô-mét là:", ["0,1 km", "1 km", "0,01 km", "100 km"], 0, "Rộng 30 × 2/3 = 20 m; chu vi (30 + 20) × 2 = 100 m = 0,1 km."],
+["vd", "Đề 2", "Hình thoi có hai đường chéo 10 cm và 6 cm. Diện tích là:", ["30 cm²", "60 cm²", "16 cm²", "32 cm²"], 0, "S = (m × n) : 2 = (10 × 6) : 2 = 30 cm²."],
+["vd", "Đề 2", "Từ các thẻ 2, 5, 0 và dấu phẩy, lập số thập phân có một chữ số ở phần nguyên, hai chữ số ở phần thập phân. Số lớn nhất là:", ["5,20", "5,02", "2,50", "2,05"], 0, "Các số: 0,25; 0,52; 2,05; 2,50; 5,02; 5,20. Lớn nhất là 5,20."]
+];
+const QGK3=[
+["kn", "Đề 3", "Trong số 128,375, chữ số 3 có giá trị là:", ["3/10", "3/100", "3/1000", "3"], 0, "Chữ số 3 ngay sau dấu phẩy, ở hàng phần mười nên có giá trị 3/10."],
+["kn", "Đề 3", "Số gồm 4 chục, 0 đơn vị, 6 phần nghìn là:", ["40,006", "40,06", "4,006", "40,6"], 0, "40 đơn vị; phần thập phân 006 nên số là 40,006."],
+["kn", "Đề 3", "Số nào dưới đây bằng 12,5?", ["12,500", "12,05", "12,005", "125"], 0, "Thêm chữ số 0 ở tận cùng phần thập phân thì giá trị không đổi: 12,5 = 12,500."],
+["ps", "Đề 3", "Phân số 7/20 viết thành số thập phân là:", ["0,35", "0,7", "0,07", "3,5"], 0, "7/20 = 35/100 = 0,35 (nhân cả tử và mẫu với 5)."],
+["ps", "Đề 3", "1 1/2 + 2 1/3 = ?", ["3 5/6", "3 2/5", "4 1/6", "3 2/6"], 0, "Đổi: 3/2 + 7/3 = 9/6 + 14/6 = 23/6 = 3 5/6."],
+["ps", "Đề 3", "5/6 × 3/10 = ?", ["1/4", "2/3", "15/16", "1/2"], 0, "5 × 3 = 15; 6 × 10 = 60; 15/60 = 1/4."],
+["dv", "Đề 3", "8,05 m² = …", ["8 m² 5 dm²", "8 m² 50 dm²", "8 m² 500 dm²", "80 m² 5 dm²"], 0, "0,05 m² = 5 dm² (hai chữ số thập phân ứng với 100 lần)."],
+["dv", "Đề 3", "2 tấn 5 tạ = … tấn", ["2,5", "2,05", "2,005", "25"], 0, "1 tấn = 10 tạ nên 5 tạ = 0,5 tấn; 2 tấn 5 tạ = 2,5 tấn."],
+["dv", "Đề 3", "7 530 m = … km", ["7,53", "75,3", "0,753", "7,053"], 0, "1 km = 1 000 m nên 7 530 m = 7,53 km."],
+["dv", "Đề 3", "4 m² 7 dm² = … m²", ["4,07", "4,7", "4,007", "47"], 0, "7 dm² = 7/100 m² = 0,07 m² nên được 4,07 m²."],
+["ss", "Đề 3", "So sánh 1,5 l và 1 500 ml:", ["1,5 l = 1 500 ml", "1,5 l < 1 500 ml", "1,5 l > 1 500 ml", "Không so sánh được"], 0, "1 l = 1 000 ml nên 1,5 l = 1 500 ml."],
+["ss", "Đề 3", "So sánh 0,8 l và 750 ml:", ["0,8 l > 750 ml", "0,8 l < 750 ml", "0,8 l = 750 ml", "Không so sánh được"], 0, "0,8 l = 800 ml mà 800 > 750."],
+["ss", "Đề 3", "Có bao nhiêu chữ số □ để 9,□3 > 9,53?", ["4", "5", "3", "6"], 0, "Cần □ > 5 (nếu □ = 5 thì hai số bằng nhau): □ ∈ {6; 7; 8; 9}, có 4 chữ số."],
+["ss", "Đề 3", "Có bao nhiêu số thập phân có một chữ số ở phần thập phân, lớn hơn 6,1 và bé hơn 6,7?", ["5", "4", "6", "7"], 0, "Đó là 6,2; 6,3; 6,4; 6,5; 6,6: có 5 số."],
+["lt", "Đề 3", "Làm tròn 0,996 đến hàng phần trăm được:", ["1,00", "0,99", "0,90", "0,996"], 0, "Hàng phần nghìn là 6 ≥ 5 nên hàng phần trăm tăng 1: 0,99 + 0,01 = 1,00."],
+["lt", "Đề 3", "Làm tròn 3,051 đến hàng phần mười được:", ["3,1", "3,0", "3,05", "4"], 0, "Hàng phần trăm là 5 nên hàng phần mười tăng 1: 3,0 → 3,1."],
+["lt", "Đề 3", "Số nào dưới đây khi làm tròn đến số tự nhiên gần nhất thì được 12?", ["12,49", "12,5", "11,49", "12,51"], 0, "12,49 có hàng phần mười là 4 < 5 nên ≈ 12; 12,5 và 12,51 ≈ 13; 11,49 ≈ 11."],
+["vd", "Đề 3", "Số bé nhất có hai chữ số ở phần thập phân, khi làm tròn đến số tự nhiên gần nhất thì được 12 là:", ["11,50", "11,49", "12,00", "11,51"], 0, "11,49 ≈ 11 nên không được; 11,50 ≈ 12 và là số bé nhất thỏa mãn."],
+["vd", "Đề 3", "Mảnh đất hình chữ nhật dài 36 m, rộng bằng 3/4 chiều dài. Diện tích mảnh đất là:", ["972 m²", "126 m²", "63 m²", "1 296 m²"], 0, "Rộng 36 × 3/4 = 27 m; diện tích 36 × 27 = 972 m²."],
+["vd", "Đề 3", "Từ các thẻ 3, 0, 7 và dấu phẩy, lập được bao nhiêu số thập phân có một chữ số ở phần nguyên và hai chữ số ở phần thập phân?", ["6", "4", "3", "9"], 0, "Các số: 0,37; 0,73; 3,07; 3,70; 7,03; 7,30: có 6 số."],
+["vd", "Đề 3", "Mi chạy 1,2 km, Việt chạy 1 150 m, Nam chạy 1 km 250 m. Ai chạy xa nhất?", ["Nam", "Mi", "Việt", "Mi và Nam"], 0, "Đổi ra km: Mi 1,2; Việt 1,15; Nam 1,25. Nam chạy xa nhất."]
+];
+const DT_SETS=[
+ {id:'dt-b1-9',name:'Bài 1–9',desc:'Ôn tập & bổ sung',T:DT_T,Q:DT_Q,cover:'dm-1'},
+ {id:'dt-b10',name:'Bài 10',desc:'Khái niệm số thập phân',T:T10,Q:Q10,cover:'dm-2'},
+ {id:'dt-b11',name:'Bài 11',desc:'So sánh các số thập phân',T:T11,Q:Q11,cover:'dm-3'},
+ {id:'dt-on-b12-13',title:'BÀI TẬP ÔN NHANH TRƯỚC BÀI 12–13',name:'Ôn nhanh trước Bài 12–13',desc:'Đổi đơn vị, phân số thập phân, so sánh',T:TON,Q:QON,cover:'dm-1'},
+ {id:'dt-b12',name:'Bài 12',desc:'Viết số đo dưới dạng số thập phân',T:T12,Q:Q12,cover:'ds-2'},
+ {id:'dt-b12-lt',title:'BÀI TẬP BÀI 12 · LUYỆN TẬP',name:'Bài 12 · Luyện tập',desc:'Bài tập SGK: độ dài, khối lượng, diện tích',T:T12L,Q:Q12L,cover:'dm-3'},
+ {id:'dt-b13',name:'Bài 13',desc:'Làm tròn số thập phân',T:T13,Q:Q13,cover:'ds-3'},
+ {id:'dt-b13-lt',title:'BÀI TẬP BÀI 13 · LUYỆN TẬP',name:'Bài 13 · Luyện tập',desc:'Bài tập SGK: làm tròn số thập phân',T:T13L,Q:Q13L,cover:'ds-1'},
+ {id:'dt-b15',title:'BÀI TẬP BÀI 15 · KI-LÔ-MÉT VUÔNG. HÉC-TA',name:'Bài 15',desc:'Ki-lô-mét vuông, héc-ta, đổi đơn vị',T:T15K,Q:Q15K,cover:'ds-4'},
+ {id:'dt-b16',title:'BÀI TẬP BÀI 16 · CÁC ĐƠN VỊ ĐO DIỆN TÍCH',name:'Bài 16',desc:'Bảng đơn vị, đổi số đo, số thập phân',T:T16K,Q:Q16K,cover:'dm-1'},
+ {id:'dt-gk1-1',title:'ĐỀ ÔN GIỮA HỌC KÌ I · ĐỀ 1',name:'Giữa kì I · Đề 1',desc:'Ôn thi giữa kì I Toán 5 (Bài 1–14), 21 câu',T:TGK,Q:QGK1,cover:'dm-2'},
+ {id:'dt-gk1-2',title:'ĐỀ ÔN GIỮA HỌC KÌ I · ĐỀ 2',name:'Giữa kì I · Đề 2',desc:'Ôn thi giữa kì I Toán 5 (Bài 1–14), 21 câu',T:TGK,Q:QGK2,cover:'dm-3'},
+ {id:'dt-gk1-3',title:'ĐỀ ÔN GIỮA HỌC KÌ I · ĐỀ 3',name:'Giữa kì I · Đề 3',desc:'Ôn thi giữa kì I Toán 5 (Bài 1–14), 21 câu',T:TGK,Q:QGK3,cover:'dm-1'},
+ {id:'dt3-b15',grade:3,title:'BÀI TẬP BÀI 15 · LUYỆN TẬP CHUNG',name:'Toán 3 · Bài 15',desc:'Nhân, chia nhẩm bảng 6–9; một phần mấy',T:T15,Q:Q15,cover:'dm-1'},
+ {id:'dt3-b16',grade:3,title:'BÀI TẬP BÀI 16 · ĐIỂM Ở GIỮA, TRUNG ĐIỂM',name:'Toán 3 · Bài 16',desc:'Điểm ở giữa, trung điểm của đoạn thẳng',T:T16,Q:Q16,cover:'dm-2'},
+ {id:'dt3-b17',grade:3,title:'BÀI TẬP BÀI 17 · HÌNH TRÒN',name:'Toán 3 · Bài 17',desc:'Tâm, bán kính, đường kính của hình tròn',T:T17,Q:Q17,cover:'dm-3'},
+ {id:'dt7-vocab',grade:7,name:'Rational Numbers · Test 1',desc:'Từ vựng, cách đọc, số đối & số nghịch đảo',T:T7A,Q:Q7A,cover:'dm-1'},
+ {id:'dt7-compare',grade:7,name:'Rational Numbers · Test 2',desc:'Phân số bằng nhau, so sánh, sắp xếp',T:T7B,Q:Q7B,cover:'dm-2'},
+ {id:'dt7-ops',grade:7,name:'Rational Numbers · Test 3',desc:'Cộng, trừ, nhân, chia, thứ tự phép tính',T:T7C,Q:Q7C,cover:'dm-3'},
+ {id:'dt7-power',grade:7,name:'Rational Numbers · Test 4',desc:'Lũy thừa, phương trình, bài toán thực tế',T:T7D,Q:Q7D,cover:'ds-2'}
+];
+let dt=null,dtMuted=false,dtAC=null;
+try{dtMuted=localStorage.getItem('mute')==='1'}catch(_){}
+function dtTone(f,d,s,ty,v){const t=dtAC.currentTime+s,o=dtAC.createOscillator(),g=dtAC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(dtAC.destination);o.start(t);o.stop(t+d+.05)}
+function dtSfx(k){if(dtMuted)return;try{dtAC=dtAC||new(window.AudioContext||window.webkitAudioContext)();if(dtAC.state==='suspended')dtAC.resume();
+  const S={ok:[[660,0],[880,.1]],no:[[220,0],[165,.14]],hit:[[330,0],[520,.06],[780,.12]],win:[[523,0],[659,.14],[784,.28],[1047,.42]],lose:[[392,0],[349,.16],[330,.32],[262,.48]]};
+  (S[k]||[]).forEach(([f,s])=>dtTone(f,.25,s,k==='no'?'sawtooth':'triangle',.16))}catch(_){}}
+const FOE_S=['ds-1','ds-2','ds-3','ds-4'],FOE_B=['dm-2','dm-3'];
+function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cuối)
+  if(i===n-1)return{s:'dm-1',k:'boss',nm:'Yêu vương'};
+  if(i%3===2)return{s:FOE_B[Math.floor(i/3)%2],k:'big',nm:'Yêu tướng'};
+  return{s:FOE_S[i%4],k:'sml',nm:'Tiểu yêu'};
+}
+const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
+function dtCards(){
+  return DT_SETS.map((S,k)=>{if((S.grade||5)!==curG)return '';const b=user.done[S.id],n=S.Q.length;
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${S.title?S.title:S.grade===7?'Kiểm tra · '+S.name:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
+  <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
+  <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
+  <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu':'Chơi lại'}</button></div></article>`}).join('');
+}
+function dtStart(k){
+  dt={k,S:DT_SETS[k],i:0,xp:0,st:0,best:0,ans:[],t0:Date.now()};
+  $('dt').classList.remove('hidden');document.body.style.overflow='hidden';$('dt').scrollTop=0;dtSfx('ok');dtShow();
+}
+function dtClose(){$('dt').classList.add('hidden');document.body.style.overflow='';renderEx()}
+function dtShow(){
+  delete $('dtbox').dataset.r;
+  const S=dt.S,N=S.Q.length,q=S.Q[dt.i],foe=dtFoe(dt.i,N);
+  dt.cur=sh(q[3].map((t,k)=>({t,c:k===q[4]})));
+  $('dtbox').innerHTML=`<div class="px-hud"><span class="px-t">LV ${String(dt.i+1).padStart(2,'0')}/${N}</span><span class="px-t gold" id="dtxp">${pimg('coin','hud-ic')} ${dt.xp}</span><span class="px-t fire" id="dtst">${pimg('qblock','hud-ic')} x${dt.st}</span><span class="px-ctl"><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button><button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
+  <div class="px-track" style="grid-template-columns:repeat(${N},1fr)">${Array.from({length:N},(_,k)=>`<i class="${k<dt.ans.length?(dt.ans[k].ok?'ok':'no'):k===dt.i?'now':''}"></i>`).join('')}</div>
+  <div class="dg-stage">${pimg('cloud','dg-cloud dgc1')}${pimg('cloud','dg-cloud dgc2')}
+    <div class="dg-hero">${pimg('mk-front')}</div>
+    <div class="dg-foe ${foe.k}"><div class="dg-hp"><i></i></div>${pimg(foe.s)}</div>
+    <span class="dg-spark ok"></span><span class="dg-spark no"></span><span class="dg-boom" id="dgpop"></span></div>
+  <div class="dg-q">${pimg('scroll','dg-sc')}<div><p class="px-sub">${foe.nm} chặn đường · ${q[1]} · ${S.T[q[0]]}</p><h2 class="dtq">${fmt(q[2])}</h2></div></div>
+  <div class="qopts" id="dtopts">${dt.cur.map((o,k)=>`<button type="button" data-k="${k}">${'ABCD'[k]}. ${fmt(o.t)}</button>`).join('')}</div><div id="dtfb"></div>`;
+  document.querySelectorAll('#dtopts button').forEach(b=>b.onclick=()=>dtPick(+b.dataset.k));
+  $('dtmute').onclick=()=>{dtMuted=!dtMuted;try{localStorage.setItem('mute',dtMuted?'1':'0')}catch(_){}$('dtmute').textContent=dtMuted?'🔇':'🔊'};
+  $('dtquit').onclick=()=>{if(confirm('Thoát bây giờ sẽ không được tính điểm. Bạn chắc chứ?'))dtClose()};
+}
+function dtPick(k){
+  if(!dt||$('dtbox').dataset.r)return; // chỉ chọn một lần mỗi câu
+  const S=dt.S,N=S.Q.length,q=S.Q[dt.i],ok=dt.cur[k].c;
+  document.querySelectorAll('#dtopts button').forEach((b,j)=>{b.disabled=true;if(dt.cur[j].c)b.classList.add('ok');else if(j===k)b.classList.add('no')});
+  let gain=0;
+  if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);gain=6+(dt.st>=3?2:0);dt.xp+=gain}else dt.st=0;
+  dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'hit':'no');
+  $('dtxp').innerHTML=pimg('coin','hud-ic')+' '+dt.xp;$('dtst').innerHTML=pimg('qblock','hud-ic')+' x'+dt.st;
+  document.querySelectorAll('.px-track i')[dt.i].className=ok?'ok':'no';
+  const hero=document.querySelector('.dg-hero img'),pop=$('dgpop');
+  if(ok&&hero)hero.src=PXD+'mk-act.webp'; // Ngộ Không lao lên vung gậy
+  pop.textContent=ok?`+${gain}${dt.st>=3?' COMBO!':''}`:'Ái chà!';pop.className='dg-boom '+(ok?'ok':'no');
+  $('dtbox').dataset.r=ok?'ok':'no';
+  $('dtfb').innerHTML=`<div class="dtfb ${ok?'ok':'no'}">${ok?(dt.st>=3?`🔥 Chuỗi ${dt.st} câu đúng! `:'✅ Chính xác! '):'❌ Chưa đúng rồi. '}${fmt(q[5])}</div>
+  <button type="button" class="btn go" style="width:auto;margin-top:14px" id="dtnx">${dt.i<N-1?'Câu tiếp theo →':'Xem kết quả 🏆'}</button>`;
+  $('dtnx').onclick=()=>{dt.i++;dt.i<N?dtShow():dtEnd()};$('dtnx').focus({preventScroll:true});
+}
+// phím tắt: A–D hoặc 1–4 để chọn đáp án
+document.addEventListener('keydown',e=>{
+  if(!dt||$('dt').classList.contains('hidden')||e.ctrlKey||e.metaKey||e.altKey)return;
+  const i='abcd'.indexOf(e.key.toLowerCase()),j='1234'.indexOf(e.key),k=i>=0?i:j;
+  if(k>=0&&document.querySelector('#dtopts button:not(:disabled)')&&!(document.activeElement||{}).matches?.('input,textarea'))dtPick(k);
+});
+function dtEnd(){
+  const S=dt.S,N=S.Q.length,n=dt.ans.filter(a=>a.ok).length,sec=Math.round((Date.now()-dt.t0)/1000),ratio=n/N;
+  let raw=dt.xp;if(n>=Math.ceil(N*.6))raw+=10;if(n===N)raw+=30;
+  const first=!(S.id in user.done),gain=Math.round(raw*(first?1:REPLAY));
+  user.done[S.id]=Math.max(user.done[S.id]||0,n);addXp(gain);
+  const lv=ratio>=.87?'Đại Thánh Toán học':ratio>=.67?'Chiến binh Giỏi':ratio>=.47?'Thám hiểm Khá':'Mầm non Cố gắng';
+  const gr={};dt.ans.forEach(a=>{const k=a.q[0];gr[k]=gr[k]||[0,0];gr[k][1]++;if(a.ok)gr[k][0]++});
+  const rows=Object.keys(gr).map(k=>{const r=gr[k][0]/gr[k][1],c=r>=1?'#16B364':r>=.5?'#FFC93C':'#D12F35';return `<div class="dtrow"><span>${S.T[k]}</span><div class="rbar"><i style="width:${r*100}%;background:${c}"></i></div><b>${gr[k][0]}/${gr[k][1]}</b></div>`}).join('');
+  const weak=Object.keys(gr).filter(k=>gr[k][0]<gr[k][1]).map(k=>S.T[k]);
+  const wrong=dt.ans.filter(a=>!a.ok),mr=rankOf(user.xp);
+  {const tp={};dt.ans.forEach(a=>{const t=S.T[a.q[0]];(tp[t]=tp[t]||[0,0])[1]++;if(a.ok)tp[t][0]++});
+   const co=a=>[a.q[3][a.q[4]],...a.q[3].filter((_,i)=>i!==a.q[4])];
+   logAttempt({k:'test',id:S.id,t:'Đề test '+S.name,g:curG,ok:n,n:N,s:sec,xp:gain,tp,w:wrong.map(a=>({q:a.q[2],o:co(a),t:S.T[a.q[0]]})),r:dt.ans.filter(a=>a.ok).map(a=>a.q[2])})}
+  $('dtbox').innerHTML=`<div style="text-align:center"><p class="px-t clear">${ratio>=.47?'GAME CLEAR!':'GAME OVER'}</p>
+  <div class="px-res dg-res">${pimg('mk-pose')}${pimg('scroll')}${rkImg(mr,'res-rk')}</div><h2>${lv}</h2><h2>${n}/${N} câu đúng</h2>
+  <p class="gain">+${gain} XP</p><p class="muted">${first?'Lần đầu nhận đủ XP.':'Làm lại chỉ nhận 20% XP.'} ${pimg('coin','hud-ic')} ${dt.xp} điểm · 🔥 chuỗi dài nhất ${dt.best} · ⏱ ${Math.floor(sec/60)} phút ${sec%60} giây<br>Tổng: ${user.xp} XP · Hạng ${mr.n}</p></div>
+  <h3>Bản đồ năng lực</h3>${rows}<p class="muted">${weak.length?'Cần ôn thêm: <b>'+weak.join(', ')+'</b>.':'Bạn đúng ở mọi nội dung. Tuyệt vời!'}</p>
+  ${wrong.length?'<h3>Các câu cần xem lại</h3>'+wrong.map(a=>`<div class="rv"><b>${a.q[1]}:</b> ${fmt(a.q[2])}<br><span class="bad">Bạn chọn: ${fmt(a.pick)}</span><br><span class="good">Đáp án: ${fmt(a.q[3][a.q[4]])}</span><br><em>${fmt(a.q[5])}</em></div>`).join(''):''}
+  <div class="qnav"><button type="button" class="btn ghost" onclick="dtClose()">Đóng</button><button type="button" class="btn ghost" onclick="dtClose();view('levels')">🏆 Xem vinh danh</button><button type="button" class="btn go" style="width:auto" onclick="dtStart(${dt.k})">Chơi lại</button></div>`;
+  $('dt').scrollTop=0;dtSfx(ratio>=.47?'win':'lose');
+}
+
+function myRankHtml(mr){
+  const nx=RANKS[RANKS.indexOf(mr)+1],pct=nx?(user.xp-mr.min)/(nx.min-mr.min)*100:100;
+  return `<div class="myrank" style="--c:${mr.c}">${rkImg(mr,'mr-img')}<div><small>Hạng hiện tại của bạn</small><h3>${mr.n}</h3><div class="rbar"><i style="width:${pct}%;background:${mr.c}"></i></div><small>${nx?`Còn ${nx.min-user.xp} XP để lên ${nx.n}`:'Bạn đã đạt hạng cao nhất!'}</small></div></div>`;
+}
+/* Bục vinh danh top 3 */
+function podiumHtml(list,medals){
+  const top=list.slice(0,3),crown=[stk('math-star','crown-img'),'',''];
+  return '<div class="podium">'+[1,0,2].filter(i=>top[i]).map(i=>{const x=top[i],r=rankOf(x.xp);
+    return `<div class="pd p${i+1} ${x.id===uid?'me':''}"><span class="crown">${crown[i]}</span><div class="av" style="--c:${r.c}">${avImg(x.av,x.id)}</div><b class="pn">${esc(x.name)}</b><small>${rkImg(r)} ${r.n}</small><div class="step"><em>${medals[i]}</em><strong>${x.xp} XP</strong></div></div>`}).join('')+'</div>';
+}
+
+/* ===== THỐNG KÊ HỌC TẬP (nhật ký từng lượt làm bài → Supabase bảng "attempts", có dự phòng localStorage) ===== */
+const GOAL=20,KIND={quiz:'✏️',test:'🎮',game:'⚡',doc:'📖',review:'🔁',hw:'📝'};
+let ATT=[],attErr=false,attBusy=false;
+const attKey=()=>'att:'+uid;
+const attSave=()=>{try{localStorage.setItem(attKey(),JSON.stringify(ATT.slice(0,300)))}catch(_){}};
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const topicOf=q=>(String(q).match(/^(Bài \d+)/)||[])[1]||'Khác';
+const pc=(a,b)=>b?Math.round(a/b*100):0;
+const clr=p=>p>=80?'#16B364':p>=50?'#FFC93C':'#D12F35';
+const dur=s=>s>=3600?Math.floor(s/3600)+'g '+Math.round(s%3600/60)+'p':s>=60?Math.round(s/60)+' phút':s+' giây';
+const fd=d=>d===dayKey(Date.now())?'Hôm nay':d===dayKey(Date.now()-864e5)?'Hôm qua':d.split('-').reverse().join('/');
+const mastGet=()=>{try{return new Set(JSON.parse(localStorage.getItem('mast:'+uid)||'[]'))}catch(_){return new Set()}};
+const mastSet=s=>{try{localStorage.setItem('mast:'+uid,JSON.stringify([...s].slice(-500)))}catch(_){}};
+async function syncAtt(){
+  if(!sb||!user||attBusy)return;attBusy=true;
+  try{for(const a of ATT.filter(x=>x.p)){
+    const {error}=await sb.from('attempts').insert({user_id:uid,kind:a.k,item_id:a.id,item_title:a.t,grade:a.g,correct:a.ok,total:a.n,secs:a.s,xp:a.xp,topics:a.tp,wrong:a.w,created_at:a.at});
+    if(error)throw error;delete a.p}attErr=false}
+  catch(_){attErr=true}
+  attBusy=false;attSave();
+}
+function logAttempt(o){ // o: {k,id,t,g,ok,n,s,xp,tp,w:[câu sai],r:[câu đúng]}
+  if(!user)return;
+  const M=mastGet(),known=q=>ATT.some(a=>(a.w||[]).some(w=>w.q===q));
+  (o.w||[]).forEach(w=>M.delete(w.q));(o.r||[]).filter(known).forEach(q=>M.add(q));mastSet(M);
+  ATT.unshift({k:o.k,id:o.id,t:o.t,g:o.g||curG,ok:o.ok||0,n:o.n||0,s:o.s||0,xp:o.xp||0,tp:o.tp||{},w:(o.w||[]).slice(0,20),at:new Date().toISOString(),p:1});
+  attSave();syncAtt();
+}
+async function loadAtt(){
+  let loc=[];try{loc=JSON.parse(localStorage.getItem(attKey())||'[]')}catch(_){}
+  ATT=loc;if(!sb)return;
+  try{
+    const {data,error}=await sb.from('attempts').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(300);
+    if(error)throw error;
+    ATT=[...loc.filter(a=>a.p),...data.map(r=>({k:r.kind,id:r.item_id,t:r.item_title,g:r.grade,ok:r.correct,n:r.total,s:r.secs,xp:r.xp,tp:r.topics||{},w:r.wrong||[],at:r.created_at}))]
+      .sort((a,b)=>b.at.localeCompare(a.at));
+    attErr=false;attSave();syncAtt();
+  }catch(_){attErr=true}
+}
+function wrongBank(g){
+  const M=mastGet(),seen=new Set(),out=[];
+  ATT.forEach(a=>(a.w||[]).forEach(w=>{if((g&&a.g!==g)||seen.has(w.q)||M.has(w.q))return;seen.add(w.q);out.push(w)}));
+  return out;
+}
+const reviewCard=()=>{const n=wrongBank(curG).length;
+  return n?`<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Ôn tập thông minh</span><h3>Ôn lại câu đã sai</h3><small>${n} câu bạn từng làm sai · không tính XP</small><button class="btn go" style="width:auto" onclick="startReview(curG)">Ôn ngay</button></div></article>`:''};
+function startReview(g){
+  const b=sh(wrongBank(g)).slice(0,10);
+  if(!b.length){toast('Bạn chưa có câu sai nào cần ôn 🎉');return}
+  cur={id:'review',title:'ÔN CÂU ĐÃ SAI',min:0,grade:g||curG,review:true,q:b.map(w=>({l:'mid',q:w.q,o:w.o}))};
+  startQuiz();
+}
+const I=(p,s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const IC={flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',ok:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',up:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',file:'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'};
+const fdt=t=>{const d=new Date(t);return d.toLocaleDateString('vi-VN')+' '+d.toTimeString().slice(0,5)};
+function renderStats(){
+  if(!user)return;
+  const days={};
+  ATT.forEach(a=>{const d=dayKey(a.at),x=days[d]=days[d]||{l:[],ok:0,n:0,s:0,xp:0};x.l.push(a);x.ok+=a.ok;x.n+=a.n;x.s+=a.s;x.xp+=a.xp});
+  const keys=Object.keys(days).sort().reverse(),T=ATT.reduce((t,a)=>(t.ok+=a.ok,t.n+=a.n,t.s+=a.s,t),{ok:0,n:0,s:0});
+  const td=days[dayKey(Date.now())]||{n:0,ok:0,s:0,xp:0};
+  let streak=0;for(let t=new Date();;t.setDate(t.getDate()-1)){if(days[dayKey(t)])streak++;else if(streak||dayKey(t)!==dayKey(Date.now()))break}
+  const rng=(a,b)=>{let ok=0,n=0;for(let i=a;i<b;i++){const t=new Date();t.setDate(t.getDate()-i);const x=days[dayKey(t)];if(x){ok+=x.ok;n+=x.n}}return[ok,n]};
+  const w1=rng(0,7),w0=rng(7,14),dl=w1[1]&&w0[1]?pc(...w1)-pc(...w0):null;
+  const bars=Array.from({length:14},(_,i)=>{const t=new Date();t.setDate(t.getDate()-13+i);return{x:days[dayKey(t)],l:t.getDate()+'/'+(t.getMonth()+1)}});
+  const mx=Math.max(GOAL,...bars.map(b=>b.x?b.x.n:0));
+  const tp={};ATT.forEach(a=>Object.entries(a.tp||{}).forEach(([k,v])=>{const x=tp[k]=tp[k]||[0,0];x[0]+=v[0];x[1]+=v[1]}));
+  const tl=Object.entries(tp).filter(([,v])=>v[1]>=2).sort((a,b)=>pc(...a[1])-pc(...b[1]));
+  const weak=tl.filter(([,v])=>pc(...v)<70).slice(0,3).map(([k])=>k),wb=wrongBank().length;
+  const gp=Math.min(100,pc(td.n,GOAL)),C=2*Math.PI*42;
+  const bd=(t,c='')=>`<span class="ub ${c}">${t}</span>`;
+  const kpi=(ic,t,v,d)=>`<div class="uc kp"><div class="uc-h"><span>${t}</span>${I(IC[ic])}</div><div class="kv">${v}</div><p class="ud">${d}</p></div>`;
+  const hs=(SUBS||[]).slice(0,8),hg=(SUBS||[]).filter(s=>s.status==='graded'),hav=hg.length?hg.reduce((t,s)=>t+Number(s.score)/Number(s.max_score||10)*10,0)/hg.length:null;
+  const stB=s=>s.status==='graded'?bd('Đã chấm','green'):s.status==='redo'?bd('Làm lại','red'):bd('Chờ chấm','amber');
+  $('statsBody').innerHTML=`<div class="ui">
+  ${attErr||ATT.some(a=>a.p)?'<div class="ualert">Một số kết quả chưa đồng bộ lên hệ thống nên thầy cô chưa xem được. Dữ liệu vẫn được giữ trên máy này và tự gửi lại khi có mạng.</div>':''}
+  <div class="ugrid4">
+    ${kpi('flame','Chuỗi ngày học',streak+' <small>ngày</small>',streak?'Học liên tiếp, giữ vững nhé!':'Hãy học hôm nay để bắt đầu chuỗi')}
+    ${kpi('ok','Độ chính xác',pc(T.ok,T.n)+'%',`${T.ok}/${T.n} câu đúng`)}
+    ${kpi('clock','Thời gian học',dur(T.s),'Tổng thời gian làm bài')}
+    ${kpi('up','7 ngày qua',w1[1]?pc(...w1)+'%':'—',dl===null?'Chưa đủ dữ liệu để so sánh':bd((dl>=0?'+':'')+dl+'%',dl>=0?'green':'red')+' so với tuần trước')}
+  </div>
+  <div class="ugrid2">
+    <div class="uc"><div class="uc-h col"><h3>Hoạt động 14 ngày gần đây</h3><p class="ud">Chiều cao = số câu đã làm · màu = độ chính xác · đường nét đứt = mục tiêu ${GOAL} câu</p></div>
+      <div class="uchart"><i class="gl" style="bottom:${GOAL/mx*100}%"></i>${bars.map(b=>`<div class="uc-col" title="${b.x?b.x.n+' câu · '+pc(b.x.ok,b.x.n)+'% đúng':'Không học'}"><div class="bw"><i style="height:${b.x?Math.max(4,b.x.n/mx*100):0}%;background:${b.x?clr(pc(b.x.ok,b.x.n)):'transparent'}"></i></div><small>${b.l}</small></div>`).join('')}</div></div>
+    <div class="uc"><div class="uc-h col"><h3>Mục tiêu hôm nay</h3><p class="ud">${td.n>=GOAL?'Đã hoàn thành mục tiêu!':'Còn '+(GOAL-td.n)+' câu nữa'}</p></div>
+      <div class="ring"><svg viewBox="0 0 100 100" width="132" height="132"><circle cx="50" cy="50" r="42" fill="none" stroke="#f4f4f5" stroke-width="10"/><circle cx="50" cy="50" r="42" fill="none" stroke="${gp>=100?'#16B364':'#1E5EFF'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*gp/100} ${C}" transform="rotate(-90 50 50)"/></svg><div><b>${td.n}</b><small>/ ${GOAL} câu</small></div></div>
+      <p class="ud ctr">${td.ok}/${td.n} đúng · ${dur(td.s)} · +${td.xp} XP</p></div>
+  </div>
+  <div class="uc"><div class="uc-h col"><h3>Bài tự luận đã nộp</h3><p class="ud">${hs.length?'Mỗi bài cho biết bạn đã nộp cho thầy/cô nào và kết quả chấm.'+(hav!==null?' Điểm trung bình: <b>'+fnum(hav)+'/10</b>.':''):'Bạn chưa nộp bài tự luận nào.'}</p></div>
+    ${hs.length?`<div class="utw"><table class="ut"><thead><tr><th>Bài</th><th>Gửi cho</th><th>Nộp lúc</th><th>Trạng thái</th><th class="r">Điểm</th></tr></thead><tbody>${hs.map(s=>`<tr onclick="openHw('${esc(s.item_id)}')"><td class="w">${esc(s.item_title)}</td><td>${esc(tl(s.teacher_id||s.graded_by))}</td><td>${fdt(s.created_at)}</td><td>${stB(s)}</td><td class="r"><b>${s.status==='graded'?fnum(s.score)+'/'+fnum(s.max_score||10):'—'}</b></td></tr>`).join('')}</tbody></table></div>`:''}</div>
+  <div class="uc"><div class="uc-h col"><h3>Mức nắm vững theo nội dung</h3><p class="ud">Phần nào còn yếu sẽ nằm ở đầu danh sách.</p></div>
+    ${tl.length?tl.map(([k,v])=>{const p=pc(...v);return `<div class="utp"><span>${esc(k)}</span><div class="ubar"><i style="width:${p}%;background:${clr(p)}"></i></div><b>${p}%</b><small>${v[0]}/${v[1]}</small></div>`}).join(''):'<p class="ud">Làm vài bài để xem bản đồ năng lực của bạn.</p>'}
+    ${weak.length?`<div class="ualert info">Gợi ý: nên ôn thêm <b>${weak.map(esc).join(', ')}</b>.</div>`:''}
+    ${wb?`<button class="btn go" style="width:auto;margin-top:12px" onclick="startReview()">Ôn ${Math.min(wb,10)} câu đã sai</button>`:''}</div>
+  <div class="uc"><div class="uc-h col"><h3>Lịch sử từng buổi học</h3><p class="ud">10 buổi gần nhất. Bấm vào để xem chi tiết.</p></div>
+    ${keys.length?keys.slice(0,10).map((d,i)=>{const x=days[d];return `<details class="uday"${i===0?' open':''}><summary><b>${fd(d)}</b><span>${x.l.length} lượt · ${x.ok}/${x.n} đúng (${pc(x.ok,x.n)}%) · ${dur(x.s)} · +${x.xp} XP</span></summary>${x.l.map(a=>`<div class="uatt"><span>${new Date(a.at).toTimeString().slice(0,5)}</span><span class="w">${KIND[a.k]||'•'} ${esc(a.t)}</span><b style="color:${a.n?clr(pc(a.ok,a.n)):'inherit'}">${a.n?a.ok+'/'+a.n:'—'}</b><small>${a.s?dur(a.s)+' · ':''}+${a.xp} XP</small></div>`).join('')}</details>`}).join(''):'<p class="ud">Chưa có buổi học nào. Hãy làm một bài tập nhé!</p>'}</div>
+  </div>`;
+}
+$('navStats').onclick=e=>{e.preventDefault();view('stats')};
+$('backStats').onclick=()=>view('levels');
+
+/* ===== BÀI THẦY CÔ GIAO & NHẮC ÔN TẬP (bảng "assignments"; hoàn thành = có lượt làm bài sau lúc giao) ===== */
+let ASG=[];
+const dueOf=a=>a.due_date?new Date(a.due_date+'T23:59:59'):null;
+const fmtDue=a=>a.due_date?a.due_date.split('-').reverse().join('/'):'';
+async function loadAssign(){
+  if(!sb||!user){ASG=[];return}
+  try{
+    const {data,error}=await sb.from('assignments').select('*').order('created_at',{ascending:false}).limit(60);
+    if(error)throw error;
+    ASG=(data||[]).filter(a=>!a.user_ids||!a.user_ids.length||a.user_ids.includes(uid));
+  }catch(_){ASG=[]} // chưa tạo bảng hoặc mất mạng: bỏ qua, không làm hỏng trang
+}
+function asgStatus(a){
+  if(HW.some(h=>h.id===a.item_id)){const t0=+new Date(a.created_at),L=(SUBS||[]).filter(x=>x.item_id===a.item_id&&+new Date(x.created_at)>=t0),due=dueOf(a),now=Date.now(),done=L.length>0;
+    return{done,best:0,n:0,hw:true,sub:L[0],late:!done&&!!due&&+due<now,soon:!done&&!!due&&+due>=now&&+due-now<2*864e5}}
+  const t0=+new Date(a.created_at),at=ATT.filter(x=>x.id===a.item_id&&+new Date(x.at)>=t0),due=dueOf(a),now=Date.now(),done=at.length>0;
+  return{done,best:Math.max(0,...at.map(x=>x.ok)),n:(at[0]||{}).n||0,
+    late:!done&&!!due&&+due<now,soon:!done&&!!due&&+due>=now&&+due-now<2*864e5};
+}
+function asgList(){
+  const L=ASG.map(a=>({a,s:asgStatus(a)}));
+  return{open:L.filter(x=>!x.s.done).sort((x,y)=>(+(dueOf(x.a)||9e15))-(+(dueOf(y.a)||9e15))),done:L.filter(x=>x.s.done).slice(0,3)};
+}
+const asgTag=id=>{const a=ASG.find(x=>x.item_id===id&&!asgStatus(x).done);return a?`<span class="tag asg">📌 Thầy cô giao${a.due_date?' · hạn '+fmtDue(a).slice(0,5):''}</span>`:''};
+function asgRow({a,s}){
+  const c=s.done?['done','Đã làm']:s.late?['late','Quá hạn']:s.soon?['soon','Sắp đến hạn']:['new','Mới giao'];
+  return `<div class="asg-row"><div><b>${esc(a.item_title)}</b> <span class="asg-chip ${c[0]}">${c[1]}</span></div>
+  <small>${a.due_date?'Hạn: '+fmtDue(a)+' · ':''}${s.hw?(s.done?hwText(s.sub):'Chưa nộp'):s.done?'Điểm: '+s.best+'/'+s.n:'Chưa làm'}${a.note?' · 💬 '+esc(a.note):''}</small>
+  <button type="button" class="btn go" onclick="asgStart('${a.id}')">${s.hw?(s.done?'Xem / nộp lại':'Nộp bài'):s.done?'Làm lại':'Làm ngay'}</button></div>`;
+}
+function renderAssign(){
+  const box=$('assignBox');if(!box)return;
+  const L=user?asgList():{open:[],done:[]};
+  box.innerHTML=(L.open.length+L.done.length)?`<div class="st-box asg-box"><h3>📌 Bài thầy cô giao${L.open.length?` <span class="asg-chip new">${L.open.length} bài chưa làm</span>`:''}</h3>${[...L.open,...L.done].map(asgRow).join('')}</div>`:'';
+}
+function asgStart(id){
+  const a=ASG.find(x=>x.id===id);if(!a)return;
+  curG=+a.grade||curG;closeRemind();
+  if(HW.some(h=>h.id===a.item_id)){openHw(a.item_id);return}
+  const k=QUIZZES.findIndex(z=>z.id===a.item_id),j=DT_SETS.findIndex(s=>s.id===a.item_id);
+  if(k>=0)startQuiz(k);else if(j>=0)dtStart(j);else toast('Bài này chưa có trong phần mềm. Hãy hỏi thầy cô nhé.');
+}
+// các bài đã làm nhưng đạt dưới 70% → gợi ý làm lại
+function redoList(){
+  const all=[...QUIZZES.map(z=>({id:z.id,t:z.title,n:z.q.length})),...DT_SETS.map(s=>({id:s.id,t:'Đề test '+s.name,n:s.Q.length}))];
+  return all.filter(x=>user.done[x.id]!==undefined&&user.done[x.id]/x.n<.7).slice(0,3).map(x=>({...x,b:user.done[x.id]}));
+}
+function redoStart(id){
+  const k=QUIZZES.findIndex(z=>z.id===id),j=DT_SETS.findIndex(s=>s.id===id);closeRemind();
+  if(k>=0){curG=QUIZZES[k].grade;startQuiz(k)}else if(j>=0)dtStart(j);
+}
+function closeRemind(){$('remind').classList.add('hidden');document.body.style.overflow=''}
+function reviewNow(){closeRemind();startReview()}
+function showRemind(){ // hiện mỗi lần vào web, chỉ khi có việc cần nhắc
+  if(!user)return;
+  const L=asgList().open,wb=wrongBank(),redo=redoList();
+  if(!L.length&&!wb.length&&!redo.length)return;
+  const tc={};wb.forEach(w=>{const t=w.t||'Khác';tc[t]=(tc[t]||0)+1});
+  const top=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} (${n} câu)`).join(', ');
+  $('remindBox').innerHTML=`<img class="remind-poster" src="assets/remind.png" alt="" onerror="this.remove()"><h2>👋 Nhắc việc cho ${esc(user.name)}</h2>
+  ${L.length?`<div class="st-box asg-box"><h3>📌 Bài thầy cô giao (${L.length})</h3>${L.map(asgRow).join('')}</div>`:''}
+  ${(wb.length||redo.length)?`<div class="st-box asg-box"><h3>🔁 Cần ôn lại</h3>
+    ${wb.length?`<div class="asg-row"><div><b>${wb.length} câu bạn từng làm sai</b></div><small>Nhiều nhất ở: ${top}</small><button type="button" class="btn go" onclick="reviewNow()">Ôn ${Math.min(wb.length,10)} câu</button></div>`:''}
+    ${redo.map(x=>`<div class="asg-row"><div><b>${esc(x.t)}</b> <span class="asg-chip soon">Nên làm lại</span></div><small>Điểm cao nhất mới ${x.b}/${x.n} câu</small><button type="button" class="btn go" onclick="redoStart('${x.id}')">Làm lại</button></div>`).join('')}</div>`:''}
+  <div class="qnav"><button type="button" class="btn ghost" onclick="closeRemind()">Để sau</button></div>`;
+  $('remind').classList.remove('hidden');$('remind').scrollTop=0;document.body.style.overflow='hidden';
+}
+
+/* ===== BÀI TẬP TỰ LUẬN VỀ NHÀ – TOÁN 7 (học sinh làm vào vở/phiếu, chụp ảnh nộp, giáo viên chấm) ===== */
+const HW_PDF='assets/toan-7/Phieu-bai-tap-toan-7-so-huu-ti.pdf';
+const HW=[
+ {id:'t7-hw-ex',grade:7,title:'Rational Numbers – Exercises (Q1–Q16 + Bonus)',desc:'Phiếu bài tập số hữu tỉ · 16 câu + 2 câu Bonus · làm tự luận',max:10,q:[
+  ['Q1','Copy and complete each set of equivalent fractions.<br>a) −3 = −3/1 = □/4 &nbsp; b) 5/8 = 10/□ = □/40 &nbsp; c) 0.6 = 6/10 = □/5 &nbsp; d) −7/9 = −14/□ = □/27'],
+  ['Q2','Write the correct symbol &lt;, &gt;, = in each box.<br>a) −3/4 □ −2/3 &nbsp; b) −0.4 □ −2/5 &nbsp; c) 5/8 □ 0.6 &nbsp; d) −1.25 □ −5/4'],
+  ['Q3','Put the numbers in increasing order: −5/6, −0.72, 2/3, 0, −3/4, 0.7.'],
+  ['Q4','Match each description with the correct number.<br>A. The opposite of 3/5 &nbsp; B. The reciprocal of 3/4 &nbsp; C. A rational number equal to 0.75 &nbsp; D. A rational number equal to −1.2<br>Numbers: 1. 4/3 &nbsp; 2. −3/5 &nbsp; 3. 3/4 &nbsp; 4. −6/5'],
+  ['Q5','Calculate. Show the main step in each calculation.<br>a) 5/8 − 7/12 &nbsp; b) −4/9 + 5/6 &nbsp; c) 7/10 − (−3/5) &nbsp; d) −11/15 − 2/5'],
+  ['Q6','Complete the working: −7/15 : 14/25 = −7/15 × □/□ = −□/□. Then calculate 5/12 : (−25/18).'],
+  ['Q7','Match each expression with its value.<br>A. (−3/4)^2 &nbsp; B. (−2/5)^3 &nbsp; C. (3/7)^5 : (3/7)^3 &nbsp; D. (−1/2)^4 · 2^3<br>Values: 1. −8/125 &nbsp; 2. 1/2 &nbsp; 3. 9/16 &nbsp; 4. 9/49'],
+  ['Q8','Copy and complete the exponent laws.<br>a) (5/6)^3 · (5/6)^4 = (5/6)^□ &nbsp; b) (−7/9)^8 : (−7/9)^5 = (−7/9)^□<br>c) (−2/3)^4 · (−2/3)^3 : (−2/3)^5 = (−2/3)^□ = □/□'],
+  ['Q9','Calculate using the correct order of operations.<br>a) 2/3 − 3/4 · 8/9 &nbsp; b) (−5/6 + 1/3) : 5/4 &nbsp; c) 1 − [2/5 − (−3/10)] &nbsp; d) (−1/2)^3 + 3/4 : (−3/2)'],
+  ['Q10','Find the mistake. A learner writes −2/3 + 5/6 = −4/6 − 5/6 = −9/6. Explain the mistake and write the correct calculation.'],
+  ['Q11','Choose the correct answer, then explain your choice. A = 3/7 · 11/5 + 3/7 · 4/5.<br>A. 33/35 &nbsp; B. 9/7 &nbsp; C. 3/5 &nbsp; D. 3'],
+  ['Q12','Write three different rational numbers x such that −2/3 &lt; x &lt; −1/2. Explain briefly how you know that each answer is correct.'],
+  ['Q13','Find x. Show all your working.<br>a) x − 5/6 = −1/4 &nbsp; b) 3/4 x = −9/10 &nbsp; c) (x + 1)/2 = 5/6 &nbsp; d) (x − 2)/3 + (x + 1)/6 = 1'],
+  ['Q14','For each statement, write always true, sometimes true, or never true. Give a reason or an example.<br>a) The sum of two rational numbers is positive.<br>b) The product of two negative rational numbers is positive.<br>c) A rational number has a reciprocal.'],
+  ['Q15','Solve the real-life problems.<br>a) At 6 a.m., the temperature is −3.5°C. By noon, it rises by 8.2°C. In the evening, it falls by 2.7°C. What is the temperature in the evening?<br>b) A water tank is 3/5 full. Then 1/4 of the tank’s total capacity is used. What fraction of the tank remains full?'],
+  ['Q16','A 3.5 m ribbon is cut into two pieces. The first piece is 3/4 m long and the second piece is 1 1/4 m long. How much ribbon is left?'],
+  ['Bonus 1','Find the value of (−3/5) · 25/9 · (−6/5). Answer: ……'],
+  ['Bonus 2','Let n be an integer. If −3/4 &lt; n/12 &lt; −1/2, then all possible values of n are ……']
+ ]},
+ {id:'t7-hw-home',grade:7,title:'Rational Numbers – Homework (Bài 1–9)',desc:'Bài về nhà · 9 bài tự luận · ôn từ vựng, tính toán, bài toán thực tế',max:10,q:[
+  ['1','Complete the sentences using the words in the box: <i>numerator, denominator, equivalent fractions, reciprocal, exponent, increasing order, decreasing order, equation</i>.<br>a) In 5/8, 5 is the … and 8 is the … &nbsp; b) 1/2 and 2/4 are … &nbsp; c) The … of 3/5 is 5/3.<br>d) In 2^5, the number 5 is the … &nbsp; e) −3/4 &lt; 0 &lt; 1/2 is written in … &nbsp; f) 4/5 &gt; 0 &gt; −2/3 is written in … &nbsp; g) x + 1/2 = 3/4 is an …'],
+  ['2','Write how you would read each expression aloud in English. Use the forms from the Vocabulary table.<br>a) −3/4 &nbsp; b) 2/3 × 3/5 = 2/5 &nbsp; c) (−1/2)^4 &nbsp; d) −2/3 &lt; −1/2 &lt; 0'],
+  ['3','Copy and complete.<br>a) 3/4 = □/20 &nbsp; b) −5/6 = −15/□ &nbsp; c) 0.4 = □/5 &nbsp; d) −2 = □/7'],
+  ['4','Write &lt;, &gt;, = in each box, then write the four numbers in decreasing order.<br>−5/8 □ −0.6, &nbsp; 7/10 □ 0.7, &nbsp; −2/3 □ −3/4.<br>Numbers: −5/8, −0.6, 7/10, −2/3.'],
+  ['5','Calculate. Show the main steps.<br>a) −7/12 + 5/8 &nbsp; b) 3/5 − (−7/10) &nbsp; c) −4/9 · 15/8 &nbsp; d) 5/6 : (−25/18)'],
+  ['6','Calculate using powers and the correct order of operations.<br>a) (−2/3)^4 : (−2/3)^2 &nbsp; b) 1 − 3/4 · (−2/3)'],
+  ['7','Find x. Show all your working.<br>a) x + 3/5 = −1/10 &nbsp; b) 2/3 x = −4/9'],
+  ['8','A learner writes 1/2 − 3/4 = (1 − 3)/(2 − 4) = 1. Explain the mistake and give the correct answer.'],
+  ['9','Real-life problem. A bottle contains 2.4 L of juice. During lunch, 3/4 L is used. Later, another 0.65 L is used. How much juice remains in the bottle?']
+ ]}
+];
+
+let SUBS=[],hwFiles=[],hwCur=null,hwBusy=false;
+async function loadSubs(){
+  if(!sb||!user){SUBS=[];return}
+  try{const {data,error}=await sb.from('submissions').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(100);
+    if(error)throw error;SUBS=data||[]}
+  catch(_){SUBS=[]} // chưa chạy file SQL tạo bảng submissions: bỏ qua
+}
+const subLast=id=>(SUBS||[]).find(x=>x.item_id===id);
+const fnum=n=>String(Math.round(Number(n)*100)/100).replace('.',',');
+function hwText(s){
+  if(!s)return 'Chưa nộp';
+  if(s.status==='graded')return '✅ '+tl(s.graded_by||s.teacher_id)+' đã chấm: '+fnum(s.score)+'/'+fnum(s.max_score||10);
+  if(s.status==='redo')return '🔁 '+tl(s.graded_by||s.teacher_id)+' yêu cầu làm lại';
+  return '⏳ Đã nộp cho '+tl(s.teacher_id)+' ngày '+new Date(s.created_at).toLocaleDateString('vi-VN')+' · chờ chấm';
+}
+const hwCards=()=>HW.map(h=>{
+  if(h.grade!==curG)return '';
+  const s=subLast(h.id);
+  return `<article class="card">${cov(null,'ex')}<div class="cbody"><span class="tag m">Bài tập về nhà · Tự luận</span>${asgTag(h.id)}<h3>${esc(h.title)}</h3>
+  <small>${esc(h.desc)} · làm xong chụp ảnh nộp, thầy cô chấm</small><small>${hwText(s)}</small>
+  <button class="btn go" style="width:auto" onclick="openHw('${h.id}')">${!s||s.status==='redo'?'Làm bài & nộp ảnh':'Xem / nộp lại'}</button></div></article>`;
+}).join('');
+// Nén ảnh chụp từ điện thoại: cạnh dài tối đa 1600px, JPEG 82%
+function imgToJpeg(file,max=1600,q=.82){return new Promise((res,rej)=>{
+  const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{let w=im.naturalWidth,h=im.naturalHeight;const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);
+    c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('blob'))},'image/jpeg',q)};
+  im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'))};im.src=u})}
+/* --- Giáo viên nhận bài & thông báo khi chấm xong --- */
+let TCH=[],hwTeacher=null,NSEEN=null,NANN=new Set(),npoll=null;
+const tn=id=>(TCH.find(t=>t.id===id)||{}).name;
+const tl=id=>{const n=tn(id);return n?'thầy/cô '+n:'thầy cô'};
+async function loadTeachers(){
+  if(!sb)return;
+  try{
+    const {data:t,error}=await sb.from('teachers').select('user_id');if(error)throw error;
+    const ids=(t||[]).map(r=>r.user_id).filter(id=>id!==uid);
+    if(!ids.length){TCH=[];return}
+    const {data:p}=await sb.from('profiles').select('id,name,username').in('id',ids);
+    TCH=ids.map(id=>{const x=(p||[]).find(r=>r.id===id)||{};return{id,name:x.name||x.username||'Giáo viên'}});
+  }catch(_){TCH=[]}
+}
+const nsKey=()=>'nseen:'+uid;
+const nsGet=()=>{if(NSEEN)return NSEEN;try{NSEEN=new Set(JSON.parse(localStorage.getItem(nsKey())||'[]'))}catch(_){NSEEN=new Set()}return NSEEN};
+const nsSave=()=>{try{localStorage.setItem(nsKey(),JSON.stringify([...nsGet()].slice(-200)))}catch(_){}};
+const nKey=s=>s.id+':'+(s.graded_at||s.status);
+const gradedSubs=()=>(SUBS||[]).filter(s=>s.status==='graded'||s.status==='redo');
+const unseenSubs=()=>gradedSubs().filter(s=>!nsGet().has(nKey(s)));
+function drawBell(){
+  const n=user?unseenSubs().length:0,b=$('bellN');if(!b)return;
+  b.textContent=n>9?'9+':n;b.classList.toggle('hidden',!n);$('bell').classList.toggle('ring',n>0);
+}
+function checkNotif(announce){
+  drawBell();if(!announce)return;
+  const fresh=unseenSubs().filter(s=>!NANN.has(nKey(s)));
+  fresh.forEach(s=>NANN.add(nKey(s)));
+  if(fresh.length){const s=fresh[0];
+    toast('🔔 '+(tl(s.graded_by||s.teacher_id)[0].toUpperCase()+tl(s.graded_by||s.teacher_id).slice(1))+(s.status==='redo'?' yêu cầu bạn làm lại: ':' đã chấm xong: ')+s.item_title)}
+}
+function openNotif(){
+  if(!user)return;
+  const L=gradedSubs().sort((a,b)=>String(b.graded_at||'').localeCompare(String(a.graded_at||''))).slice(0,15),un=new Set(unseenSubs().map(nKey));
+  $('notifBox').innerHTML=`<div class="qtop"><b>Thông báo</b></div>
+  ${L.length?L.map(s=>`<div class="nt ${un.has(nKey(s))?'new':''}"><div class="nt-i ${s.status}">${s.status==='graded'?'✓':'↻'}</div><div class="nt-b">
+    <b>${esc(s.item_title)}</b>
+    <p>${esc(tl(s.graded_by||s.teacher_id)[0].toUpperCase()+tl(s.graded_by||s.teacher_id).slice(1))} ${s.status==='graded'?'đã chấm: <b>'+fnum(s.score)+'/'+fnum(s.max_score||10)+'</b>':'yêu cầu bạn làm lại'}</p>
+    ${s.feedback?`<p class="nt-fb">“${esc(s.feedback)}”</p>`:''}
+    <small>${s.graded_at?fdt(s.graded_at):''}</small></div>
+    <button type="button" class="btn ghost sm" onclick="closeNotif();openHw('${esc(s.item_id)}')">Xem</button></div>`).join(''):'<p class="muted">Chưa có thông báo. Khi thầy cô chấm xong bài bạn nộp, thông báo sẽ hiện ở đây.</p>'}
+  <div class="qnav"><button type="button" class="btn ghost" onclick="closeNotif()">Đóng</button></div>`;
+  $('notif').classList.remove('hidden');$('notif').scrollTop=0;document.body.style.overflow='hidden';
+  gradedSubs().forEach(s=>nsGet().add(nKey(s)));nsSave();drawBell();
+}
+function closeNotif(){$('notif').classList.add('hidden');document.body.style.overflow=''}
+function startPoll(){
+  stopPoll();
+  npoll=setInterval(async()=>{if(!user||document.hidden)return;await loadSubs();checkNotif(true);renderEx();renderAssign();if(!$('stats').classList.contains('hidden'))renderStats()},45000);
+}
+function stopPoll(){if(npoll){clearInterval(npoll);npoll=null}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user)loadSubs().then(()=>{checkNotif(true);renderEx();renderAssign()})});
+$('bell').onclick=openNotif;
+
+function hwSteps(){
+  const el=$('hwsteps');if(!el)return;
+  const ok=[!!hwTeacher||!TCH.length,hwFiles.length>0,false];
+  el.innerHTML=['Chọn thầy/cô','Thêm ảnh','Nộp bài'].map((t,i)=>`<div class="stp ${ok[i]?'done':(i===0||ok[i-1])?'cur':''}"><i>${ok[i]?'✓':i+1}</i><span>${t}</span></div>`).join('<hr>');
+}
+function openHw(id){
+  const h=HW.find(x=>x.id===id);if(!h||!user)return;
+  hwCur=h;hwFiles=[];hwBusy=false;
+  const s=subLast(id);
+  let last=null;try{last=localStorage.getItem('tch:'+uid)}catch(_){}
+  hwTeacher=(s&&s.teacher_id)||last;
+  if(!TCH.find(t=>t.id===hwTeacher))hwTeacher=TCH.length===1?TCH[0].id:null;
+  const stx=s?(s.status==='graded'?['ok','Đã chấm xong']:s.status==='redo'?['redo','Cần làm lại']:['wait','Đang chờ chấm']):null;
+  $('hwbox').innerHTML=`<div class="qtop"><b>${esc(h.title)}</b></div>
+  <div id="hwsteps" class="steps"></div>
+  ${s?`<div class="hw-status ${s.status}"><b>${stx[1]}</b><p>${esc(hwText(s))}</p>${s.feedback?`<p>💬 <b>Nhận xét của ${esc(tl(s.graded_by||s.teacher_id))}:</b> ${esc(s.feedback)}</p>`:''}</div>`:''}
+  <details class="hw-q"><summary>Xem đề bài (${h.q.length} mục)</summary><div class="hw-links"><a class="btn ghost sm" href="${HW_PDF}" target="_blank" rel="noopener">Mở phiếu bài tập (PDF)</a></div>${h.q.map(q=>`<div class="hw-qi"><b>${q[0]}.</b> ${fx(q[1])}</div>`).join('')}</details>
+
+  <h3 class="hw-h"><span>1</span>Nộp cho thầy/cô nào?</h3>
+  ${TCH.length?`<div class="tch-list">${TCH.map(t=>`<button type="button" class="tch${t.id===hwTeacher?' on':''}" data-t="${t.id}"><i>${esc(t.name.trim().split(/\s+/).pop()[0]||'T').toUpperCase()}</i><span><b>${esc(t.name)}</b><small>Giáo viên</small></span><em>✓</em></button>`).join('')}</div>`:'<p class="muted"><small>Chưa tải được danh sách giáo viên. Bài sẽ gửi đến thầy cô phụ trách chung.</small></p>'}
+
+  <h3 class="hw-h"><span>2</span>Thêm ảnh bài làm</h3>
+  <label class="hw-pick"><input id="hwfile" type="file" accept="image/*" multiple><span class="btn ghost">Chụp / chọn ảnh</span></label>
+  <p class="muted"><small>Tối đa 8 ảnh, mỗi trang một ảnh, chụp đủ sáng và thấy rõ chữ.</small></p>
+  <div id="hwprev" class="hw-prev"></div>
+
+  <h3 class="hw-h"><span>3</span>Lời nhắn <small class="muted">(không bắt buộc)</small></h3>
+  <textarea id="hwnote" rows="2" maxlength="300" placeholder="Ví dụ: Em chưa làm được câu 13d ạ."></textarea>
+  <p id="hwmsg" class="err" role="alert"></p>
+  <div class="qnav"><button type="button" class="btn ghost" id="hwclose">Đóng</button><button type="button" class="btn go" id="hwgo" style="width:auto" disabled>Nộp bài</button></div>`;
+  $('hw').classList.remove('hidden');$('hw').scrollTop=0;document.body.style.overflow='hidden';
+  $('hwclose').onclick=closeHw;
+  document.querySelectorAll('#hwbox .tch').forEach(b=>b.onclick=()=>{hwTeacher=b.dataset.t;document.querySelectorAll('#hwbox .tch').forEach(x=>x.classList.toggle('on',x===b));hwDraw()});
+  $('hwfile').onchange=e=>{
+    const add=[...e.target.files].filter(f=>/^image\//.test(f.type)||/\.(jpe?g|png|webp|heic)$/i.test(f.name));
+    hwFiles=hwFiles.concat(add).slice(0,8);e.target.value='';hwDraw()};
+  $('hwgo').onclick=hwSubmit;hwDraw();
+}
+function hwDraw(){
+  const box=$('hwprev');if(!box)return;
+  box.innerHTML=hwFiles.map((f,i)=>`<div class="hw-th"><img src="${URL.createObjectURL(f)}" alt="Ảnh ${i+1}"><button type="button" aria-label="Bỏ ảnh ${i+1}" data-i="${i}">×</button></div>`).join('');
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{hwFiles.splice(+b.dataset.i,1);hwDraw()});
+  $('hwgo').disabled=!hwFiles.length||hwBusy||(TCH.length>0&&!hwTeacher);hwSteps();
+}
+function closeHw(){const d=$('hw');if(d){d.classList.add('hidden');document.body.style.overflow=''}hwFiles=[];hwCur=null}
+async function hwSubmit(){
+  const h=hwCur;if(!h||!hwFiles.length||hwBusy)return;
+  if(!sb){$('hwmsg').textContent='Hệ thống chưa kết nối. Hãy báo thầy cô nhé.';return}
+  hwBusy=true;const go=$('hwgo'),msg=$('hwmsg');go.disabled=true;msg.textContent='';
+  const paths=[],stamp=Date.now();
+  try{
+    for(let i=0;i<hwFiles.length;i++){
+      go.textContent=`Đang gửi ảnh ${i+1}/${hwFiles.length}…`;
+      const blob=await imgToJpeg(hwFiles[i]),path=`${uid}/${h.id}/${stamp}-${i+1}.jpg`;
+      const {error}=await sb.storage.from('homework').upload(path,blob,{contentType:'image/jpeg',upsert:false});
+      if(error)throw error;paths.push(path);
+    }
+    go.textContent='Đang lưu bài nộp…';
+    const row={user_id:uid,item_id:h.id,item_title:h.title,grade:h.grade,photos:paths,note:($('hwnote').value||'').trim()||null,status:'submitted',max_score:h.max,teacher_id:hwTeacher||null};
+    try{if(hwTeacher)localStorage.setItem('tch:'+uid,hwTeacher)}catch(_){}
+    let r=await sb.from('submissions').insert(row).select().single();
+    if(r.error&&/teacher_id/i.test(r.error.message||'')){delete row.teacher_id;r=await sb.from('submissions').insert(row).select().single()} // chưa chạy SQL thêm cột teacher_id
+    const {data,error}=r;
+    if(error)throw error;
+    SUBS.unshift(data);hwBusy=false;closeHw();renderEx();renderAssign();toast('Đã nộp bài cho '+tl(hwTeacher)+'! Khi chấm xong bạn sẽ nhận thông báo 🔔');
+  }catch(e){
+    console.error('hw',e);hwBusy=false;go.disabled=false;go.textContent='Nộp bài';
+    const m=String(e&&e.message||'');
+    msg.textContent=/bucket|not found|relation|submissions|schema/i.test(m)?'Hệ thống chưa sẵn sàng nhận bài (thiếu bảng hoặc kho ảnh). Hãy báo thầy cô nhé.'
+      :/image|img|blob/i.test(m)?'Không đọc được một ảnh. Hãy chụp lại ảnh dạng JPG/PNG rồi chọn lại nhé.'
+      :'Chưa gửi được. Hãy kiểm tra mạng rồi bấm Nộp bài lại.';
+  }
+}
