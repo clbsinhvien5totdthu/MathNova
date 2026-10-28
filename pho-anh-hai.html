@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Phở Anh Hai · Ôn thi VioEdu Toán 3 – Tuần 3</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;font-family:"Be Vietnam Pro",system-ui,sans-serif;background:#ffe3b0;color:#3b2412}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;top:0;left:0;right:0;padding:calc(8px + env(safe-area-inset-top)) 12px 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:14px}
+#hud span{background:#fffdf6;border:2px solid #3b2412;border-radius:99px;padding:3px 12px;box-shadow:0 2px 0 #3b2412}
+#hud i{flex:1 1 100%;height:10px;border-radius:8px;background:#fffdf6;border:2px solid #3b2412;overflow:hidden}
+#hud u{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb703,#d6402b);transition:width .4s}
+#panel{position:fixed;left:0;right:0;bottom:0;padding:24px 12px calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(transparent,rgba(59,36,18,.5))}
+#bub{position:relative;background:#fffdf6;border:3px solid #3b2412;border-radius:20px;padding:10px 16px;width:100%;max-width:760px;box-shadow:0 4px 0 #3b2412}
+#bub:after{content:"";position:absolute;left:50%;top:-14px;margin-left:-10px;border:10px solid transparent;border-top:0;border-bottom-color:#3b2412}
+#bub small{color:#d6402b;font-weight:700}
+#q{margin:2px 0 0;font-size:clamp(18px,3.4vw,26px);font-weight:600;line-height:1.35}
+#f{display:flex;gap:8px;width:100%;max-width:760px}
+#a{flex:1;min-width:0;font:inherit;font-size:22px;padding:10px 14px;border-radius:14px;border:3px solid #3b2412;box-shadow:0 3px 0 #3b2412}
+button{font:inherit;font-weight:700;border:3px solid #3b2412;border-radius:14px;padding:10px 18px;background:#d6402b;color:#fff;cursor:pointer;box-shadow:0 3px 0 #3b2412}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #3b2412}
+button:disabled,#a:disabled{opacity:.55}
+#fb{margin:0;min-height:1.4em;font-weight:700;color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000;text-align:center}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:rgba(40,20,5,.6)}
+.ov.h{display:none}
+.box{background:#fffdf6;border:3px solid #3b2412;border-radius:22px;padding:22px;max-width:540px;width:100%;max-height:100%;overflow:auto}
+.box h1,.box h2{margin:0 0 8px}
+.box li{margin:4px 0}
+.rv{font-size:14px;border-top:1px dashed #c9b48a;padding:6px 0}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"><span id="no">Câu 1/30</span><span id="sc">🍜 0</span><span id="lo">🐶 Bị bắt: 0</span><i><u id="bar"></u></i></div>
+<div id="panel">
+  <div id="bub"><small id="who">Khách hàng</small><p id="q"></p></div>
+  <form id="f"><input id="a" autocomplete="off" aria-label="Đáp án" placeholder="Gõ đáp án (chỉ số; phân số viết 1/6)"><button id="go">Bưng phở 🍜</button></form>
+  <p id="fb" aria-live="polite"></p>
+</div>
+<div id="intro" class="ov"><div class="box">
+  <h1>🍜 Phở Anh Hai</h1>
+  <b>Ôn thi VioEdu Toán 3 · Tuần 3 · 30 câu tổng hợp</b>
+  <ul>
+    <li>Khách hỏi một câu, bạn <b>tự gõ đáp án</b> (không có A B C D).</li>
+    <li>✅ Đúng: bạn bưng tô phở nóng hổi cho Khách.</li>
+    <li>❌ Sai: <b>Cậu Vàng</b> bị <b>Racing Boy</b> bắt đi mất!</li>
+    <li>📚 Hết 30 câu, các câu sai sẽ quay lại để <b>ôn lại</b> cho tới khi đúng hết.</li>
+    <li>Chỉ gõ số (không cần đơn vị). Phân số gõ dạng <b>1/6</b>.</li>
+  </ul>
+  <button id="start">Mở quán!</button>
+</div></div>
+<div id="end" class="ov h"></div>
+
+<script>
+/* Tải Three.js, có dự phòng 2 nguồn; nếu vẫn lỗi game vẫn chơi được (không có 3D) */
+(function(){var u=['https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js','https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js','https://unpkg.com/three@0.128.0/build/three.min.js'];
+function l(i){if(window.THREE||i>=u.length){go();return}var s=document.createElement('script');s.src=u[i];s.onload=go;s.onerror=function(){l(i+1)};document.head.appendChild(s)}
+addEventListener('DOMContentLoaded',function(){l(0)})})();
+
+const Q=[
+["Tính nhẩm: 8 × 7 = ?","56","8 × 7 = 56."],
+["Tính nhẩm: 9 × 4 = ?","36","9 × 4 = 36."],
+["Tính nhẩm: 56 : 8 = ?","7","Vì 8 × 7 = 56 nên 56 : 8 = 7."],
+["Tính nhẩm: 72 : 9 = ?","8","Vì 9 × 8 = 72 nên 72 : 9 = 8."],
+["Tính nhẩm: 6 × 9 = ?","54","6 × 9 = 54."],
+["Tính nhẩm: 63 : 7 = ?","9","Vì 7 × 9 = 63 nên 63 : 7 = 9."],
+["Tìm số thích hợp: ? × 7 = 49","7","49 : 7 = 7."],
+["Tìm số thích hợp: 4 × ? = 36","9","36 : 4 = 9."],
+["Tìm số thích hợp: ? : 8 = 6","48","Số bị chia = thương × số chia = 6 × 8 = 48."],
+["Tìm số thích hợp: 35 : ? = 5","7","Số chia = 35 : 5 = 7."],
+["Mỗi tô phở có 6 lát thịt bò. Hỏi 7 tô phở như vậy có tất cả bao nhiêu lát thịt bò?","42","6 × 7 = 42 (lát)."],
+["Quán có 54 cái quẩy xếp đều vào 6 đĩa. Hỏi mỗi đĩa có bao nhiêu cái quẩy?","9","54 : 6 = 9 (cái)."],
+["Quán Phở Anh Hai có 8 bàn, mỗi bàn có 4 cái ghế. Hỏi quán có tất cả bao nhiêu cái ghế?","32","8 × 4 = 32 (cái)."],
+["Một cái bánh được chia thành 6 phần bằng nhau, đã ăn 1 phần. Đã ăn một phần mấy của cái bánh? (viết dạng a/b)","1/6","Chia 6 phần bằng nhau, lấy 1 phần là 1/6."],
+["Có 18 con ếch. Tìm 1/6 số con ếch.","3","18 : 6 = 3 (con)."],
+["Có 40 tô phở. Tìm 1/5 số tô phở.","8","40 : 5 = 8 (tô)."],
+["Tính giá trị biểu thức: 5 + 6 × 3","23","Nhân trước, cộng sau: 6 × 3 = 18; 5 + 18 = 23."],
+["Tính giá trị biểu thức: 48 : 6 : 2","4","Chia từ trái sang phải: 48 : 6 = 8; 8 : 2 = 4."],
+["Gấp số 7 lên 4 lần thì được số nào?","28","7 × 4 = 28."],
+["Giảm số 36 đi 4 lần thì được số nào?","9","36 : 4 = 9."],
+["Tô phở nhỏ giá 15 nghìn đồng. Tô phở lớn đắt gấp 2 lần tô nhỏ. Hỏi tô phở lớn giá bao nhiêu nghìn đồng?","30","15 × 2 = 30 (nghìn đồng)."],
+["Ba điểm A, B, C thẳng hàng, B ở giữa A và C. AB = 3 cm, BC = 2 cm. Tính độ dài AC (cm).","5","AC = 3 + 2 = 5 (cm)."],
+["M là trung điểm của đoạn thẳng AB dài 10 cm. Tính độ dài AM (cm).","5","AM = 10 : 2 = 5 (cm)."],
+["M là trung điểm của đoạn thẳng AB và AM = 4 cm. Tính độ dài AB (cm).","8","AB = 4 × 2 = 8 (cm)."],
+["Cắt sợi dây dài 18 cm tại trung điểm thành hai đoạn. Mỗi đoạn dài bao nhiêu xăng-ti-mét?","9","18 : 2 = 9 (cm)."],
+["Đường từ A đến B dài 600 m. Anh Hai nghỉ ở M là trung điểm của AB. Từ M đến B còn bao nhiêu mét?","300","600 : 2 = 300 (m)."],
+["AB = 12 cm, M là trung điểm của AB, N là trung điểm của AM. Tính độ dài AN (cm).","3","AM = 12 : 2 = 6; AN = 6 : 2 = 3 (cm)."],
+["Một cái tô hình tròn có bán kính 5 cm. Tính đường kính của hình tròn (cm).","10","Đường kính = 5 × 2 = 10 (cm)."],
+["Mặt bàn hình tròn có đường kính 12 cm (mô hình). Tính bán kính (cm).","6","Bán kính = 12 : 2 = 6 (cm)."],
+["Mỗi bàn được chia 8 tô phở, Anh Hai đã bưng 1/2 số tô đó. Hỏi mỗi bàn đã được bưng bao nhiêu tô?","4","8 : 2 = 4 (tô)."]
+];
+const norm=s=>s.replace(/[−–]/g,'-').replace(/[^\d/-]/g,'');
+console.assert(norm(' 1 000 cm')==='1000'&&norm('1 / 6')==='1/6'&&norm('1.200')==='1200'&&Q.length===30,'self-check');
+
+function noThree(){ // bản giả rỗng để logic game vẫn chạy khi không có 3D
+  class V{constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z}set(x,y,z){this.x=x;this.y=y;this.z=z;return this}copy(v){return this.set(v.x,v.y,v.z)}clone(){return new V(this.x,this.y,this.z)}setScalar(s){return this.set(s,s,s)}lerpVectors(a,b,k){return this.set(a.x+(b.x-a.x)*k,a.y+(b.y-a.y)*k,a.z+(b.z-a.z)*k)}}
+  class O{constructor(g,m){this.position=new V;this.rotation=new V;this.scale=new V(1,1,1);this.material=m||{color:{setHex(){}},opacity:1}}add(){}remove(){}lookAt(){}updateProjectionMatrix(){}}
+  class Clk{constructor(){this.t=performance.now();this.elapsedTime=0}getDelta(){const n=performance.now(),d=(n-this.t)/1e3;this.t=n;this.elapsedTime+=d;return d}}
+  return new Proxy({},{get:(_,k)=>k==='Vector3'?V:k==='Clock'?Clk:k==='WebGLRenderer'?class{constructor(){this.shadowMap={}}setPixelRatio(){}setSize(){}render(){}}:/Geometry$/.test(k)?class{}:/Material$/.test(k)?class{constructor(o){Object.assign(this,o,{color:{setHex(){}}})}}:k==='CanvasTexture'||k==='Color'?class{}:/Light$/.test(k)?class extends O{constructor(){super();this.shadow={camera:{}}}}:O});
+}
+
+function go(){
+if(window.__started)return;window.__started=true;
+const $=id=>document.getElementById(id);
+var THREE=window.THREE||noThree();
+let R,flat=!window.THREE;
+try{R=new THREE.WebGLRenderer({canvas:$('c'),antialias:true})}catch(e){THREE=noThree();R=new THREE.WebGLRenderer();flat=true}
+if(flat){$('fb').textContent='⚠️ Không tải được đồ họa 3D — bạn vẫn chơi bình thường!'}
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;
+const S=new THREE.Scene();S.background=new THREE.Color(0xffe3b0);
+const cam=new THREE.PerspectiveCamera(45,1,.1,100);
+function fit(){const w=innerWidth,h=innerHeight,a=w/h;R.setSize(w,h,false);cam.aspect=a;
+  cam.position.set(0,4,Math.max(9.5,13.5/a));cam.lookAt(0,.2,-.5);cam.updateProjectionMatrix()}
+addEventListener('resize',fit);fit();
+S.add(new THREE.HemisphereLight(0xfff4e0,0xc8a070,1));
+const L=new THREE.DirectionalLight(0xffffff,.65);L.position.set(4,8,6);L.castShadow=true;
+Object.assign(L.shadow.camera,{left:-10,right:10,top:10,bottom:-10});S.add(L);
+
+const M=c=>new THREE.MeshLambertMaterial({color:c});
+function mesh(g,c,x,y,z,p){const m=new THREE.Mesh(g,M(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(p||S).add(m);return m}
+const bx=(w,h,d,c,x,y,z,p)=>mesh(new THREE.BoxGeometry(w,h,d),c,x,y,z,p);
+const cy=(rt,rb,h,c,x,y,z,p)=>mesh(new THREE.CylinderGeometry(rt,rb,h,24),c,x,y,z,p);
+const sp=(r,c,x,y,z,p)=>mesh(new THREE.SphereGeometry(r,16,12),c,x,y,z,p);
+function tex(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);return new THREE.CanvasTexture(c)}
+const lab=(t,bg)=>tex(512,128,(g)=>{g.fillStyle=bg;g.fillRect(0,0,512,128);g.strokeStyle='#3b2412';g.lineWidth=10;g.strokeRect(5,5,502,118);
+  g.fillStyle='#d6402b';g.font='bold 64px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(t,256,68)});
+const face=(p,y,z,dx=.12,r=.07)=>[-1,1].forEach(s=>{sp(r,0xffffff,s*dx,y,z,p);sp(r*.55,0x111111,s*dx,y,z+r*.7,p)});
+
+/* Quán: sàn gỗ, tường, cửa sổ, đèn lồng, quầy, đầu bếp Anh Hai */
+bx(18,.2,10,0,0,-.1,0).material=new THREE.MeshLambertMaterial({map:tex(256,256,(g,w,h)=>{for(let y=0;y<h;y+=32){g.fillStyle=['#c99a5b','#bf8f50','#d3a666'][y/32%3];g.fillRect(0,y,w,32);g.fillStyle='#8a5a2b';g.fillRect(0,y,w,3)}})});
+bx(18,5,.3,0,0,2.4,-3.6).material=new THREE.MeshLambertMaterial({map:tex(512,256,(g,w,h)=>{g.fillStyle='#f6dfae';g.fillRect(0,0,w,h);g.fillStyle='#2f7d6b';g.fillRect(0,h*.68,w,h);g.fillStyle='#e9c77c';for(let x=20;x<w;x+=64)g.fillRect(x,30,30,6);g.fillStyle='#fffdf6';g.fillRect(0,h*.66,w,8)})});
+bx(1.9,1.7,.15,0x6b3e1f,5.4,2.5,-3.4);bx(1.6,1.4,.05,0xbfe6ff,5.4,2.5,-3.3).material=new THREE.MeshBasicMaterial({color:0xbfe6ff});bx(.08,1.4,.08,0x6b3e1f,5.4,2.5,-3.25);bx(1.6,.08,.08,0x6b3e1f,5.4,2.5,-3.25);
+const sign=new THREE.Mesh(new THREE.PlaneGeometry(5,1.25),new THREE.MeshBasicMaterial({map:lab('PHỞ ANH HAI','#fffdf6')}));sign.position.set(0,3.7,-3.4);S.add(sign);
+[-3.9,3.9].forEach(x=>{bx(.04,.8,.04,0x333333,x,4.4,-3.2);sp(.32,0xd6402b,x,3.8,-3.2);cy(.12,.12,.1,0xffc300,x,4.15,-3.2)});
+bx(6.2,1.1,1.4,0x8a4b25,-2,.55,-2.4);bx(6.4,.12,1.6,0xa0612e,-2,1.12,-2.4);
+cy(.65,.65,.8,0x9aa3ad,-3.6,1.55,-2.4);cy(.55,.55,.04,0xd9902f,-3.6,1.95,-2.4);
+const chef=new THREE.Group();chef.position.set(-1.8,0,-3.1);S.add(chef);
+cy(.4,.45,1.0,0xffffff,0,1.45,0,chef);sp(.3,0xf1c27d,0,2.15,0,chef);face(chef,2.17,.25,.11,.06);cy(.3,.3,.4,0xffffff,0,2.6,0,chef);sp(.36,0xffffff,0,2.85,0,chef);bx(.14,.03,.03,0x7a2e1d,0,2.02,.29,chef);
+const arm=new THREE.Group();arm.position.set(-.45,1.8,.1);chef.add(arm);bx(.14,.6,.14,0xffffff,0,-.3,.1,arm);
+bx(2.2,.1,1.2,0x8a4b25,3.2,1,.6);cy(.12,.12,1,0x5b3319,3.2,.5,.6);cy(.4,.4,.15,0x5b3319,3.2,.55,-.8);
+
+/* Tô phở */
+const B=new THREE.Group();S.add(B);const HOME=new THREE.Vector3(-.8,1.18,-2.3);
+cy(.5,.32,.35,0xf5f5f0,0,.18,0,B);cy(.45,.45,.02,0xd9902f,0,.355,0,B);cy(.38,.38,.03,0xfff1c9,0,.37,0,B);
+mesh(new THREE.TorusGeometry(.5,.035,8,24),0x2e6fb5,0,.35,0,B).rotation.x=Math.PI/2;
+[[-.15,.1],[.12,.12],[0,-.15]].forEach(([x,z])=>bx(.2,.03,.14,0x7b3b2a,x,.4,z,B));
+[[.2,-.1],[-.2,-.05],[.05,.2]].forEach(([x,z])=>bx(.07,.03,.07,0x2fa84f,x,.41,z,B));
+const steam=[...Array(5)].map(()=>{const m=sp(.09,0xffffff,0,0,0,B);m.material=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true});m.castShadow=false;return m});
+
+/* Khách */
+const C=new THREE.Group();S.add(C);const CX=3.2;
+const SHIRT=[0x2a6fdb,0x2fa84f,0x8e44ad,0xe67e22,0xc0392b],HAT=[0xe8d28a,0xf1f1f1,0x55a8e0];
+const body=cy(.45,.5,.9,SHIRT[0],0,1.0,0,C),hat=mesh(new THREE.ConeGeometry(.62,.35,24),HAT[0],0,2.15,0,C);
+sp(.32,0xf1c27d,0,1.75,0,C);face(C,1.8,.26);bx(.16,.035,.03,0x7a2e1d,0,1.65,.3,C);sp(.07,0xf4a6a0,-.22,1.7,.22,C);sp(.07,0xf4a6a0,.22,1.7,.22,C);
+C.position.set(10,0,-.8);
+
+/* Cậu Vàng (mũi quay về +x) – có mắt, mũi, lưỡi */
+const dog=new THREE.Group();S.add(dog);const DH=new THREE.Vector3(-3.4,0,2.2);
+bx(1.1,.55,.5,0xe3a82f,0,.65,0,dog);bx(.5,.45,.45,0xe3a82f,.7,.95,0,dog);bx(.25,.2,.3,0xf6d58a,1,.88,0,dog);bx(.08,.08,.1,0x111111,1.14,.95,0,dog);bx(.04,.1,.1,0xe86a7a,1.1,.76,0,dog);
+[-1,1].forEach(s=>{sp(.09,0xffffff,.93,1.06,s*.12,dog);sp(.05,0x111111,.99,1.06,s*.12,dog);bx(.12,.28,.16,0xb87a14,.6,1.3,s*.2,dog)});
+[[.4,.17],[.4,-.17],[-.4,.17],[-.4,-.17]].forEach(([x,z])=>bx(.14,.4,.14,0xe3a82f,x,.2,z,dog));
+const tail=new THREE.Group();tail.position.set(-.55,.8,0);dog.add(tail);bx(.5,.12,.12,0xe3a82f,-.25,.1,0,tail);
+const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:lab('Cậu Vàng','#fff3c4')}));tag.scale.set(1.8,.45,1);tag.position.set(0,1.9,0);dog.add(tag);
+dog.position.copy(DH);dog.rotation.y=-1.1;
+
+/* Racing Boy + xe đua (mũi xe quay về +z) */
+const K=new THREE.Group();S.add(K);K.rotation.y=-Math.PI/2;K.position.set(30,0,DH.z);
+bx(1,.45,2,0xd62828,0,.5,0,K);bx(.7,.3,.7,0xd62828,0,.42,1.2,K);bx(1.3,.1,.35,0x222222,0,1.15,-1,K);bx(.1,.5,.1,0x222222,0,.9,-1,K);bx(.1,.6,1.9,0xffffff,0,.76,0,K);
+const wheels=[[.65,.8],[-.65,.8],[.65,-.8],[-.65,-.8]].map(([x,z])=>{const w=new THREE.Group();w.position.set(x,.38,z);K.add(w);cy(.38,.38,.3,0x111111,0,0,0,w).rotation.z=Math.PI/2;return w});
+bx(.55,.6,.4,0x2a6fdb,0,1.0,-.1,K);sp(.28,0xf1c27d,0,1.5,-.1,K);
+mesh(new THREE.SphereGeometry(.34,16,12,0,Math.PI*2,0,Math.PI/2),0xffffff,0,1.52,-.1,K);bx(.4,.1,.1,0x111111,0,1.5,.18,K);
+bx(.15,.15,.5,0x2a6fdb,.3,1.05,.2,K);bx(.15,.15,.5,0x2a6fdb,-.3,1.05,.2,K);
+
+/* Tween + vòng lặp */
+const T=[];const clock=new THREE.Clock();
+const tw=(d,f)=>new Promise(r=>T.push({d,t:0,f,r}));
+const lerp=(a,b,k)=>a+(b-a)*k,ease=k=>1-(1-k)*(1-k),wait=s=>tw(s,()=>{});
+function burst(x,y,z,cols){const ps=[...Array(22)].map(()=>({m:bx(.12,.12,.12,cols[Math.random()*cols.length|0],x,y,z),v:[(Math.random()-.5)*5,Math.random()*5+2,(Math.random()-.5)*3]}));
+  tw(1,k=>ps.forEach(p=>{p.m.position.set(x+p.v[0]*k,y+p.v[1]*k-7*k*k,z+p.v[2]*k);p.m.rotation.x=k*9})).then(()=>ps.forEach(p=>S.remove(p.m)))}
+(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+  for(let i=T.length-1;i>=0;i--){const a=T[i];a.t+=dt;const k=Math.min(a.t/a.d,1);a.f(k);if(k>=1){T.splice(i,1);a.r()}}
+  tail.rotation.y=Math.sin(t*12)*.6;arm.rotation.z=Math.sin(t*3)*.35;chef.position.y=Math.abs(Math.sin(t*2))*.04;wheels.forEach(w=>w.rotation.x-=dt*14);
+  steam.forEach((m,i)=>{const f=(t*.45+i/5)%1;m.position.set(Math.sin(t*2+i)*.1,.5+f*.9,Math.cos(t*2+i)*.1);m.material.opacity=.6*(1-f)});
+  R.render(S,cam)})();
+
+/* ===== Luật chơi: 30 câu, câu sai quay lại ôn cho tới khi đúng ===== */
+let order,pos,score,lost,streak,missed,retry,review,cur,busy=true;
+const say=t=>$('fb').textContent=t;
+const shuf=a=>{for(let j=a.length-1;j>0;j--){const r=Math.floor(Math.random()*(j+1));[a[j],a[r]]=[a[r],a[j]]}return a};
+function hud(){const n=order.length;$('no').textContent=review?`📚 Ôn lại ${Math.min(pos+1,n)}/${n}`:`Câu ${Math.min(pos+1,n)}/${n}`;
+  $('sc').textContent='🍜 '+score+(streak>2?' 🔥'+streak:'');$('lo').textContent='🐶 Bị bắt: '+lost;$('bar').style.width=pos/n*100+'%'}
+function lock(b){busy=b;$('a').disabled=$('go').disabled=b}
+async function ask(){
+  cur=Q[order[pos]];hud();$('q').textContent=cur[0];$('a').value='';$('who').textContent=review?'Khách quay lại hỏi lần nữa':'Khách hàng';
+  B.position.copy(HOME);B.visible=true;
+  body.material.color.setHex(SHIRT[(pos+review)%SHIRT.length]);hat.material.color.setHex(HAT[(pos+review)%HAT.length]);
+  await tw(.6,k=>C.position.x=lerp(10,CX,ease(k)));
+  lock(false);$('a').focus();
+}
+async function serve(){
+  say('✅ Đúng rồi! Bưng phở ra bàn nào 🍜');
+  const a=B.position.clone(),b=new THREE.Vector3(CX,1.05,.6);
+  await tw(.9,k=>{B.position.lerpVectors(a,b,k);B.position.y+=Math.sin(k*Math.PI)*1.1});
+  burst(CX,1.6,.6,[0xffc300,0xd6402b,0x2fa84f,0x2a6fdb]);say('😋 Khách: “Phở ngon quá!”');
+  await tw(.7,k=>C.position.y=Math.abs(Math.sin(k*Math.PI*2))*.25);C.position.y=0;
+}
+async function steal(){
+  say(`❌ Sai rồi! Đáp án đúng: ${cur[1]}. ${cur[2]}`);
+  K.position.set(16,0,DH.z);const stop=DH.x+3.2;
+  await tw(1.2,k=>K.position.x=lerp(16,stop,ease(k)));burst(stop,.3,DH.z,[0xbba488,0xd9c7a8]);
+  say('🏎️ Racing Boy: “Bắt Cậu Vàng nè, vroom vroom!”');
+  const s=dog.position.clone();
+  await tw(.5,k=>dog.position.set(lerp(s.x,K.position.x+.55,k),Math.sin(k*Math.PI)*1.2+lerp(0,.9,k),DH.z));
+  K.add(dog);dog.scale.setScalar(.8);dog.position.set(0,.9,-.55);dog.rotation.y=-Math.PI/2;
+  await wait(.8);await tw(1.5,k=>K.position.x=lerp(stop,-16,k*k));
+  K.position.x=30;S.add(dog);dog.scale.setScalar(1);dog.rotation.y=-1.1;dog.position.set(-9,0,DH.z);
+  say(`🐶 Cậu Vàng trốn thoát! Câu này sẽ quay lại ở phần ôn lại 📚`);
+  await tw(.9,k=>dog.position.x=lerp(-9,DH.x,ease(k)));
+}
+async function submit(){
+  if(busy)return;const v=norm($('a').value);if(!v)return;lock(true);
+  if(v===norm(cur[1])){if(!review)score++;streak++;await serve()}
+  else{lost++;streak=0;if(!review)missed.push(cur);if(!retry.includes(order[pos]))retry.push(order[pos]);await steal()}
+  await wait(.6);await tw(.5,k=>C.position.x=lerp(CX,10,k));B.visible=false;pos++;hud();
+  if(pos<order.length)return ask();
+  if(!retry.length)return finish();
+  review++;order=shuf(retry);retry=[];pos=0;
+  say(`📚 Ôn lại ${order.length} câu đã sai nhé!`);await wait(1.4);ask();
+}
+function finish(){
+  const t=score>=27?'Chủ quán Phở Anh Hai 🏆':score>=21?'Đầu bếp giỏi 👨‍🍳':score>=15?'Phụ bếp chăm chỉ 🍳':'Khách quen cần luyện thêm 💪';
+  $('end').innerHTML=`<div class="box"><h2>Hết ca! ${t}</h2><p>🍜 Đúng ngay lần đầu: <b>${score}/30</b> · 🐶 Cậu Vàng bị bắt <b>${lost}</b> lần${review?` · 📚 Ôn lại ${review} vòng, cuối cùng đúng hết!`:''}</p>`+
+    (missed.length?`<b>Các câu đã từng sai (nên nhớ):</b>`+missed.map(q=>`<div class="rv">${q[0]}<br><b>Đáp án: ${q[1]}</b> — ${q[2]}</div>`).join(''):'<p>Không sai câu nào, Cậu Vàng an toàn 🎉</p>')+
+    `<p><button id="again">Chơi lại</button></p></div>`;
+  $('end').classList.remove('h');$('again').onclick=begin;
+  try{parent.postMessage({type:'pho-done',score,total:30,lost,review,missed:missed.map(q=>q[0].slice(0,60))},'*')}catch(e){}
+}
+function begin(){
+  order=shuf([...Q.keys()]);pos=0;score=0;lost=0;streak=0;missed=[];retry=[];review=0;
+  $('intro').classList.add('h');$('end').classList.add('h');ask();
+}
+$('start').onclick=begin;
+$('f').onsubmit=e=>{e.preventDefault();submit()};
+order=[...Q.keys()];pos=0;score=0;lost=0;streak=0;missed=[];retry=[];review=0;lock(true);
+}
+</script>
+</body>
+</html>

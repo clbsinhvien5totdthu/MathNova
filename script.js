@@ -149,6 +149,19 @@ function openGrade(g){
 const docsHtml=()=>DOCS.filter(d=>d.grade===curG).map(d=>
   `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${DOCS.indexOf(d)})">Xem tài liệu</button></div></article>`).join('');
 const gameCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" onclick="startGame()">${stk('ic-play','bi')} Bắt đầu chơi</button></div></article>`;
+const phoCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Ôn thi VioEdu</span><h3>Phở Anh Hai · Tuần 3</h3><small>30 câu tự điền, sai thì Cậu Vàng bị bắt và phải ôn lại</small><button class="btn go" style="width:auto" onclick="openPho()">${stk('ic-play','bi')} Vào quán phở</button></div></article>`;
+function openPho(){ // mở game Phở Anh Hai toàn màn hình, nhận kết quả để cộng XP
+  const d=document.createElement('div');d.id='phoOv';d.style.cssText='position:fixed;inset:0;z-index:9999;background:#000';
+  d.innerHTML='<iframe src="pho-anh-hai.html" title="Phở Anh Hai" style="border:0;width:100%;height:100%"></iframe><button type="button" aria-label="Đóng game" style="position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:2;padding:6px 12px;border-radius:99px;border:2px solid #3b2412;background:#fffdf6;font-weight:700;cursor:pointer">✕ Thoát</button>';
+  d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d);
+}
+addEventListener('message',e=>{
+  const f=document.querySelector('#phoOv iframe'),m=e.data;
+  if(!f||e.source!==f.contentWindow||!m||m.type!=='pho-done'||!user)return;
+  const xp=gameXp(m.score);
+  logAttempt({k:'game',id:'game-pho-tuan3',t:'Phở Anh Hai · VioEdu Tuần 3',g:3,ok:m.score,n:m.total,s:0,xp,tp:{'VioEdu Toán 3 tuần 3':[m.score,m.total]}});
+  toast(xp?`+${xp} XP từ Phở Anh Hai`:'Hôm nay bạn đã nhận đủ XP trò chơi');
+});
 const emp=h=>h.trim()?h:`<p class="empty">Nội dung lớp ${curG} đang được thầy cô biên soạn và sẽ sớm có tại đây.</p>`;
 
 /* ---- Game nhẩm nhanh ---- */
@@ -336,7 +349,7 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
   $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE()+hwCards());
-  $('testList').innerHTML=emp(dtCards());$('gameList').innerHTML=emp(curG===5?gameCard():'');renderAssign();
+  $('testList').innerHTML=emp(dtCards());$('gameList').innerHTML=emp(curG===5?gameCard():curG===3?phoCard():'');renderAssign();
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
