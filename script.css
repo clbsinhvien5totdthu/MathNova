@@ -1788,3 +1788,19 @@ sup{font-size:.72em;line-height:0;vertical-align:super;margin-left:.05em}
 .nt{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #e4e4e7;border-radius:12px;margin-bottom:8px;background:#fff}.nt.new{border-color:#1E5EFF;background:#f5f8ff}
 .nt-i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:none}.nt-i.graded{background:#ecfdf3;color:#067647}.nt-i.redo{background:#fef3f2;color:#b42318}
 .nt-b{flex:1;min-width:0}.nt-b p{margin:2px 0;font-size:.88rem}.nt-fb{color:#52525b;font-style:italic}.nt-b small{color:#71717a}
+
+/* ===== 3 trò chơi mới (Bài 18): Quán Phở Anh Hai · Phi thuyền · Chớp nhoáng ===== */
+.ph-stage,.rk-stage,.sp-stage{background:linear-gradient(#3a2a1a 0 62%,#8a5a2b 62%);display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;padding:10px;image-rendering:auto}
+.ph-sign{position:absolute;top:8px;left:50%;transform:translateX(-50%);padding:6px 14px;background:#c0392b;color:#ffe14d;font:400 .7rem "Press Start 2P",monospace;border:3px solid #ffe14d;white-space:nowrap}
+.ph-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%;max-width:520px;font-size:clamp(2.2rem,9vw,4rem);line-height:1}
+.ph-bowl{transition:transform .5s steps(6)}.ph-bowl.serve{transform:translateX(min(20vw,140px))}.ph-bowl.back{animation:phshake .4s steps(4) 2}
+.ph-tab{font:400 .6rem "Press Start 2P",monospace;color:#ffe9b8;background:#00000055;padding:5px 10px}
+.rk-stage{background:radial-gradient(circle at 20% 30%,#2a1f6b,#0d0b1e 75%)}
+.rk-track{position:relative;display:flex;justify-content:space-around;align-items:center;width:100%;height:60%}
+.rk-track img{height:44%;max-height:56px;width:auto;opacity:.95}
+.rk-ship{position:absolute;bottom:-6px;font-size:clamp(1.8rem,7vw,3rem);transition:left .6s steps(8);transform:rotate(45deg)}.rk-ship.shake{animation:phshake .4s steps(4) 2}
+.sp-stage{background:radial-gradient(circle at 50% 0,#6b1f2a,#1a1640 75%);justify-content:center}
+.sp-clock{font:400 .75rem "Press Start 2P",monospace;color:#ffe14d;text-align:center;line-height:1.6}
+.sp-bar{width:90%;height:18px;background:#120f33;border:3px solid #fff}.sp-bar i{display:block;height:100%;background:#41d98c;animation:spbar 15s linear forwards}
+@keyframes spbar{0%{width:100%;background:#41d98c}50%{background:#ffc93c}100%{width:0;background:#ff5d5d}}
+@keyframes phshake{0%,100%{translate:0}25%{translate:-6px}75%{translate:6px}}

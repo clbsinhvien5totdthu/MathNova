@@ -150,7 +150,6 @@ const docsHtml=()=>DOCS.filter(d=>d.grade===curG).map(d=>
   `<article class="card">${cov(d.img)}<div class="cbody"><span class="tag ${d.type==='Video'?'v':d.type==='Sơ đồ'?'m':''}">${d.type}</span><h3>${d.t}</h3><small>${d.topic}</small><button class="btn ghost" onclick="openDoc(${DOCS.indexOf(d)})">Xem tài liệu</button></div></article>`).join('');
 const gameCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Chơi được ngay</span><h3>Nhẩm nhanh 30 giây</h3><small>Trả lời càng nhiều phép tính càng tốt</small><button class="btn go" style="width:auto" onclick="startGame()">${stk('ic-play','bi')} Bắt đầu chơi</button></div></article>`;
 const phoCard=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Ôn thi VioEdu</span><h3>Phở Anh Hai · Tuần 3</h3><small>30 câu tự điền, sai thì Cậu Vàng bị bắt và phải ôn lại</small><button class="btn go" style="width:auto" onclick="openPho()">${stk('ic-play','bi')} Vào quán phở</button></div></article>`;
-const phoCard5=()=>`<article class="card">${cov(null,'game')}<div class="cbody"><span class="tag m">Ôn giữa học kì I</span><h3>Phở Anh Hai · Toán 5</h3><small>30 câu số thập phân: đọc viết, đổi đơn vị, so sánh, làm tròn, phân số</small><button class="btn go" style="width:auto" onclick="openPho('pho-anh-hai-toan5.html')">${stk('ic-play','bi')} Vào quán phở</button></div></article>`;
 function openPho(file='pho-anh-hai.html'){ // mở game Phở Anh Hai toàn màn hình, nhận kết quả để cộng XP
   const d=document.createElement('div');d.id='phoOv';d.style.cssText='position:fixed;inset:0;z-index:9999;background:#000';
   d.innerHTML='<iframe src="'+file+'" title="Phở Anh Hai" style="border:0;width:100%;height:100%"></iframe><button type="button" aria-label="Đóng game" style="position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:2;padding:6px 12px;border-radius:99px;border:2px solid #3b2412;background:#fffdf6;font-weight:700;cursor:pointer">✕ Thoát</button>';
@@ -160,8 +159,7 @@ addEventListener('message',e=>{
   const f=document.querySelector('#phoOv iframe'),m=e.data;
   if(!f||e.source!==f.contentWindow||!m||m.type!=='pho-done'||!user)return;
   const xp=gameXp(m.score);
-  if(m.game==='toan5-giuaki1')logAttempt({k:'game',id:'game-pho-toan5-gk1',t:'Phở Anh Hai · Toán 5 giữa học kì I',g:5,ok:m.score,n:m.total,s:0,xp,tp:{'Số thập phân giữa kì I':[m.score,m.total]}});
-  else logAttempt({k:'game',id:'game-pho-tuan3',t:'Phở Anh Hai · VioEdu Tuần 3',g:3,ok:m.score,n:m.total,s:0,xp,tp:{'VioEdu Toán 3 tuần 3':[m.score,m.total]}});
+  logAttempt({k:'game',id:'game-pho-tuan3',t:'Phở Anh Hai · VioEdu Tuần 3',g:3,ok:m.score,n:m.total,s:0,xp,tp:{'VioEdu Toán 3 tuần 3':[m.score,m.total]}});
   toast(xp?`+${xp} XP từ Phở Anh Hai`:'Hôm nay bạn đã nhận đủ XP trò chơi');
 });
 const emp=h=>h.trim()?h:`<p class="empty">Nội dung lớp ${curG} đang được thầy cô biên soạn và sẽ sớm có tại đây.</p>`;
@@ -351,7 +349,7 @@ const EXERCISES_LIVE=()=>QUIZZES.map((Z,k)=>{
 function quizMax(Z){return Math.round((Z.q.reduce((s,q)=>s+LEVEL_XP[q.l],0)+40)*GRADE_MULT[Z.grade])}
 function renderEx(){
   $('docList').innerHTML=emp(docsHtml());$('exList').innerHTML=reviewCard()+emp(EXERCISES_LIVE()+hwCards());
-  $('testList').innerHTML=emp(dtCards());$('gameList').innerHTML=emp(curG===5?gameCard()+phoCard5():curG===3?phoCard():'');renderAssign();
+  $('testList').innerHTML=emp(dtCards());$('gameList').innerHTML=emp(curG===5?gameCard():curG===3?phoCard():'');renderAssign();
 }
 const sh=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
 let qz=null;
@@ -844,6 +842,31 @@ const QGK3=[
 ["vd", "Đề 3", "Từ các thẻ 3, 0, 7 và dấu phẩy, lập được bao nhiêu số thập phân có một chữ số ở phần nguyên và hai chữ số ở phần thập phân?", ["6", "4", "3", "9"], 0, "Các số: 0,37; 0,73; 3,07; 3,70; 7,03; 7,30: có 6 số."],
 ["vd", "Đề 3", "Mi chạy 1,2 km, Việt chạy 1 150 m, Nam chạy 1 km 250 m. Ai chạy xa nhất?", ["Nam", "Mi", "Việt", "Mi và Nam"], 0, "Đổi ra km: Mi 1,2; Việt 1,15; Nam 1,25. Nam chạy xa nhất."]
 ];
+const T18K={"cd": "Chọn đơn vị phù hợp", "dd": "Đổi đơn vị", "ss": "So sánh, sắp xếp", "vd": "Toán có lời văn"};
+const Q18K=[
+["cd", "Bài 18", "Diện tích khuôn viên một trường tiểu học khoảng 2 … Đơn vị thích hợp là:", ["ha", "m²", "dm²", "km²"], 0, "Khuôn viên trường rộng vài nghìn mét vuông, cỡ vài sân bóng, nên dùng héc-ta."],
+["cd", "Bài 18", "Diện tích mặt bàn ăn của gia đình khoảng 1,2 … Đơn vị thích hợp là:", ["m²", "ha", "km²", "mm²"], 0, "Bàn dài khoảng 1,2 m, rộng khoảng 1 m nên diện tích khoảng 1,2 m²."],
+["cd", "Bài 18", "Diện tích một tờ giấy A4 khoảng 624 … Đơn vị thích hợp là:", ["cm²", "m²", "dm²", "ha"], 0, "Tờ A4 là 21 cm × 29,7 cm ≈ 624 cm²."],
+["cd", "Bài 18", "Diện tích ao cá nhà bác Ba khoảng 5 000 … Đơn vị thích hợp là:", ["m²", "ha", "km²", "dm²"], 0, "5 000 m² = 0,5 ha, hợp lí với một cái ao; km² quá lớn, dm² quá nhỏ."],
+["dd", "Bài 18", "36 000 m² = … ha", ["3,6", "36", "0,36", "360"], 0, "Đổi m² sang ha thì chia cho 10 000: 36 000 : 10 000 = 3,6."],
+["dd", "Bài 18", "6 km² = … ha", ["600", "60", "6 000", "6 000 000"], 0, "1 km² = 100 ha nên 6 km² = 600 ha."],
+["dd", "Bài 18", "250 000 m² = … ha", ["25", "250", "2,5", "2 500"], 0, "250 000 : 10 000 = 25 (ha)."],
+["dd", "Bài 18", "9 000 m² = … ha", ["0,9", "9", "90", "0,09"], 0, "9 000 : 10 000 = 0,9 (ha)."],
+["dd", "Bài 18", "320 km² = … ha", ["32 000", "3 200", "320 000", "3,2"], 0, "Nhân với 100: 320 × 100 = 32 000 ha."],
+["dd", "Bài 18", "2 400 dm² = … m²", ["24", "240", "2,4", "0,24"], 0, "dm² → m² chia 100: 2 400 : 100 = 24."],
+["dd", "Bài 18", "0,6 km² = … ha", ["60", "600", "6", "6 000"], 0, "0,6 × 100 = 60 ha."],
+["ss", "Bài 18", "So sánh 7 m² 5 dm² và 705 dm²:", ["7 m² 5 dm² = 705 dm²", "7 m² 5 dm² < 705 dm²", "7 m² 5 dm² > 705 dm²", "Không so sánh được"], 0, "7 m² = 700 dm² nên 7 m² 5 dm² = 705 dm²."],
+["ss", "Bài 18", "So sánh 4 200 ha và 40 km²:", ["4 200 ha > 40 km²", "4 200 ha < 40 km²", "4 200 ha = 40 km²", "Không so sánh được"], 0, "4 200 ha = 42 km² mà 42 > 40."],
+["ss", "Bài 18", "So sánh 0,6 km² và 600 ha:", ["0,6 km² < 600 ha", "0,6 km² > 600 ha", "0,6 km² = 600 ha", "Không so sánh được"], 0, "0,6 km² = 60 ha mà 60 < 600."],
+["ss", "Bài 18", "Sắp xếp từ bé đến lớn: 3 ha; 25 000 m²; 0,2 km².", ["25 000 m²; 3 ha; 0,2 km²", "3 ha; 25 000 m²; 0,2 km²", "0,2 km²; 3 ha; 25 000 m²", "25 000 m²; 0,2 km²; 3 ha"], 0, "Đổi về m²: 30 000; 25 000; 200 000. Thứ tự: 25 000 < 30 000 < 200 000."],
+["vd", "Bài 18", "Mảnh đất 3 ha, khu vui chơi chiếm 2/5 diện tích, phần còn lại là khu cắm trại. Diện tích khu cắm trại là:", ["18 000 m²", "12 000 m²", "30 000 m²", "7 200 m²"], 0, "3 ha = 30 000 m². Khu cắm trại chiếm 1 − 2/5 = 3/5: 30 000 × 3/5 = 18 000 m²."],
+["vd", "Bài 18", "Mảnh đất chia ô vuông cạnh 50 m. Phần nhà máy chiếm 5 ô ngang và 3 ô dọc. Diện tích nhà máy là:", ["3,75 ha", "37,5 ha", "0,375 ha", "15 ha"], 0, "Mỗi ô 50 × 50 = 2 500 m²; 5 × 3 = 15 ô; 15 × 2 500 = 37 500 m² = 3,75 ha."],
+["vd", "Bài 18", "Phòng khách dài 7 m, rộng 4 m, lát gỗ giá 280 000 đồng một mét vuông. Cần trả bao nhiêu tiền?", ["7 840 000 đồng", "1 960 000 đồng", "3 080 000 đồng", "78 400 000 đồng"], 0, "Diện tích 7 × 4 = 28 m²; tiền: 28 × 280 000 = 7 840 000 đồng."],
+["vd", "Bài 18", "Một tấm kính hình chữ nhật được cắt thành 6 tấm giống nhau, mỗi tấm dài 8 dm, rộng 5 dm. Tấm kính ban đầu có diện tích bao nhiêu mét vuông?", ["2,4 m²", "24 m²", "0,24 m²", "240 m²"], 0, "Mỗi tấm 8 × 5 = 40 dm²; 6 tấm: 240 dm² = 2,4 m²."],
+["vd", "Bài 18", "Khu đất dài 500 m, rộng 300 m. 1/3 để xây nhà, 2/5 làm công viên, còn lại làm đường đi. Diện tích đường đi là:", ["4 ha", "11 ha", "6 ha", "15 ha"], 0, "Khu đất 150 000 m² = 15 ha. Nhà + công viên = 1/3 + 2/5 = 11/15, đường đi chiếm 4/15: 15 × 4/15 = 4 ha."],
+["vd", "Bài 18", "Mảnh đất hình vuông cạnh 200 m có diện tích là:", ["4 ha", "40 ha", "400 ha", "0,4 ha"], 0, "200 × 200 = 40 000 m² = 4 ha."],
+["vd", "Bài 18", "Thửa ruộng thứ nhất rộng 1,5 ha, thửa thứ hai rộng 12 000 m². Thửa nào rộng hơn và hơn bao nhiêu?", ["Thửa 1,5 ha rộng hơn 3 000 m²", "Thửa 12 000 m² rộng hơn 3 000 m²", "Thửa 1,5 ha rộng hơn 300 m²", "Hai thửa bằng nhau"], 0, "1,5 ha = 15 000 m²; 15 000 − 12 000 = 3 000 m², thửa thứ nhất rộng hơn."]
+];
 const DT_SETS=[
  {id:'dt-b1-9',name:'Bài 1–9',desc:'Ôn tập & bổ sung',T:DT_T,Q:DT_Q,cover:'dm-1'},
  {id:'dt-b10',name:'Bài 10',desc:'Khái niệm số thập phân',T:T10,Q:Q10,cover:'dm-2'},
@@ -858,6 +881,9 @@ const DT_SETS=[
  {id:'dt-gk1-1',title:'ĐỀ ÔN GIỮA HỌC KÌ I · ĐỀ 1',name:'Giữa kì I · Đề 1',desc:'Ôn thi giữa kì I Toán 5 (Bài 1–14), 21 câu',T:TGK,Q:QGK1,cover:'dm-2'},
  {id:'dt-gk1-2',title:'ĐỀ ÔN GIỮA HỌC KÌ I · ĐỀ 2',name:'Giữa kì I · Đề 2',desc:'Ôn thi giữa kì I Toán 5 (Bài 1–14), 21 câu',T:TGK,Q:QGK2,cover:'dm-3'},
  {id:'dt-gk1-3',title:'ĐỀ ÔN GIỮA HỌC KÌ I · ĐỀ 3',name:'Giữa kì I · Đề 3',desc:'Ôn thi giữa kì I Toán 5 (Bài 1–14), 21 câu',T:TGK,Q:QGK3,cover:'dm-1'},
+ {id:'dt-b18',mode:'pho',title:'QUÁN PHỞ ANH HAI · BÀI 18',name:'Bài 18 · Quán Phở Anh Hai',desc:'Khách gọi món, chọn đúng tô phở để phục vụ',T:T18K,Q:Q18K,cover:'dm-1'},
+ {id:'dt-b18-rk',mode:'rocket',title:'PHI THUYỀN DU HÀNH · BÀI 18',name:'Bài 18 · Phi thuyền du hành',desc:'Trả lời đúng để tên lửa bay qua các hành tinh',T:T18K,Q:Q18K.slice().reverse(),cover:'dm-1'},
+ {id:'dt-b18-sp',mode:'speed',title:'CHỚP NHOÁNG 15 GIÂY · BÀI 18',name:'Bài 18 · Chớp nhoáng',desc:'Mỗi câu 15 giây, trả lời dưới 7 giây được thêm điểm',T:T18K,Q:Q18K.filter((_,i)=>i%2).concat(Q18K.filter((_,i)=>!(i%2))),cover:'dm-1'},
  {id:'dt3-b15',grade:3,title:'BÀI TẬP BÀI 15 · LUYỆN TẬP CHUNG',name:'Toán 3 · Bài 15',desc:'Nhân, chia nhẩm bảng 6–9; một phần mấy',T:T15,Q:Q15,cover:'dm-1'},
  {id:'dt3-b16',grade:3,title:'BÀI TẬP BÀI 16 · ĐIỂM Ở GIỮA, TRUNG ĐIỂM',name:'Toán 3 · Bài 16',desc:'Điểm ở giữa, trung điểm của đoạn thẳng',T:T16,Q:Q16,cover:'dm-2'},
  {id:'dt3-b17',grade:3,title:'BÀI TẬP BÀI 17 · HÌNH TRÒN',name:'Toán 3 · Bài 17',desc:'Tâm, bán kính, đường kính của hình tròn',T:T17,Q:Q17,cover:'dm-3'},
@@ -878,10 +904,22 @@ function dtFoe(i,n){ // tiểu yêu → yêu tướng → yêu vương (câu cu�
   if(i%3===2)return{s:FOE_B[Math.floor(i/3)%2],k:'big',nm:'Yêu tướng'};
   return{s:FOE_S[i%4],k:'sml',nm:'Tiểu yêu'};
 }
-const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40;
+const dtMax=S=>S.Q.length*6+(S.Q.length-2)*2+40+(S.mode==='speed'?S.Q.length*2:0);
+const DT_CUS=['👵','👨‍🌾','👩‍🏫','🧑‍🎓','👮','👷','🧑‍🚒','👩‍⚕️'],DT_LBL={pho:'Khách gọi món',rocket:'Trạm kiểm tra',speed:'Chớp nhoáng'};
+function dtStage(S){ // 3 sân khấu mới dùng chung dữ liệu câu hỏi: phở / phi thuyền / chớp nhoáng
+  const N=S.Q.length,g=dt.ans.filter(a=>a.ok).length,pop='<span class="dg-boom" id="dgpop"></span>';
+  if(S.mode==='pho')return `<div class="dg-stage ph-stage"><div class="ph-sign">PHỞ ANH HAI</div><div class="ph-row"><div class="ph-cook">🧑‍🍳</div><div class="ph-bowl" id="phbowl">🍜</div><div class="ph-cus" id="phcus">${DT_CUS[dt.i%DT_CUS.length]}</div></div><div class="ph-tab">Đã phục vụ ${g}/${N} khách</div>${pop}</div>`;
+  if(S.mode==='rocket')return `<div class="dg-stage rk-stage"><div class="rk-track">${['pl-moon','pl-mars','pl-jupiter','pl-saturn','pl-neptune'].map(p=>`<img src="assets/stk/${p}.webp" alt="">`).join('')}<span class="rk-ship" id="rkship" style="left:${g/N*85}%">🚀</span></div><div class="ph-tab">Nhiên liệu ${g}/${N} ⭐</div>${pop}</div>`;
+  return `<div class="dg-stage sp-stage"><div class="sp-clock">⏱️ 15 giây · dưới 7 giây +2 điểm</div><div class="sp-bar"><i id="spbar"></i></div>${pop}</div>`;
+}
+function dtReact(m,ok){
+  if(m==='pho'){$('phbowl').classList.add(ok?'serve':'back');$('phcus').textContent=ok?'😋':'😠'}
+  else if(m==='rocket'){const g=dt.ans.filter(a=>a.ok).length;$('rkship').style.left=g/dt.S.Q.length*85+'%';if(!ok)$('rkship').classList.add('shake')}
+  else $('spbar').style.animationPlayState='paused';
+}
 function dtCards(){
   return DT_SETS.map((S,k)=>{if((S.grade||5)!==curG)return '';const b=user.done[S.id],n=S.Q.length;
-  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">Trò chơi pixel</span>${asgTag(S.id)}<h3>${S.title?S.title:S.grade===7?'Kiểm tra · '+S.name:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
+  return `<article class="card arcade"><div class="cover px-cover dg-cover">${pimg('mk-act','c-hero')}<b>VS</b>${pimg(S.cover,'c-foe')}</div><div class="cbody"><span class="tag m">${S.mode?'Trò chơi mới':'Trò chơi pixel'}</span>${asgTag(S.id)}<h3>${S.title?S.title:S.grade===7?'Kiểm tra · '+S.name:(S.id==='dt-b10'||S.id==='dt-b11')?'BÀI TẬP '+S.name.toUpperCase():'Đề test '+S.name}</h3>
   <small>${S.desc} · ${n} câu · giữ chuỗi đúng để nhận thêm điểm · tối đa ${dtMax(S)} XP lần đầu</small>
   <small>${b===undefined?'Chưa làm':'Điểm cao nhất: '+b+'/'+n+' · làm lại nhận 20% XP'}</small>
   <button class="btn go" style="width:auto" onclick="dtStart(${k})">${b===undefined?'Bắt đầu':'Chơi lại'}</button></div></article>`}).join('');
@@ -890,36 +928,38 @@ function dtStart(k){
   dt={k,S:DT_SETS[k],i:0,xp:0,st:0,best:0,ans:[],t0:Date.now()};
   $('dt').classList.remove('hidden');document.body.style.overflow='hidden';$('dt').scrollTop=0;dtSfx('ok');dtShow();
 }
-function dtClose(){$('dt').classList.add('hidden');document.body.style.overflow='';renderEx()}
+function dtClose(){if(dt)clearTimeout(dt.tm);$('dt').classList.add('hidden');document.body.style.overflow='';renderEx()}
 function dtShow(){
   delete $('dtbox').dataset.r;
   const S=dt.S,N=S.Q.length,q=S.Q[dt.i],foe=dtFoe(dt.i,N);
   dt.cur=sh(q[3].map((t,k)=>({t,c:k===q[4]})));
   $('dtbox').innerHTML=`<div class="px-hud"><span class="px-t">LV ${String(dt.i+1).padStart(2,'0')}/${N}</span><span class="px-t gold" id="dtxp">${pimg('coin','hud-ic')} ${dt.xp}</span><span class="px-t fire" id="dtst">${pimg('qblock','hud-ic')} x${dt.st}</span><span class="px-ctl"><button type="button" class="btn ghost sm" id="dtmute">${dtMuted?'🔇':'🔊'}</button><button type="button" class="btn ghost sm" id="dtquit">Thoát</button></span></div>
   <div class="px-track" style="grid-template-columns:repeat(${N},1fr)">${Array.from({length:N},(_,k)=>`<i class="${k<dt.ans.length?(dt.ans[k].ok?'ok':'no'):k===dt.i?'now':''}"></i>`).join('')}</div>
-  <div class="dg-stage">${pimg('cloud','dg-cloud dgc1')}${pimg('cloud','dg-cloud dgc2')}
+  ${S.mode?dtStage(S):`<div class="dg-stage">${pimg('cloud','dg-cloud dgc1')}${pimg('cloud','dg-cloud dgc2')}
     <div class="dg-hero">${pimg('mk-front')}</div>
     <div class="dg-foe ${foe.k}"><div class="dg-hp"><i></i></div>${pimg(foe.s)}</div>
-    <span class="dg-spark ok"></span><span class="dg-spark no"></span><span class="dg-boom" id="dgpop"></span></div>
-  <div class="dg-q">${pimg('scroll','dg-sc')}<div><p class="px-sub">${foe.nm} chặn đường · ${q[1]} · ${S.T[q[0]]}</p><h2 class="dtq">${fmt(q[2])}</h2></div></div>
+    <span class="dg-spark ok"></span><span class="dg-spark no"></span><span class="dg-boom" id="dgpop"></span></div>`}
+  <div class="dg-q">${pimg('scroll','dg-sc')}<div><p class="px-sub">${S.mode?DT_LBL[S.mode]:foe.nm+' chặn đường'} · ${q[1]} · ${S.T[q[0]]}</p><h2 class="dtq">${fmt(q[2])}</h2></div></div>
   <div class="qopts" id="dtopts">${dt.cur.map((o,k)=>`<button type="button" data-k="${k}">${'ABCD'[k]}. ${fmt(o.t)}</button>`).join('')}</div><div id="dtfb"></div>`;
   document.querySelectorAll('#dtopts button').forEach(b=>b.onclick=()=>dtPick(+b.dataset.k));
   $('dtmute').onclick=()=>{dtMuted=!dtMuted;try{localStorage.setItem('mute',dtMuted?'1':'0')}catch(_){}$('dtmute').textContent=dtMuted?'🔇':'🔊'};
   $('dtquit').onclick=()=>{if(confirm('Thoát bây giờ sẽ không được tính điểm. Bạn chắc chứ?'))dtClose()};
+  dt.qt=Date.now();clearTimeout(dt.tm);if(S.mode==='speed')dt.tm=setTimeout(()=>dtPick(-1),15000);
 }
 function dtPick(k){
   if(!dt||$('dtbox').dataset.r)return; // chỉ chọn một lần mỗi câu
-  const S=dt.S,N=S.Q.length,q=S.Q[dt.i],ok=dt.cur[k].c;
+  clearTimeout(dt.tm);
+  const S=dt.S,N=S.Q.length,q=S.Q[dt.i],ok=k>=0&&dt.cur[k].c;
   document.querySelectorAll('#dtopts button').forEach((b,j)=>{b.disabled=true;if(dt.cur[j].c)b.classList.add('ok');else if(j===k)b.classList.add('no')});
   let gain=0;
-  if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);gain=6+(dt.st>=3?2:0);dt.xp+=gain}else dt.st=0;
-  dt.ans.push({q,ok,pick:dt.cur[k].t});dtSfx(ok?'hit':'no');
+  if(ok){dt.st++;dt.best=Math.max(dt.best,dt.st);gain=6+(dt.st>=3?2:0)+(S.mode==='speed'&&Date.now()-dt.qt<7000?2:0);dt.xp+=gain}else dt.st=0;
+  dt.ans.push({q,ok,pick:k>=0?dt.cur[k].t:'Hết giờ'});dtSfx(ok?'hit':'no');
   $('dtxp').innerHTML=pimg('coin','hud-ic')+' '+dt.xp;$('dtst').innerHTML=pimg('qblock','hud-ic')+' x'+dt.st;
   document.querySelectorAll('.px-track i')[dt.i].className=ok?'ok':'no';
   const hero=document.querySelector('.dg-hero img'),pop=$('dgpop');
   if(ok&&hero)hero.src=PXD+'mk-act.webp'; // Ngộ Không lao lên vung gậy
   pop.textContent=ok?`+${gain}${dt.st>=3?' COMBO!':''}`:'Ái chà!';pop.className='dg-boom '+(ok?'ok':'no');
-  $('dtbox').dataset.r=ok?'ok':'no';
+  $('dtbox').dataset.r=ok?'ok':'no';if(S.mode)dtReact(S.mode,ok);
   $('dtfb').innerHTML=`<div class="dtfb ${ok?'ok':'no'}">${ok?(dt.st>=3?`🔥 Chuỗi ${dt.st} câu đúng! `:'✅ Chính xác! '):'❌ Chưa đúng rồi. '}${fmt(q[5])}</div>
   <button type="button" class="btn go" style="width:auto;margin-top:14px" id="dtnx">${dt.i<N-1?'Câu tiếp theo →':'Xem kết quả 🏆'}</button>`;
   $('dtnx').onclick=()=>{dt.i++;dt.i<N?dtShow():dtEnd()};$('dtnx').focus({preventScroll:true});
