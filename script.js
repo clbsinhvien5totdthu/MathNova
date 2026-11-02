@@ -162,6 +162,25 @@ addEventListener('message',e=>{
   logAttempt({k:'game',id:'game-pho-tuan3',t:'Phở Anh Hai · VioEdu Tuần 3',g:3,ok:m.score,n:m.total,s:0,xp,tp:{'VioEdu Toán 3 tuần 3':[m.score,m.total]}});
   toast(xp?`+${xp} XP từ Phở Anh Hai`:'Hôm nay bạn đã nhận đủ XP trò chơi');
 });
+
+/* ---- Luyện thi VioEdu (mục riêng): trang vioedu.html mở toàn màn hình, nhận kết quả để cộng XP ---- */
+function openVio(){
+  if(document.getElementById('vioOv'))return;
+  const d=document.createElement('div');d.id='vioOv';d.style.cssText='position:fixed;inset:0;z-index:9999;background:#9fd3ee';
+  d.innerHTML='<iframe src="vioedu.html" title="Luyện thi VioEdu" style="border:0;width:100%;height:100%"></iframe>';
+  document.body.appendChild(d);
+}
+addEventListener('message',e=>{
+  const f=document.querySelector('#vioOv iframe'),m=e.data;
+  if(!f||e.source!==f.contentWindow||!m)return;
+  if(m.type==='vioedu-exit'){document.getElementById('vioOv').remove();return}
+  if(m.type!=='vioedu-done'||!user)return;
+  const xp=gameXp(m.score);
+  logAttempt({k:'game',id:'vioedu-'+m.id,t:'Luyện thi VioEdu · '+m.title,g:3,ok:m.score,n:m.total,s:m.secs||0,xp,tp:{[m.title]:[m.score,m.total]}});
+  toast(xp?`+${xp} XP từ Luyện thi VioEdu`:'Hôm nay bạn đã nhận đủ XP trò chơi');
+});
+document.getElementById('navVio').onclick=e=>{e.preventDefault();openVio()};
+document.getElementById('heroVio').onclick=openVio;
 const emp=h=>h.trim()?h:`<p class="empty">Nội dung lớp ${curG} đang được thầy cô biên soạn và sẽ sớm có tại đây.</p>`;
 
 /* ---- Game nhẩm nhanh ---- */

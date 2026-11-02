@@ -1804,3 +1804,6 @@ sup{font-size:.72em;line-height:0;vertical-align:super;margin-left:.05em}
 .sp-bar{width:90%;height:18px;background:#120f33;border:3px solid #fff}.sp-bar i{display:block;height:100%;background:#41d98c;animation:spbar 15s linear forwards}
 @keyframes spbar{0%{width:100%;background:#41d98c}50%{background:#ffc93c}100%{width:0;background:#ff5d5d}}
 @keyframes phshake{0%,100%{translate:0}25%{translate:-6px}75%{translate:6px}}
+
+/* Luyện thi VioEdu: nút trên hero & menu gọn hơn khi thêm mục */
+@media (min-width:761px) and (max-width:1100px){.nav a{padding:8px 10px;font-size:.88rem}}
