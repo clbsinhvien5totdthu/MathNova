@@ -78,11 +78,28 @@ body.shake #c{animation:shk .45s}
 #fix{z-index:5}#cheat{z-index:6}
 #start{position:sticky;bottom:0}
 body.emb #hud{padding-right:92px}
+
+/* ===== Cảnh điện ảnh: thanh đen, phụ đề, vạch tốc độ ===== */
+#hud,#panel{transition:opacity .35s}
+body.cine #hud,body.cine #panel{opacity:0;pointer-events:none}
+.lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:4;pointer-events:none;transition:height .55s cubic-bezier(.3,.9,.3,1)}
+#lbt{top:0}#lbb{bottom:0;display:flex;align-items:center;justify-content:center}
+body.cine .lb{height:12vh}
+#sub{color:#fff;font:700 clamp(14px,2.6vw,22px) "Be Vietnam Pro",system-ui,sans-serif;text-align:center;padding:0 16px;opacity:0;transition:opacity .3s;text-shadow:0 2px 4px #000}
+body.cine #sub{opacity:1}
+#skp{position:absolute;right:10px;bottom:4px;font:600 11px "Be Vietnam Pro",sans-serif;color:#fff;opacity:.55;font-style:normal}
+#speed{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;z-index:3;background:repeating-conic-gradient(rgba(255,255,255,0) 0 3deg,rgba(255,255,255,.6) 3.3deg 3.7deg);-webkit-mask:radial-gradient(circle,transparent 38%,#000 88%);mask:radial-gradient(circle,transparent 38%,#000 88%);animation:spd .12s steps(2) infinite}
+body.fast #speed{opacity:.55}
+@keyframes spd{50%{transform:rotate(2deg) scale(1.05)}}
+
+body.rsc #hud,body.rsc #panel{opacity:0;pointer-events:none}
+#fix.rescue{background:linear-gradient(to top,rgba(40,20,5,.7),rgba(40,20,5,0) 70%);align-items:flex-end;padding-bottom:10px}
+#fix.rescue .box{max-height:46vh;overflow:auto;margin:0}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="flash"></div><div id="combo"></div>
+<div id="flash"></div><div id="combo"></div><div id="speed"></div><div id="lbt" class="lb"></div><div id="lbb" class="lb"><span id="sub"></span><i id="skp">⏩ chạm để tua nhanh</i></div>
 <div id="hud"><span id="no">Câu 1/20</span><span id="sc">🍜 0</span><span id="lo">🐶 Bị bắt: 0</span>
   <div id="tools"><button id="cheatBtn" type="button" aria-label="Bảng ghi nhớ" title="Bảng ghi nhớ">📖</button><button id="snd" type="button" aria-label="Bật/tắt âm thanh" title="Âm thanh">🔊</button><button id="mus" type="button" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">🎵</button></div>
   <i><u id="bar"></u></i></div>
@@ -194,7 +211,7 @@ const RULES={
  A:{n:'Chia số thập phân cho số tự nhiên',tip:'Chia như số tự nhiên. Chia hết phần nguyên rồi thì viết dấu phẩy vào thương, chia tiếp phần thập phân.',mn:'Hết phần nguyên → phẩy ở thương'},
  B:{n:'Chưa chia hết: thêm chữ số 0',tip:'Còn dư thì viết dấu phẩy vào thương, thêm 0 vào bên phải số dư rồi chia tiếp cho tới khi hết dư.',mn:'Còn dư → thêm 0, chia tiếp'},
  C:{n:'Chia cho số thập phân',tip:'Nhân cả số bị chia và số chia với 10, 100,… để số chia thành số tự nhiên (thương không đổi), rồi chia như dạng trước.',mn:'Số chia có phẩy → nhân 10 cho tròn'},
- D:{n:'Tính nhẩm, không đặt tính',tip:'Số bị chia giảm 10, 100 lần (số chia giữ nguyên) thì thương cũng giảm 10, 100 lần. Nhân cả hai số với cùng một số thì thương không đổi.',mn:'Cùng bớt 10 lần → thương bớt 10 lần'}
+ D:{n:'Tính nhẩm, không đặt tính',tip:'Số bị chia giảm 10, 100 lần (số chia giữ nguyên) thì thương cũng giảm 10, 100 lần. Nhân cả hai số với cùng một số thì thương không đổi.',mn:'Chỉ số bị chia bớt 10 lần → thương bớt 10 lần'}
 };
 const genQ=(()=>{
 const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
@@ -388,6 +405,33 @@ for(let i=0;i<6;i++)bx(.35,.02,3.8,0xffffff,-7.8+i*.6,.08,8.4,street);
 [-9,1.5,8.5].forEach(x=>{cy(.07,.09,3.4,0x333333,x,1.7,5.9,street);bx(.5,.1,.1,0x333333,x+.2,3.4,5.9,street);sp(.2,0xffe9a0,x+.45,3.3,5.9,street)});
 [-4.5,5.5,11].forEach(x=>{cy(.12,.15,1.2,0x6b3e1f,x,.7,11.5,street);sp(.85,0x2f9e44,x,1.9,11.5,street);sp(.6,0x3dbb55,x+.3,2.4,11.5,street)});
 bx(.12,2.2,.12,0x555555,-11,1.1,5.9,street);bx(1,.7,.1,0x2a6fdb,-11,2.3,5.9,street);
+/* ----- Phố Việt Nam: nhà phố, cờ đỏ sao vàng, xe máy, quán cóc, xe bánh mì, dây điện ----- */
+const flagTex=tex(96,64,(g)=>{g.fillStyle='#da251d';g.fillRect(0,0,96,64);g.fillStyle='#ffff00';g.beginPath();for(let i=0;i<10;i++){const r=i%2?7:18,a=-Math.PI/2+i*Math.PI/5;g.lineTo(48+r*Math.cos(a),32+r*Math.sin(a))}g.closePath();g.fill()});
+const flags=[];
+function vflag(x,y,z,p=street){cy(.025,.025,1.5,0x666666,x,y,z,p);const f=new THREE.Mesh(new THREE.PlaneGeometry(.9,.6),new THREE.MeshBasicMaterial({map:flagTex,side:THREE.DoubleSide}));f.position.set(x+.47,y+.5,z);p.add(f);flags.push(f)}
+function board(txt,bg,x,y,z,w=2.2,p=street,ry=0){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w/4),new THREE.MeshBasicMaterial({map:lab(txt,bg)}));m.position.set(x,y,z);m.rotation.y=ry;p.add(m);return m}
+const HC=[0xf2d27a,0x7fc8b8,0xf4a3a3,0x8fb7e0,0xf1e3c8,0xe9b872,0xb9d99a],HS=['TẠP HÓA','SỬA XE 24/7','CÀ PHÊ','BÁNH MÌ','NƯỚC MÍA','HỦ TIẾU','TIỆM TÓC','GIẶT ỦI'],HB=['#ffe9a0','#ffffff','#cdeccf','#ffd6d6'];
+function house(x,z,fz,i,w=3.1){const h=3.6+(i*7%5)*.55,zf=z+fz*1.62;
+  bx(w,h,3.2,HC[i%HC.length],x,h/2,z,street);bx(w+.3,.14,3.5,0xb7c0c7,x,h+.07,z,street);
+  bx(w-.8,2.1,.1,0x6b4a2b,x,1.05,zf,street);bx(.8,.9,.1,0x8fd0f0,x-w*.28,h-.9,zf,street);bx(.8,.9,.1,0x8fd0f0,x+w*.28,h-.9,zf,street);
+  bx(w+.2,.08,.7,0x555555,x,2.5,z+fz*1.9,street);
+  board(HS[i%HS.length],HB[i%4],x,2.95,z+fz*1.67,Math.min(w-.3,2.3),street,fz>0?0:Math.PI);
+  if(i%2===0)sp(.28,0x2f9e44,x+w*.35,h+.35,z+fz*1.1,street);
+  if(i%3===0)vflag(x+w*.4,h+.8,z+fz*1.5)}
+for(let k=0;k<5;k++){house(-12-k*3.2,2.7,1,k);house(12+k*3.2,2.7,1,k+3)}
+for(let k=0;k<9;k++)house(-22.4+k*5.6,16.8,-1,k+1,5.4);
+function moto(x,z,ry,col,p=street){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry;p.add(g);
+  [-.55,.55].forEach(zz=>{const w=cy(.26,.26,.12,0x222222,0,.26,zz,g);w.rotation.z=Math.PI/2});
+  bx(.3,.28,.9,col,0,.55,.02,g);bx(.34,.1,.55,0x222222,0,.76,-.1,g);bx(.5,.06,.06,0x333333,0,.98,.5,g);cy(.03,.03,.5,0x666666,0,.75,.5,g);sp(.1,0xfff3b0,0,.78,.7,g);return g}
+moto(3.6,5.5,Math.PI/2,0xd6402b);moto(4.5,5.5,Math.PI/2,0x2a6fdb);moto(-7.9,5.5,Math.PI/2,0x2f9e44);
+[[.4,11.5,0xd6402b],[1.3,11.5,0x2a6fdb],[.85,12.2,0xffd23f]].forEach(([x,z,c])=>cy(.17,.19,.34,c,x,.17,z,street));
+bx(.9,.06,.9,0xe9d9b8,.85,.55,11.7,street);cy(.04,.04,.5,0x999999,.85,.28,11.7,street);cy(.02,.02,1.7,0x666666,.85,.85,11.7,street);mesh(new THREE.ConeGeometry(1.25,.45,16),0x2f9e44,.85,1.85,11.7,street);
+{const g=new THREE.Group();g.position.set(6.4,0,5.7);street.add(g);bx(1.5,.1,.8,0x2a6fdb,0,.7,0,g);bx(1.4,.55,.7,0xc9e8f5,0,1.05,0,g);[-.55,.55].forEach(x=>{const w=cy(.25,.25,.08,0x222222,x,.25,.45,g);w.rotation.z=Math.PI/2});cy(.02,.02,1.6,0x666666,0,1.6,0,g);mesh(new THREE.ConeGeometry(1,.35,16),0xd6402b,0,2.4,0,g);board('BÁNH MÌ','#fff0c8',0,1.7,.4,1.3,g)}
+const WM=new THREE.MeshBasicMaterial({color:0x2a2a2a});
+function wire(x1,y1,x2,y2,z,sag=.35){let px=x1,py=y1;for(let i=1;i<=8;i++){const u=i/8,x=x1+(x2-x1)*u,y=y1+(y2-y1)*u-Math.sin(u*Math.PI)*sag,dx=x-px,dy=y-py,l=Math.hypot(dx,dy),m=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,l,4),WM);m.position.set((x+px)/2,(y+py)/2,z);m.rotation.z=Math.atan2(dy,dx)-Math.PI/2;street.add(m);px=x;py=y}}
+wire(-9,3.4,1.5,3.4,5.9);wire(1.5,3.3,8.5,3.4,5.8);wire(-9,3.2,8.5,3.1,6.1,.55);wire(8.5,3.4,24,5.6,5.9,.9);wire(-9,3.4,-24,5.6,5.9,.9);wire(-9,3.3,-24,5.2,6.2,.7);wire(8.5,3.3,24,5.2,6.2,.7);
+[-9.15,1.35,8.35].forEach(x=>vflag(x,2.6,5.9));
+
 
 /* ===== Tween + hiệu ứng + vòng lặp ===== */
 const T=[];const clock=new THREE.Clock();
@@ -416,9 +460,64 @@ function cartoonTick(t,dt){
   if(dog.parent===S)dog.scale.y=1+Math.sin(t*3)*.015;
   if(K.position.x<17&&K.position.x>-17&&Math.abs(K.position.x-lastKx)>.01){pfT-=dt;if(pfT<0){pfT=.06;puff(K.position.x+1.3,.5,K.position.z)}}lastKx=K.position.x;
   dust.forEach(d=>{const u=d.userData,f=(t*u.sp+u.ph)%1;d.position.set(u.x+Math.sin(t*.5+u.ph)*.6,.3+f*5,u.z);d.material.opacity=.45*Math.sin(f*Math.PI)});
+  flags.forEach((f,i)=>f.rotation.y=Math.sin(t*3+i*1.7)*.4);if(SC.cur&&SC.run)SC.cur.idle(t,dt);
 }
+/* ===== Máy quay điện ảnh: CIN trộn vào máy quay thường, TS = tốc độ thời gian (quay chậm) ===== */
+const CIN={w:0,p:[0,4,9.5],l:[0,.2,-.5],fov:45,roll:0};let TS=1,skipC=false;
+function cut(p,l,fov=45,roll=0){CIN.p=p;CIN.l=l;CIN.fov=fov;CIN.roll=roll}
+function shot(p,l,fov=45,roll=0,d=.6,e=ease){const p0=CIN.p.slice(),l0=CIN.l.slice(),f0=CIN.fov,r0=CIN.roll;return tw(d,k=>{k=e(k);CIN.p=p0.map((v,i)=>lerp(v,p[i],k));CIN.l=l0.map((v,i)=>lerp(v,l[i],k));CIN.fov=lerp(f0,fov,k);CIN.roll=lerp(r0,roll,k)})}
+[-.35,.35].forEach(x=>{const h=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false}));h.scale.set(1.1,1.1,1);h.position.set(x,.55,1.45);K.add(h)});
+const skipNow=()=>{if(document.body.classList.contains('cine')){skipC=true;TS=5}};
+addEventListener('pointerdown',skipNow);addEventListener('keydown',skipNow);
+/* ===== Cảnh hài: Cậu Vàng bị giữ lại, gõ đúng đáp án mới được giải cứu ===== */
+const SX=-21,SC={cur:null,run:false,last:-1},stage=new THREE.Group();stage.position.set(SX,0,LZ);S.add(stage);stage.visible=false;
+const sg=()=>{const g=new THREE.Group();g.visible=false;stage.add(g);return g};
+const D2=(x,y,z)=>dog.position.set(SX+x,y,LZ+z),KS=(x,z)=>{K.position.set(SX+x,0,LZ+z);K.rotation.y=-Math.PI/2};
+function person(col,x,z,p){const g=new THREE.Group();g.position.set(x,0,z);p.add(g);cy(.2,.26,.8,col,0,.4,0,g);sp(.2,0xf2c9a0,0,1,0,g);mesh(new THREE.ConeGeometry(.45,.25,16),0xe8d28a,0,1.25,0,g);face(g,1.02,.17,.08,.04);return g}
+function bubble(txt,x,y,z,dur=2){const L=txt.split('|'),s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex(512,192,(g)=>{g.fillStyle='#fff';g.strokeStyle='#3b2412';g.lineWidth=8;g.beginPath();g.roundRect?g.roundRect(8,8,496,150,34):g.rect(8,8,496,150);g.fill();g.stroke();g.fillStyle='#3b2412';g.font='700 40px "Be Vietnam Pro",sans-serif';g.textAlign='center';g.textBaseline='middle';L.forEach((l,i)=>g.fillText(l,256,L.length>1?58+i*50:83))}),transparent:true,depthTest:false}));
+  s.position.set(x,y,z);S.add(s);tw(dur,k=>{const pk=k<.12?k/.12*1.1:1.1-.1*Math.min(1,(k-.12)*8);s.scale.set(3.4*pk,1.28*pk,1);s.material.opacity=k<.85?1:1-(k-.85)/.15}).then(()=>S.remove(s))}
+const foam=(n,w=3)=>{for(let i=0;i<n;i++)setTimeout(()=>puff(SX+(Math.random()-.5)*w,.4+Math.random()*.8,LZ+(Math.random()-.5)*1.5),i*70)};
+const SCENES=[
+/* 1 · Rửa chén trả nợ */
+(()=>{const g=sg(),tower=new THREE.Group();tower.position.set(-1.4,.4,0);g.add(tower);let tf=0;
+  cy(.62,.5,.4,0x3b8fe0,0,.2,0,g);cy(.55,.55,.02,0x9fdcff,0,.4,0,g);bx(.6,.4,.6,0xd6402b,-1.4,.2,0,g);
+  for(let i=0;i<12;i++)cy(.27,.19,.1,0xffffff,(i%2)*.03,.05+i*.11,0,tower);
+  return{g,setup(){D2(0,0,-.75);dog.rotation.y=-Math.PI/2;KS(2.8,-.1)},
+   lines:[['😤 Racing Boy: “Rửa hết chồng chén này mới được về nha!”',['Rửa hết chồng chén|mới được về nha!',2.8,2.6,-.1]],['🐶 Cậu Vàng: “Ẳng… tui là chó mà…”',['Ẳng ẳng…|tui là chó mà!',0,2,-.75]]],
+   idle(t,dt){tower.rotation.z=Math.sin(t*3.3)*.05;dog.position.y=Math.abs(Math.sin(t*7))*.06;dog.rotation.z=Math.sin(t*9)*.05;tf-=dt;if(tf<0){tf=.35;puff(SX+(Math.random()-.5)*1.2,.55,LZ+(Math.random()-.5)*.5)}},
+   async rescue(){const x=SX+2.8;bubble('Xà phòng|tới đây nè!',SX,2.2,LZ-.7,1.5);foam(12,4);await wait(.6);pop3d('TRƠN QUÁ!',x,2.8,LZ,'#9fdcff',2);SFX.screech();
+    await tw(.9,k=>{K.rotation.y=-Math.PI/2+k*Math.PI*4;K.position.x=x+Math.sin(k*Math.PI)*.5});K.rotation.y=-Math.PI/2;
+    dog.rotation.set(0,0,0);SFX.whoosh&&SFX.whoosh();await tw(.8,k=>{dog.position.set(SX+16*k*k,0,LZ-.75+Math.sin(k*9)*.3);squash(dog,.1)})},
+   cleanup(){tower.rotation.z=0}}})(),
+/* 2 · Karaoke vỉa hè */
+(()=>{const g=sg(),L=[],spk=[];let nt=0;bx(3.4,.04,1.9,0xd6402b,0,.02,.1,g);
+  [-1.7,1.7].forEach(x=>{spk.push(bx(.7,1.5,.6,0x222222,x,.75,-.5,g));const w=cy(.22,.22,.05,0x555555,x,.55,-.17,g);w.rotation.x=Math.PI/2;const v=cy(.1,.1,.05,0x777777,x,1.15,-.17,g);v.rotation.x=Math.PI/2});
+  board('KARAOKE','#ffd6f5',0,2.6,-.9,2.8,g);cy(.18,.18,.03,0x333333,0,.02,.8,g);cy(.015,.015,1.1,0x888888,0,.55,.8,g);sp(.08,0x222222,0,1.12,.8,g);
+  [-1,0,1].forEach((v,i)=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false}));s.scale.set(1.6,1.6,1);s.position.set(v*1.3,2.1,-.7);g.add(s);L.push(s)});
+  const pl=person(0x6b8fdc,-3.3,.9,g),pr=person(0xd99a3a,3.9,-.6,g);
+  return{g,setup(){D2(0,0,.1);dog.rotation.y=-Math.PI/2;KS(2.7,1.9);L.forEach(s=>s.material.opacity=.8)},
+   lines:[['🎤 Racing Boy: “Hát liền một bài ‘Lạc Trôi’ đi nào!”',['Hát liền bài|‘Lạc Trôi’ đi nào!',2.7,2.7,1.9]],['🐶 Cậu Vàng: “Gâu… gâu… gâu~ 🎵”',['Gâu gâu gâu~ 🎵',0,2,.1]]],
+   idle(t,dt){L.forEach((s,i)=>{if(s.material.color&&s.material.color.setHSL)s.material.color.setHSL((t*.35+i*.33)%1,1,.6)});const p=1+.05*Math.abs(Math.sin(t*12));spk.forEach(s=>s.scale.set(p,1,p));
+    dog.position.y=Math.abs(Math.sin(t*9))*.07;dog.rotation.z=Math.sin(t*5)*.12;pl.rotation.z=Math.sin(t*4)*.1;pr.rotation.z=-Math.sin(t*4)*.1;
+    nt-=dt;if(nt<0){nt=.55;emoji(Math.random()<.5?'🎵':'🎶',SX+(Math.random()-.5)*1.4,1.5,LZ+.4,.7)}},
+   async rescue(){bubble('Rút phích cắm!',SX,2.3,LZ+.1,1.4);await wait(.7);SFX.bad();[0,1,2].forEach(i=>setTimeout(()=>emoji('⚡',SX+(i-1)*1.7,1,LZ-.2,1),i*120));
+    pop3d('RÍÍÍÍ!',SX,2.6,LZ,'#ffffff',2);jolt();L.forEach(s=>s.material.opacity=0);
+    await tw(.6,k=>{K.position.x=SX+2.7+Math.sin(k*60)*.08;K.rotation.y=-Math.PI/2+Math.sin(k*40)*.08});K.rotation.y=-Math.PI/2;
+    dog.rotation.set(0,Math.PI,0);SFX.whoosh&&SFX.whoosh();await tw(.8,k=>dog.position.set(SX-16*k*k,0,LZ+.1))},
+   cleanup(){spk.forEach(s=>s.scale.set(1,1,1));pl.rotation.z=pr.rotation.z=0}}})(),
+/* 3 · Giao hàng thần tốc */
+(()=>{const g=sg(),mo=moto(0,0,Math.PI/2,0x2f9e44,g),tr=new THREE.Group();tr.position.set(-.8,.9,0);g.add(tr);let helm=null,pt=0;
+  [0xc98f4a,0xd6402b,0xe0a43a,0x3b8fe0,0xc98f4a].forEach((c,i)=>bx(.62-(i%2)*.06,.4,.55,c,(i%2)*.04,.2+i*.41,0,tr));
+  board('GIAO NHANH','#d9f2d0',-.8,2.2,.35,1.1,g);
+  return{g,setup(){mo.position.set(0,0,0);tr.position.set(-.8,.9,0);tr.rotation.set(0,0,0);D2(.05,.68,0);dog.rotation.y=0;dog.scale.setScalar(.85);helm=sp(.3,0xffd23f,.82,1.12,0,dog);KS(3,-.1)},
+   lines:[['⏱️ Racing Boy: “Giao 99 tô hủ tiếu trước 12 giờ nhé!”',['Giao 99 tô hủ tiếu|trước 12 giờ nhé!',3,2.6,-.1]],['🐶 Cậu Vàng: “Ẳng… trễ là trừ lương hả?!”',['Ẳng ẳng… trễ là|trừ lương hả?!',0,2.2,0]]],
+   idle(t,dt){tr.rotation.z=Math.sin(t*4.5)*.07;dog.position.y=.68+Math.abs(Math.sin(t*8))*.04;mo.position.y=Math.abs(Math.sin(t*30))*.012;pt-=dt;if(pt<0){pt=.18;puff(SX-1.1,.35,LZ)}},
+   async rescue(){bubble('Phóng thôi!',SX,2.4,LZ,1.2);SFX.vroom(1.4,false);[0,1,2,3].forEach(i=>setTimeout(()=>emoji('🍜',SX+3+(i-1.5)*.5,2+i*.2,LZ,.9),i*150+500));
+    pop3d('HỦ TIẾU BAY!',SX+3,3.2,LZ,'#ffd23f',2);
+    await tw(1.3,k=>{const e=k*k*20;mo.position.x=e;dog.position.x=SX+.05+e;tr.position.x=-.8+e*.8;tr.rotation.z=-k*1.3;tr.position.y=Math.max(.15,.9-Math.max(0,k-.4)*1.5)})},
+   cleanup(){dog.remove&&helm&&dog.remove(helm);dog.scale.setScalar(1)}}})()];
 let wag=12,hop=0;
-(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05)*TS,t=clock.elapsedTime;
   for(let i=T.length-1;i>=0;i--){const a=T[i];a.t+=dt;const k=Math.min(a.t/a.d,1);a.f(k);if(k>=1){T.splice(i,1);a.r()}}
   tail.rotation.y=Math.sin(t*wag)*.6;arm.rotation.z=Math.sin(t*3)*.35;chef.position.y=Math.abs(Math.sin(t*2))*.04;wheels.forEach(w=>w.rotation.x-=dt*14);
   ears.forEach((e,i)=>e.rotation.z=Math.sin(t*5+i)*.08);
@@ -427,7 +526,9 @@ let wag=12,hop=0;
   steam.forEach((m,i)=>{const f=(t*.45+i/5)%1;m.position.set(Math.sin(t*2+i)*.1,.5+f*.9,Math.cos(t*2+i)*.1);m.material.opacity=.6*(1-f)});
   potSteam.forEach((m,i)=>{const f=(t*.3+i/4)%1;m.position.set(-3.6+Math.sin(t*1.5+i*2)*.15,2+f*1.2,-2.4);m.scale.setScalar(.6+f);m.material.opacity=.5*(1-f)});
   shake*=.9;const sx=(Math.random()-.5)*shake*.35,sy=(Math.random()-.5)*shake*.2;
-  const ck=CV.k,sz=8.6+Math.max(9,Math.min(24,6.5/(.414*(cam.aspect||1.7))));cam.position.set(lerp(camBase.x,0,ck)+Math.sin(t*.4)*.25+sx,lerp(camBase.y,6,ck)+Math.sin(t*.3)*.08+sy,lerp(camBase.z,sz,ck));cam.lookAt(0,lerp(.2,.4,ck),lerp(-.5,7.4,ck));
+  const ck=CV.k,sz=8.6+Math.max(9,Math.min(24,6.5/(.414*(cam.aspect||1.7))));let px=lerp(camBase.x,0,ck)+Math.sin(t*.4)*.25,py=lerp(camBase.y,6,ck)+Math.sin(t*.3)*.08,pz=lerp(camBase.z,sz,ck),lx=0,ly=lerp(.2,.4,ck),lz=lerp(-.5,7.4,ck);const cw=CIN.w;
+  if(cw>0){px=lerp(px,CIN.p[0],cw);py=lerp(py,CIN.p[1],cw);pz=lerp(pz,CIN.p[2],cw);lx=lerp(lx,CIN.l[0],cw);ly=lerp(ly,CIN.l[1],cw);lz=lerp(lz,CIN.l[2],cw)}
+  cam.position.set(px+sx,py+sy,pz);cam.lookAt(lx,ly,lz);if(cw>0||cam.fov!==45){cam.fov=lerp(45,CIN.fov,cw);cam.updateProjectionMatrix();cam.rotation.z+=CIN.roll*cw}
   cartoonTick(t,dt);R.render(S,cam)})();
 
 /* ================= Luật chơi: 30 câu, câu sai quay lại ôn cho tới khi đúng ================= */
@@ -462,30 +563,67 @@ async function serve(){
   const hs=dog.position.y;SFX.bark();
   await tw(.7,k=>{const p=Math.abs(Math.sin(k*Math.PI*2));C.position.y=p*.25;squash(C,(1-p)*.1-p*.06);dog.position.y=hs+p*.5});C.position.y=0;C.scale.setScalar(1);dog.position.y=hs;wag=12;
 }
+const cap=t=>{say(t);$('sub').textContent=t};
 async function steal(){
+  const cl=document.body.classList,DX=-2.4,stop=DX+3.2,sp_=v=>{TS=skipC?5:v};skipC=false;TS=1;
   say(`❌ Sai rồi! Đáp án đúng: ${cur[1]}. ${cur[2]}`);SFX.bad();flash('bad');jolt();popChip('lo');emoji('😢',CX,2.4,.2,1.2);mouth.scale.set(.6,2.4,1);pop3d('Ối!',CX,2.9,.6,'#ff8a7a');
-  const DX=-2.4;street.visible=true;
-  say('🐶 Cậu Vàng giật mình chạy ra đường…');SFX.bark();emoji('❓',DH.x,2.5,DH.z,1.1);
+  await wait(.5);
+  /* Cảnh 1 · máy quay thấp bám theo Cậu Vàng chạy ra đường */
+  street.visible=true;cl.add('cine');cut([cam.position.x,cam.position.y,cam.position.z],[0,.2,-.5],45,0);CIN.w=1;
+  cap('🐶 Cậu Vàng giật mình chạy ra đường…');SFX.bark();emoji('❓',DH.x,2.5,DH.z,1.1);
   const d0=dog.position.clone();dog.rotation.y=-1.25;
-  await Promise.all([tw(1.4,k=>dog.position.set(lerp(d0.x,DX,k),Math.abs(Math.sin(k*Math.PI*7))*.2,lerp(d0.z,LZ,ease(k)))),tw(1.4,k=>CV.k=ease(k))]);
-  dog.rotation.y=0;dog.position.set(DX,0,LZ);await wait(.35);
-  K.position.set(16,0,LZ);const stop=DX+3.2;SFX.vroom(1.2,true);
-  await tw(1.2,k=>K.position.x=lerp(16,stop,ease(k)));SFX.screech();jolt();burst(stop,.3,LZ,[0xbba488,0xd9c7a8]);
-  say('🏎️ Racing Boy: “Bắt Cậu Vàng nè, vroom vroom!”');
-  const s=dog.position.clone();SFX.yelp();emoji('❗',DX,2.5,LZ,1.1);
-  await tw(.5,k=>dog.position.set(lerp(s.x,K.position.x+.55,k),Math.sin(k*Math.PI)*1.2+lerp(0,.9,k),LZ));
-  K.add(dog);dog.scale.setScalar(.8);dog.position.set(0,.9,-.55);dog.rotation.y=-Math.PI/2;
-  SFX.yelp();await wait(.8);SFX.vroom(1.5,false);await tw(1.5,k=>K.position.x=lerp(stop,-16,k*k));
-  K.position.x=30;S.add(dog);dog.scale.setScalar(1);dog.rotation.y=.76;
-  say(`🐶 Cậu Vàng trốn thoát và chạy về quán! Câu này sẽ quay lại ở phần ôn lại 📚`);SFX.bark();
-  await Promise.all([tw(1.6,k=>dog.position.set(lerp(-9,DH.x,ease(k)),Math.abs(Math.sin(k*Math.PI*8))*.18,lerp(LZ,DH.z,ease(k)))),tw(1.6,k=>CV.k=1-ease(k))]);
-  dog.rotation.y=-1.1;dog.position.copy(DH);CV.k=0;street.visible=false;
+  await Promise.all([tw(1.5,k=>dog.position.set(lerp(d0.x,DX,k),Math.abs(Math.sin(k*Math.PI*7))*.2,lerp(d0.z,LZ,ease(k)))),tw(1.5,k=>CV.k=ease(k)),shot([DX-4.2,.8,LZ-2.4],[DX,.9,LZ],40,.04,1.5)]);
+  /* Cảnh 2 · cận mặt, quay chậm: Cậu Vàng nghe tiếng xe */
+  dog.rotation.y=0;dog.position.set(DX,0,LZ);
+  cut([DX+2.7,1,LZ+1.4],[DX+.7,.9,LZ],30,-.03);sp_(.5);
+  cap('😰 Có tiếng xe gầm gừ từ đằng xa…');SFX.vroom(1.2,true);emoji('❗',DX,2.5,LZ,1.1);emoji('💦',DX+.9,1.8,LZ+.3,.8);
+  await Promise.all([wait(.6),shot([DX+2.2,1,LZ+1],[DX+.7,.95,LZ],26,-.03,.6,k=>k)]);
+  /* Cảnh 3 · sau lưng chú chó, xe lao thẳng tới */
+  sp_(1);K.position.set(16,0,LZ);cut([DX-3.8,.5,LZ+.5],[DX+6,.9,LZ],38,.02);
+  cap('🏎️ Racing Boy lao tới như tên bắn!');SFX.vroom(1.2,true);
+  await Promise.all([tw(1.3,k=>{K.position.x=lerp(16,stop,ease(k));shake=Math.max(shake,k*.8)}),shot([DX-4.4,.45,LZ+.3],[DX+6,1,LZ],34,.02,1.3,k=>k)]);
+  SFX.screech();jolt();burst(stop,.3,LZ,[0xbba488,0xd9c7a8]);puff(stop+1.3,.5,LZ);
+  /* Cảnh 4 · góc ngang, quay chậm: Cậu Vàng bị tóm lên xe */
+  cap('🏎️ Racing Boy: “Bắt Cậu Vàng nè, vroom vroom!”');SFX.yelp();emoji('❗',DX,2.5,LZ,1.1);
+  cut([-1.2,1.3,LZ+5],[-.8,1,LZ],40,0);sp_(.3);
+  const s=dog.position.clone();
+  await Promise.all([tw(.5,k=>dog.position.set(lerp(s.x,K.position.x+.55,k),Math.sin(k*Math.PI)*1.2+lerp(0,.9,k),LZ)),shot([-2.2,1.6,LZ+5.4],[-1,1,LZ],34,-.02,.5,k=>k)]);
+  K.add(dog);dog.scale.setScalar(.8);dog.position.set(0,.9,-.55);dog.rotation.y=-Math.PI/2;sp_(1);
+  /* Cảnh 5 · máy quay đuổi theo xe, vạch tốc độ */
+  SFX.yelp();pop3d('ẲNG ẲNG!',K.position.x,2.7,LZ,'#ffffff');cl.add('fast');
+  await wait(.4);SFX.vroom(1.5,false);pop3d('VÚT!',K.position.x,2.2,LZ,'#ffd23f',2);
+  const c0=CIN.p.slice();
+  await tw(1.6,k=>{const x=lerp(stop,-16,k*k),b=Math.min(1,k*4);K.position.x=x;CIN.p=[lerp(c0[0],x+5,b),lerp(c0[1],1.3,b),lerp(c0[2],LZ+4.6,b)];CIN.l=[x-1.5,.9,LZ];CIN.roll=.05*k});
+  /* Cảnh 6 · Một lát sau… cảnh hài ngẫu nhiên, chờ người chơi gõ lại đáp án để giải cứu */
+  K.position.x=30;cl.remove('fast');skipC=false;TS=1;CIN.roll=0;
+  await playScene(pickScene());
+}
+function pickScene(){let k;do{k=Math.random()*SCENES.length|0}while(k===SC.last&&SCENES.length>1);SC.last=k;return SCENES[k]}
+async function playScene(sc){
+  const cl=document.body.classList;SC.cur=sc;SC.run=false;stage.visible=true;SCENES.forEach(s=>s.g.visible=s===sc);
+  S.add(dog);dog.scale.setScalar(1);dog.rotation.set(0,0,0);sc.setup();
+  cap('⏳ Một lát sau, ở một góc phố…');cut([SX+7,2.8,LZ+9],[SX,1,LZ],42,.03);SC.run=true;
+  await shot([SX+.8,1.9,LZ+7.4],[SX,.8,LZ],42,0,1.3);
+  for(const l of sc.lines){cap(l[0]);bubble(l[1][0],SX+l[1][1],l[1][2],LZ+l[1][3],1.8);SFX.bark();await wait(1.8)}
+  await shot([SX+.2,1.1,LZ+6.2],[SX,-.2,LZ],46,0,.9);
+  cl.remove('cine');cl.add('rsc');cap('');
+}
+function taunt(){const Q=['Sai rồi, hahaha!','Gõ lại nào~','Chưa đúng nha!','Hehe, cố lên!'];SFX.yelp();pop3d(Q[Math.random()*Q.length|0],SX+2.6,2.9,LZ,'#ff8a7a',1.7);if(Math.random()<.5)bubble('Ẳng! Gõ đúng|giùm tui với!',SX,2.1,LZ-.2,1.6)}
+async function rescue(){
+  const cl=document.body.classList,sc=SC.cur;cl.remove('rsc');cl.add('cine');SC.run=false;skipC=false;TS=1;
+  cap('🎉 Gõ đúng rồi! Giải cứu Cậu Vàng!');
+  await sc.rescue();
+  stage.visible=false;sc.cleanup();K.position.set(30,0,DH.z);K.rotation.y=-Math.PI/2;SC.cur=null;
+  S.add(dog);dog.scale.setScalar(1);dog.rotation.set(0,-1.1,0);dog.position.copy(DH);
+  cap('');say('🐶 Cậu Vàng thoát nạn, chạy một mạch về quán!');SFX.bark();emoji('🐶',DH.x,2.2,DH.z,1);cl.remove('cine');
+  await Promise.all([tw(1.1,k=>CIN.w=1-ease(k)),tw(1.1,k=>CV.k=1-ease(k))]);
+  CIN.w=0;CIN.roll=0;CV.k=0;street.visible=false;
 }
 async function submit(){
   if(busy)return;const v=norm($('a').value);if(!v)return;lock(true);SFX.init();SFX.click();try{speechSynthesis.cancel()}catch(e){}
   const k=cur[3],ok=v===norm(cur[1]);if(!review){byRule[k].n++;if(ok)byRule[k].ok++}
   if(ok){if(!review)score++;streak++;best=Math.max(best,streak);hud();await serve()}
-  else{lost++;streak=0;if(!review)missed.push(cur);if(!retry.includes(order[pos]))retry.push(order[pos]);hud();await steal();await fixIt()}
+  else{lost++;streak=0;if(!review)missed.push(cur);if(!retry.includes(order[pos]))retry.push(order[pos]);hud();await steal();await fixIt();await rescue()}
   await wait(.6);await tw(.5,k=>C.position.x=lerp(CX,10,k));B.visible=false;pos++;hud();
   if(pos<order.length)return ask();
   if(!retry.length)return finish();
@@ -500,12 +638,12 @@ function fixIt(){return new Promise(res=>{
   $('fq').textContent=cur[0];
   $('fs').innerHTML=(cur[4]||[]).map(s=>`<div class="stp">${s}</div>`).join('');
   $('fr').innerHTML=`Dạng ${cur[3]}: ${RULES[cur[3]].tip}<br>🧠 <b>${RULES[cur[3]].mn}</b><br>👉 Đáp án đúng: <b style="font-size:22px">${cur[1]}</b>`;
-  $('fa').value='';$('fh').textContent='';$('fix').classList.remove('h');setTimeout(()=>$('fa').focus(),80);
-  fixDone=()=>{$('fix').classList.add('h');fixDone=null;res()};
+  $('fa').value='';$('fh').textContent='';$('fix').querySelector('h2').textContent='🆘 Giải cứu Cậu Vàng! Gõ lại đáp án đúng nhé';$('fix').classList.add('rescue');$('fix').classList.remove('h');setTimeout(()=>$('fa').focus(),80);
+  fixDone=()=>{$('fix').classList.add('h');$('fix').classList.remove('rescue');fixDone=null;res()};
 })}
 $('ff').onsubmit=e=>{e.preventDefault();
   if(norm($('fa').value)===norm(cur[1])){SFX.ok(0);flash('ok');fixDone&&fixDone()}
-  else{SFX.bad();$('fh').textContent='Chưa đúng. Nhìn đáp án phía trên rồi gõ lại nhé!';const a=$('fa');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad')}};
+  else{SFX.bad();$('fh').textContent='Chưa đúng. Nhìn đáp án phía trên rồi gõ lại nhé!';const a=$('fa');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad');taunt()}};
 $('fc').onclick=()=>{$('fa').value+=',';SFX.tick();$('fa').focus()};
 $('hint').onclick=()=>{if(!cur||busy)return;hints++;SFX.click();say('💡 Dạng '+cur[3]+': '+RULES[cur[3]].tip);$('a').focus()};
 $('cheatBtn').onclick=()=>{SFX.click();$('cheat').classList.remove('h')};
