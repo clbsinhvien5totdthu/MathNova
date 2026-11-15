@@ -76,7 +76,7 @@ body.shake #c{animation:shk .45s}
 .mast i{flex:1;height:12px;border-radius:8px;border:2px solid var(--ink);background:#fff;overflow:hidden}.mast u{display:block;height:100%;background:linear-gradient(90deg,#ffb703,#2fa84f)}
 #fa.bad{animation:shk .35s;border-color:var(--red)}
 #fix{z-index:5}#cheat{z-index:6}
-#start{position:sticky;bottom:0}
+
 body.emb #hud{padding-right:92px}
 
 /* ===== Cảnh điện ảnh: thanh đen, phụ đề, vạch tốc độ ===== */
@@ -95,13 +95,31 @@ body.fast #speed{opacity:.55}
 body.rsc #hud,body.rsc #panel{opacity:0;pointer-events:none}
 #fix.rescue{background:linear-gradient(to top,rgba(40,20,5,.7),rgba(40,20,5,0) 70%);align-items:flex-end;padding-bottom:10px}
 #fix.rescue .box{max-height:46vh;overflow:auto;margin:0}
+
+/* ===== v2: chữ không bị che · bóng thoại HTML · lồng tiếng ===== */
+#bubs{position:fixed;inset:0;pointer-events:none;z-index:8}
+.db{position:fixed;left:0;top:0;max-width:min(84vw,380px);background:var(--cream);border:3px solid var(--ink);border-radius:18px;padding:5px 12px 8px;box-shadow:0 4px 0 var(--ink);font:700 clamp(14px,3.7vw,20px)/1.3 "Be Vietnam Pro",system-ui,sans-serif;color:var(--ink);animation:dbp .28s cubic-bezier(.3,1.5,.5,1);transition:opacity .25s}
+.db b{display:block;font-size:.72em;margin-bottom:1px}
+.db.out{opacity:0}
+@keyframes dbp{from{transform:scale(.6);opacity:0}}
+body.cine #lbt{height:7vh}
+body.cine #lbb{height:auto;min-height:13vh;padding:8px 0 12px;flex-direction:column}
+#sub{max-width:94vw;line-height:1.35}
+#skp{top:-24px;bottom:auto;background:rgba(0,0,0,.5);padding:1px 9px;border-radius:99px;opacity:0;pointer-events:none}body.cine #skp{opacity:.9}
+#fix.rescue .box{max-height:58vh;padding:12px 14px}#fix.rescue h2{font-size:17px;margin:0 0 4px}#fix.rescue #ff{position:sticky;bottom:-12px;background:var(--cream);padding:6px 0 4px}
+#fb:not(:empty){background:rgba(59,36,18,.86);border-radius:12px;padding:4px 12px;max-width:760px}
+#start{position:static}
+details.rd{margin-top:12px}details.rd summary{cursor:pointer;font-size:18px;font-weight:800;color:var(--red)}
+#vo.off{opacity:.45;text-decoration:line-through}
+@media(max-width:560px){#f{flex-wrap:wrap}#a{order:-1;flex:1 1 100%;min-width:100%}#go{flex:1 1 auto}}
+#panel,#fix.rescue{bottom:var(--kb,0px)}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="flash"></div><div id="combo"></div><div id="speed"></div><div id="lbt" class="lb"></div><div id="lbb" class="lb"><span id="sub"></span><i id="skp">⏩ chạm để tua nhanh</i></div>
+<div id="flash"></div><div id="combo"></div><div id="speed"></div><div id="bubs"></div><div id="lbt" class="lb"></div><div id="lbb" class="lb"><span id="sub"></span><i id="skp">⏩ chạm để tua nhanh</i></div>
 <div id="hud"><span id="no">Câu 1/20</span><span id="sc">🍜 0</span><span id="lo">🐶 Bị bắt: 0</span>
-  <div id="tools"><button id="cheatBtn" type="button" aria-label="Bảng ghi nhớ" title="Bảng ghi nhớ">📖</button><button id="snd" type="button" aria-label="Bật/tắt âm thanh" title="Âm thanh">🔊</button><button id="mus" type="button" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">🎵</button></div>
+  <div id="tools"><button id="cheatBtn" type="button" aria-label="Bảng ghi nhớ" title="Bảng ghi nhớ">📖</button><button id="snd" type="button" aria-label="Bật/tắt âm thanh" title="Âm thanh">🔊</button><button id="vo" type="button" aria-label="Bật/tắt lồng tiếng" title="Lồng tiếng nhân vật">🎙️</button><button id="mus" type="button" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">🎵</button></div>
   <i><u id="bar"></u></i></div>
 <div id="panel">
   <div id="bub"><small id="who">Khách hàng</small><p id="q"></p></div>
@@ -119,10 +137,11 @@ body.rsc #hud,body.rsc #panel{opacity:0;pointer-events:none}
     <li>🧠 Sai thì xem <b>cách làm từng bước</b> rồi <b>gõ lại đáp án đúng</b> để nhớ. Hết 20 câu, các câu sai quay lại để <b>ôn lại</b> cho tới khi đúng hết.</li>
     <li>💡 Bí quá bấm nút <b>💡</b> để xem gợi ý, bấm <b>📖</b> (góc phải) để xem lại bảng ghi nhớ bất cứ lúc nào.</li>
     <li>🔥 Đúng liên tiếp để nhận <b>combo</b>. Chỉ gõ số; số thập phân gõ dạng <b>3,25</b> (dấu phẩy hay dấu chấm đều được).</li>
-    <li>🔊 Có âm thanh &amp; nhạc nền (tắt ở nút góc phải). Nút 🗣️ để nghe đọc câu hỏi.</li>
+    <li>🎙️ <b>Lồng tiếng</b>: Anh Hai, khách, Racing Boy và Cậu Vàng đều có giọng riêng (nút 🎙️ để bật/tắt). Nút 🗣️ để nghe lại câu hỏi.</li>
+    <li>🎬 Sai thì Cậu Vàng gặp <b>một trong 8 kết cục hài ngẫu nhiên</b>; đúng thì có nhiều màn ăn mừng khác nhau. 🔊 Âm thanh &amp; nhạc nền tắt ở nút góc phải.</li>
   </ul>
-  <h3 class="ttl" style="margin:12px 0 4px">📖 Ghi nhớ nhanh: 4 dạng của Bài 22</h3><div id="rulesIntro"></div>
   <button id="start">Mở quán! 🎉</button>
+  <details class="rd"><summary class="ttl">📖 Ghi nhớ nhanh: 4 dạng của Bài 22</summary><div id="rulesIntro"></div></details>
 </div></div>
 <div id="end" class="ov h"></div>
 <div id="cheat" class="ov h"><div class="box"><h2 class="ttl">📖 Bảng ghi nhớ · Bài 22</h2><div id="rulesCheat"></div><button id="cheatX" type="button" style="width:100%;margin-top:8px">Đã nhớ, chơi tiếp!</button></div></div>
@@ -279,6 +298,24 @@ function go(){
 if(window.__started)return;window.__started=true;
 try{if(parent!==window)document.body.classList.add('emb')}catch(e){}
 const $=id=>document.getElementById(id);
+
+/* ===== Lồng tiếng: mỗi nhân vật một giọng (tông + tốc độ), ưu tiên giọng tiếng Việt có sẵn; không có giọng thì chỉ hiện chữ ===== */
+const VO=(()=>{let on=true,pend=null,cust=0;try{on=localStorage.getItem('pho-vo')!=='0'}catch(e){}
+ const ss=window.speechSynthesis,ok=!!(ss&&window.SpeechSynthesisUtterance);let vs=[];
+ const load=()=>{try{vs=ss.getVoices().filter(v=>/^vi/i.test(v.lang))}catch(e){}};if(ok){load();try{ss.addEventListener('voiceschanged',load)}catch(e){}}
+ const CH={chef:{n:'Anh Hai',p:.82,r:.95,c:'#d6402b',v:0},rb:{n:'Racing Boy',p:.55,r:1.22,c:'#2a6fdb',v:1},dog:{n:'Cậu Vàng',p:1.95,r:1.18,c:'#b87a14',v:2},narr:{n:'',p:1.05,r:1,c:'#3b2412',v:0}};
+ const CP=[[.7,.92],[1.55,1],[.6,.88],[1.4,1.05],[.95,1.1]],CN=['Chú Tư','Cô Ba','Bác Năm','Chị Sáu','Anh Bảy'];
+ const who=k=>k==='cust'?{n:CN[cust%5],p:CP[cust%5][0],r:CP[cust%5][1],c:'#2f6b97',v:cust}:(CH[k]||CH.narr);
+ const clean=t=>t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu,'').replace(/[“”‘’"]/g,'').replace(/\|/g,' ').replace(/…/g,'...').trim();
+ const math=t=>clean(t).replace(/(\d),(\d)/g,'$1 phẩy $2').replace(/=\s*\?/g,' bằng bao nhiêu').replace(/([×:])\s*\?/g,'$1 ô trống ').replace(/\?/g,' ô trống ').replace(/(\d+)\/(\d+)/g,'$1 phần $2').replace(/×/g,' nhân ').replace(/\s:\s/g,' chia ').replace(/\+/g,' cộng ').replace(/=/g,' bằng ').replace(/\bcm\b/g,'xăng-ti-mét');
+ function say(k,text,o={}){const w=who(k),txt=o.math?math(text):clean(text),est=Math.min(o.math?12000:7000,Math.max(o.min||0,700+txt.length*(on&&ok?70:55)));
+  return new Promise(res=>{if(pend)pend();let fin=false,tm;const done=()=>{if(fin)return;fin=true;pend=null;clearTimeout(tm);res()};pend=done;
+   if(!on||!ok||!txt){tm=setTimeout(done,o.silent===false?0:est);return}
+   tm=setTimeout(done,est*1.6+1000);
+   try{ss.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='vi-VN';u.pitch=w.p;u.rate=o.rate||w.r;if(vs.length)u.voice=vs[w.v%vs.length];u.onend=u.onerror=done;ss.speak(u)}catch(e){done()}})}
+ return{say,sayQ:t=>say('cust',t,{math:true,rate:.92}),who,cancel(){try{ss&&ss.cancel()}catch(e){}if(pend)pend()},get on(){return on},toggle(){on=!on;try{localStorage.setItem('pho-vo',on?'1':'0')}catch(e){}if(!on)VO.cancel();return on},set cust(i){cust=i}}})();
+const pickL=a=>a[Math.random()*a.length|0];
+const CL=['Phở ngon quá trời!','Nước dùng ngọt thanh luôn!','Ăn là ghiền nha!','Tuyệt cú mèo!','Cho thêm tô nữa đi anh Hai!','Thơm lừng cả quán!'],HL=['Phở nóng tới liền!','Giỏi lắm, đúng rồi nè!','Hai tô nữa ra liền!','Toán giỏi, phở ngon!','Cẩn thận nóng nha!'];
 var THREE=window.THREE||noThree();
 let R,flat=!window.THREE;
 try{R=new THREE.WebGLRenderer({canvas:$('c'),antialias:true})}catch(e){THREE=noThree();R=new THREE.WebGLRenderer();flat=true}
@@ -286,10 +323,12 @@ if(flat){$('fb').textContent='⚠️ Không tải được đồ họa 3D — b�
 R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;
 const S=new THREE.Scene();S.background=new THREE.Color(0xffe3b0);S.fog=new THREE.Fog(0xffe3b0,22,48);
 const cam=new THREE.PerspectiveCamera(45,1,.1,100);
-const camBase={x:0,y:4,z:9.5};let shake=0;
+const camBase={x:0,y:4,z:9.5};let shake=0,occT=0,occ=0,occN=0;
+function applyView(){if(!cam.setViewOffset)return;const w=innerWidth,h=innerHeight;if(occ>1)cam.setViewOffset(w,h,0,Math.round(occ*.5),w,h);else if(cam.clearViewOffset)cam.clearViewOffset();cam.updateProjectionMatrix()}
 function fit(){const w=innerWidth,h=innerHeight,a=w/h;R.setSize(w,h,false);cam.aspect=a;
-  camBase.z=Math.max(9.5,13.5/a);cam.position.set(0,4,camBase.z);cam.lookAt(0,.2,-.5);cam.updateProjectionMatrix()}
+  camBase.z=Math.max(9.5,13.5/a);cam.position.set(0,4,camBase.z);cam.lookAt(0,.2,-.5);cam.updateProjectionMatrix();applyView()}
 addEventListener('resize',fit);fit();
+try{const vv=window.visualViewport;if(vv){const kb=()=>document.documentElement.style.setProperty('--kb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}}catch(e){}
 S.add(new THREE.HemisphereLight(0xfff4e0,0xc8a070,1));
 const L=new THREE.DirectionalLight(0xffffff,.65);L.position.set(4,8,6);L.castShadow=true;
 Object.assign(L.shadow.camera,{left:-10,right:10,top:10,bottom:-10});S.add(L);
@@ -434,7 +473,7 @@ wire(-9,3.4,1.5,3.4,5.9);wire(1.5,3.3,8.5,3.4,5.8);wire(-9,3.2,8.5,3.1,6.1,.55);
 
 
 /* ===== Tween + hiệu ứng + vòng lặp ===== */
-const T=[];const clock=new THREE.Clock();
+const T=[];const clock=new THREE.Clock();const cb={y:0,ry:0},lamp={a:1};
 const tw=(d,f)=>new Promise(r=>T.push({d,t:0,f,r}));
 const lerp=(a,b,k)=>a+(b-a)*k,ease=k=>1-(1-k)*(1-k),wait=s=>tw(s,()=>{});
 function burst(x,y,z,cols){const ps=[...Array(26)].map(()=>({m:bx(.12,.12,.12,cols[Math.random()*cols.length|0],x,y,z),v:[(Math.random()-.5)*5,Math.random()*5+2,(Math.random()-.5)*3]}));
@@ -467,15 +506,31 @@ const CIN={w:0,p:[0,4,9.5],l:[0,.2,-.5],fov:45,roll:0};let TS=1,skipC=false;
 function cut(p,l,fov=45,roll=0){CIN.p=p;CIN.l=l;CIN.fov=fov;CIN.roll=roll}
 function shot(p,l,fov=45,roll=0,d=.6,e=ease){const p0=CIN.p.slice(),l0=CIN.l.slice(),f0=CIN.fov,r0=CIN.roll;return tw(d,k=>{k=e(k);CIN.p=p0.map((v,i)=>lerp(v,p[i],k));CIN.l=l0.map((v,i)=>lerp(v,l[i],k));CIN.fov=lerp(f0,fov,k);CIN.roll=lerp(r0,roll,k)})}
 [-.35,.35].forEach(x=>{const h=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false}));h.scale.set(1.1,1.1,1);h.position.set(x,.55,1.45);K.add(h)});
-const skipNow=()=>{if(document.body.classList.contains('cine')){skipC=true;TS=5}};
+const skipNow=()=>{if(document.body.classList.contains('cine')){skipC=true;TS=5;VO.cancel()}};
 addEventListener('pointerdown',skipNow);addEventListener('keydown',skipNow);
 /* ===== Cảnh hài: Cậu Vàng bị giữ lại, gõ đúng đáp án mới được giải cứu ===== */
 const SX=-21,SC={cur:null,run:false,last:-1},stage=new THREE.Group();stage.position.set(SX,0,LZ);S.add(stage);stage.visible=false;
 const sg=()=>{const g=new THREE.Group();g.visible=false;stage.add(g);return g};
 const D2=(x,y,z)=>dog.position.set(SX+x,y,LZ+z),KS=(x,z)=>{K.position.set(SX+x,0,LZ+z);K.rotation.y=-Math.PI/2};
 function person(col,x,z,p){const g=new THREE.Group();g.position.set(x,0,z);p.add(g);cy(.2,.26,.8,col,0,.4,0,g);sp(.2,0xf2c9a0,0,1,0,g);mesh(new THREE.ConeGeometry(.45,.25,16),0xe8d28a,0,1.25,0,g);face(g,1.02,.17,.08,.04);return g}
-function bubble(txt,x,y,z,dur=2){const L=txt.split('|'),s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex(512,192,(g)=>{g.fillStyle='#fff';g.strokeStyle='#3b2412';g.lineWidth=8;g.beginPath();g.roundRect?g.roundRect(8,8,496,150,34):g.rect(8,8,496,150);g.fill();g.stroke();g.fillStyle='#3b2412';g.font='700 40px "Be Vietnam Pro",sans-serif';g.textAlign='center';g.textBaseline='middle';L.forEach((l,i)=>g.fillText(l,256,L.length>1?58+i*50:83))}),transparent:true,depthTest:false}));
-  s.position.set(x,y,z);S.add(s);tw(dur,k=>{const pk=k<.12?k/.12*1.1:1.1-.1*Math.min(1,(k-.12)*8);s.scale.set(3.4*pk,1.28*pk,1);s.material.opacity=k<.85?1:1-(k-.85)/.15}).then(()=>S.remove(s))}
+function proj(x,y,z){if(flat)return null;const v=new THREE.Vector3(x,y,z);if(typeof v.project!=='function')return null;v.project(cam);if(v.z>1)return null;return{x:(v.x*.5+.5)*innerWidth,y:(-v.y*.5+.5)*innerHeight}}
+const BUBS=[];
+function limits(){const cl=document.body.classList,vh=innerHeight;let top=$('hud').getBoundingClientRect().bottom+6,bot=vh-8;
+  if(cl.contains('cine')){top=$('lbt').getBoundingClientRect().bottom+6;bot=$('lbb').getBoundingClientRect().top-8}
+  else if(!$('fix').classList.contains('h')){bot=$('fix').querySelector('.box').getBoundingClientRect().top-8}
+  else if(!$('panel').classList.contains('h')){bot=$('bub').getBoundingClientRect().top-16}
+  if(bot<top+50)bot=top+50;return[top,bot]}
+function bubble(txt,x,y,z,dur=2,who='chef'){const w=VO.who(who),el=document.createElement('div');el.className='db';el.innerHTML=(w.n?`<b style="color:${w.c}">${w.n}</b>`:'')+'<span></span>';el.lastChild.textContent=txt.replace(/\|/g,' ');$('bubs').appendChild(el);
+  const o={el,x,y,z};BUBS.push(o);const sp_=VO.say(who,txt,{min:dur*1000});
+  return Promise.all([sp_,wait(dur)]).then(()=>{el.classList.add('out');setTimeout(()=>{el.remove();const i=BUBS.indexOf(o);if(i>=0)BUBS.splice(i,1)},260)})}
+function bubTick(){if(!BUBS.length)return;const vw=innerWidth,[tp,bt]=limits();
+  BUBS.forEach(o=>{const w=o.el.offsetWidth,h=o.el.offsetHeight,p=proj(o.x,o.y,o.z);let px=p?p.x:vw/2,py=p?p.y:tp+(bt-tp)*.35;
+   o.el.style.left=Math.max(8,Math.min(vw-w-8,px-w/2))+'px';o.el.style.top=Math.max(tp,Math.min(bt-h,py-h-14))+'px'})}
+function occTick(){if(flat||(occN++&7))return;const cl=document.body.classList;let o=0;
+  if(cl.contains('cine')||!$('intro').classList.contains('h')||!$('end').classList.contains('h'))o=0;
+  else if(!$('fix').classList.contains('h'))o=$('fix').querySelector('.box').offsetHeight+10;
+  else o=$('panel').offsetHeight*.9;occT=o}
+function occEase(){if(Math.abs(occT-occ)>.5){occ+=(occT-occ)*.18;applyView()}}
 const foam=(n,w=3)=>{for(let i=0;i<n;i++)setTimeout(()=>puff(SX+(Math.random()-.5)*w,.4+Math.random()*.8,LZ+(Math.random()-.5)*1.5),i*70)};
 const SCENES=[
 /* 1 · Rửa chén trả nợ */
@@ -515,21 +570,91 @@ const SCENES=[
    async rescue(){bubble('Phóng thôi!',SX,2.4,LZ,1.2);SFX.vroom(1.4,false);[0,1,2,3].forEach(i=>setTimeout(()=>emoji('🍜',SX+3+(i-1.5)*.5,2+i*.2,LZ,.9),i*150+500));
     pop3d('HỦ TIẾU BAY!',SX+3,3.2,LZ,'#ffd23f',2);
     await tw(1.3,k=>{const e=k*k*20;mo.position.x=e;dog.position.x=SX+.05+e;tr.position.x=-.8+e*.8;tr.rotation.z=-k*1.3;tr.position.y=Math.max(.15,.9-Math.max(0,k-.4)*1.5)})},
-   cleanup(){dog.remove&&helm&&dog.remove(helm);dog.scale.setScalar(1)}}})()];
+   cleanup(){dog.remove&&helm&&dog.remove(helm);dog.scale.setScalar(1)}}})(),
+/* 4 · Ép nước mía: Cậu Vàng chạy băng chuyền quay máy ép */
+(()=>{const g=sg(),rolls=[],stripes=[];let jt=0;
+  bx(1.7,.9,1,0x9aa0a6,-1.6,.45,-.3,g);bx(1.2,.4,.8,0xd6402b,-1.6,1.1,-.3,g);
+  [-.28,.28].forEach(dx=>rolls.push(cy(.25,.25,.8,0x6e7378,-1.6+dx,1.5,-.3,g)));
+  [0,1,2].forEach(i=>{const s=cy(.05,.05,1.5,0x9bbf4a,-2.5+i*.14,1.35+i*.04,.25-i*.12,g);s.rotation.z=.6-i*.05});
+  bx(.45,.3,.45,0xffffff,-.75,.15,.55,g);board('NƯỚC MÍA','#e6f6c8',-1.6,2.8,-.5,2,g);
+  bx(2.2,.1,1.1,0x4a4a4a,.5,.05,0,g);for(let i=0;i<7;i++)stripes.push(bx(.07,.02,.9,0xffffff,-.5+i*.3,.12,0,g));
+  return{g,setup(){D2(.5,.1,0);dog.rotation.y=Math.PI;KS(3.1,.2)},
+   lines:[['😈 Racing Boy: “Ép đủ một trăm ly nước mía mới được về!”',['Ép đủ 100 ly|nước mía nè!',3.1,2.5,.2]],['🐶 Cậu Vàng: “Hộc hộc… chó chạy máy ép mía luôn hả?!”',['Hộc hộc… chạy|máy ép mía hả?!',.5,2,0]]],
+   idle(t,dt){rolls.forEach((r,i)=>r.rotation.y=t*7*(i?-1:1));stripes.forEach((s,i)=>s.position.x=-.5+(i*.3+t*1.6)%2.1);dog.position.y=.1+Math.abs(Math.sin(t*10))*.12;dog.rotation.z=Math.sin(t*10)*.05;jt-=dt;if(jt<0){jt=.45;emoji('💧',SX-1.2,1.7,LZ+.4,.5)}},
+   async rescue(){bubble('Bấm nút dừng máy!',SX,2.3,LZ,1.3);await wait(.6);SFX.screech();pop3d('XỊT!',SX-1.6,2.8,LZ,'#bfe36a',2);burst(SX-1.6,1.6,LZ,[0xd9f27a,0xf2f7b0,0xbfe36a]);jolt();
+    await tw(.7,k=>{K.rotation.y=-Math.PI/2+Math.sin(k*30)*.12;K.position.x=SX+3.1+Math.sin(k*40)*.07});K.rotation.y=-Math.PI/2;
+    dog.rotation.set(0,Math.PI,0);SFX.whoosh();await tw(.8,k=>dog.position.set(SX+.5-16*k*k,0,LZ))},
+   cleanup(){dog.rotation.z=0;rolls.forEach(r=>r.rotation.y=0)}}})(),
+/* 5 · Spa tắm bọt */
+(()=>{const g=sg(),duck=sp(.15,0xffd23f,.38,.8,.18,g),foam=[];let ft=0;
+  cy(.85,.7,.6,0xffffff,0,.3,0,g);cy(.72,.72,.02,0x9fdcff,0,.58,0,g);bx(.12,.08,.16,0xff9f1c,.55,.8,.18,g);
+  [[-.4,.66,.1,.2],[.1,.7,-.25,.24],[.45,.66,.15,.18],[-.1,.74,.2,.2]].forEach(([x,y,z,r])=>foam.push(sp(r,0xffffff,x,y,z,g)));
+  board('SPA THÚ CƯNG','#ffe0f0',-1.6,2.4,-.6,2.2,g);cy(.04,.04,1.2,0xcccccc,-1.4,.6,.2,g);sp(.18,0xff7ab8,-1.4,1.25,.2,g);
+  return{g,setup(){D2(0,.5,0);dog.rotation.y=-Math.PI/2;KS(3,.1)},
+   lines:[['🛁 Racing Boy: “Tắm sạch bong, thơm phức mới được về!”',['Tắm sạch bong|thơm phức nha!',3,2.5,.1]],['🐶 Cậu Vàng: “Ẳng… tui sợ nước lắm mà!”',['Ẳng… tui sợ|nước lắm mà!',0,2.2,0]]],
+   idle(t,dt){duck.position.y=.8+Math.sin(t*3)*.05;foam.forEach((f,i)=>f.scale.setScalar(1+Math.sin(t*2+i)*.07));dog.position.y=.5+Math.sin(t*4)*.03;dog.rotation.z=Math.sin(t*5)*.06;ft-=dt;if(ft<0){ft=.3;puff(SX+(Math.random()-.5)*1.2,.9,LZ+(Math.random()-.5)*.5)}},
+   async rescue(){bubble('Lắc người đi Cậu Vàng!',SX,2.4,LZ,1.3);await wait(.5);SFX.whoosh();await tw(.6,k=>{dog.rotation.y=-Math.PI/2+k*Math.PI*10});dog.rotation.y=-Math.PI/2;
+    burst(SX+1,1.2,LZ,[0x9fdcff,0xffffff,0x7fc8f8]);pop3d('RẦM RẦM!',SX+2.4,2.9,LZ,'#9fdcff',2);SFX.screech();jolt();
+    await tw(.6,k=>{K.rotation.y=-Math.PI/2+k*Math.PI*6;K.position.x=SX+3+k*1.2});
+    dog.rotation.set(0,Math.PI,0);SFX.whoosh();await tw(.8,k=>dog.position.set(SX-16*k*k,.5*(1-k),LZ))},
+   cleanup(){dog.rotation.z=0;duck.position.y=.8}}})(),
+/* 6 · Thủ môn đá penalty */
+(()=>{const g=sg(),ball=sp(.2,0xffffff,2.6,.25,.3,g);let bt=0,side=1;
+  bx(5,.03,2.6,0x4caf50,.2,.015,0,g);[-1.3,1.3].forEach(x=>bx(.1,1.6,.1,0xffffff,x,.8,-.7,g));bx(2.7,.1,.1,0xffffff,0,1.62,-.7,g);
+  board('PENALTY','#ffe9a8',0,2.8,-.9,2,g);
+  return{g,setup(){D2(0,0,-.5);dog.rotation.y=-Math.PI/2;KS(3.2,.4);bt=0;ball.position.set(2.6,.25,.3)},
+   lines:[['⚽ Racing Boy: “Cản mười quả penalty mới được về nha!”',['Cản 10 quả penalty|mới được về nha!',3.2,2.6,.4]],['🐶 Cậu Vàng: “Ẳng… tui là thủ môn hồi nào vậy?!”',['Ẳng… tui là thủ môn|hồi nào vậy?!',0,2.2,-.5]]],
+   idle(t,dt){bt+=dt;const T=1.3,u=Math.min(1,bt/T);if(bt>T+.3){bt=0;side=Math.random()<.5?-1:1;SFX.click()}
+    ball.position.set(lerp(2.6,side*.9,ease(u)),.25+Math.sin(u*Math.PI)*.9,lerp(.3,-.7,ease(u)));ball.rotation.x=t*10;
+    const w=bt>T?Math.max(0,1-(bt-T)/.3):Math.min(1,u*1.3);dog.position.set(SX+side*.8*w,Math.sin(w*Math.PI)*.45,LZ-.5);dog.rotation.x=side*w*.6},
+   async rescue(){bubble('Bắt bóng nè!',SX,2.4,LZ-.5,1.2);SFX.click();dog.rotation.set(0,-Math.PI/2,0);dog.position.set(SX,0,LZ-.5);
+    await tw(.5,k=>ball.position.set(lerp(2.6,0,k),.5+Math.sin(k*Math.PI)*.4,lerp(.3,-.5,k)));
+    SFX.clink();await tw(.15,k=>dog.position.y=.25*Math.sin(k*Math.PI));
+    SFX.whoosh();pop3d('GÔÔÔL!',SX+1.5,2.8,LZ,'#ffd23f',2);
+    await tw(.5,k=>{ball.position.set(lerp(0,3.1,k),.5+Math.sin(k*Math.PI)*.6,lerp(-.5,.4,k));ball.rotation.x=k*20});
+    SFX.screech();jolt();emoji('💫',SX+3.1,2.2,LZ,1);await tw(.7,k=>{K.rotation.y=-Math.PI/2+k*Math.PI*4;K.position.x=SX+3.2+Math.sin(k*20)*.1});K.rotation.y=-Math.PI/2;
+    dog.rotation.set(0,Math.PI,0);SFX.whoosh();await tw(.8,k=>dog.position.set(SX-16*k*k,0,LZ-.5))},
+   cleanup(){dog.rotation.set(0,0,0)}}})(),
+/* 7 · Xuồng chợ nổi miền Tây */
+(()=>{const g=sg(),boat=new THREE.Group(),oar=new THREE.Group();let st=0;
+  g.add(boat);bx(5,.04,2.6,0x4f9ec0,-.2,.02,0,g);bx(1.6,.25,2.6,0x8d6e3f,3.3,.12,0,g);
+  bx(2,.3,.8,0x8b5a2b,0,.3,0,boat);bx(.5,.3,.7,0x8b5a2b,1.15,.45,0,boat).rotation.z=-.5;bx(.5,.3,.7,0x8b5a2b,-1.15,.45,0,boat).rotation.z=.5;
+  [[-.5,.6,.05,.17,0x2fa84f],[.2,.62,-.1,.17,0xff8a3d],[.6,.6,.15,.14,0xffd23f],[-.1,.6,.2,.15,0xd6402b]].forEach(([x,y,z,r,c])=>sp(r,c,x,y,z,boat));
+  boat.add(oar);oar.position.set(.3,.9,.45);cy(.03,.03,1.5,0x8b5a2b,0,0,0,oar).rotation.z=.9;bx(.35,.05,.18,0x8b5a2b,.55,-.55,0,oar);
+  board('CHỢ NỔI','#d9f2ff',-1.2,2.5,-.9,2,g);
+  return{g,setup(){boat.position.set(0,0,0);boat.rotation.z=0;D2(.1,.55,0);dog.rotation.y=-Math.PI/2;KS(3.3,.2);st=0},
+   lines:[['⛵ Racing Boy: “Chèo xuồng bán hết chợ nổi mới được về!”',['Chèo xuồng bán hết|chợ nổi nè!',3.3,2.5,.2]],['🐶 Cậu Vàng: “Ẳng… tui bơi còn chưa rành!”',['Ẳng… tui bơi|còn chưa rành!',0,2.1,0]]],
+   idle(t,dt){boat.position.y=Math.sin(t*2.2)*.05;boat.rotation.z=Math.sin(t*1.7)*.05;oar.rotation.z=Math.sin(t*3)*.3;dog.position.y=.55+boat.position.y;st-=dt;if(st<0){st=.35;puff(SX+(Math.random()-.5)*2.4,.12,LZ+(Math.random()-.5)*1.2)}},
+   async rescue(){bubble('Chèo mau lên Cậu Vàng!',SX,2.4,LZ,1.3);await wait(.5);SFX.vroom(1.2,false);pop3d('VÚT VÚT!',SX-2,2.8,LZ,'#9fdcff',2);emoji('😱',SX+3.3,2.3,LZ,1);dog.rotation.set(0,Math.PI,0);
+    await tw(1.2,k=>{const e=k*k*18;boat.position.x=-e;boat.rotation.z=.15*Math.sin(k*20);dog.position.set(SX+.1-e,.55,LZ);oar.rotation.z=Math.sin(k*40)*.5;if(Math.random()<.35)puff(SX-e+1.2,.15,LZ)})},
+   cleanup(){boat.position.set(0,0,0);boat.rotation.z=0}}})(),
+/* 8 · Bán vé số dạo */
+(()=>{const g=sg(),ts=[],w1=person(0x6b8fdc,-3,.9,g),w2=person(0xd99a3a,3,-.9,g),hang=new THREE.Group();let et=0;
+  hang.position.set(.55,1.45,.1);g.add(hang);
+  for(let i=0;i<7;i++)ts.push(bx(.16,.5,.02,[0xff6b6b,0xffd23f,0x6bcb77,0x4d96ff][i%4],-.45+i*.15,-.25,0,hang));
+  bx(1.1,.05,.05,0x5b3319,0,0,0,hang);board('VÉ SỐ','#fff3b0',-1.5,2.5,-.7,1.7,g);
+  return{g,setup(){D2(-.1,0,0);dog.rotation.y=-Math.PI/2;KS(3.1,.3);w1.position.x=-3;w2.position.x=3},
+   lines:[['🎫 Racing Boy: “Bán hết chín mươi chín tờ vé số mới được về nha!”',['Bán hết 99 tờ|vé số nha!',3.1,2.5,.3]],['🐶 Cậu Vàng: “Ẳng… ai đời lại mua vé số của chó?!”',['Ẳng… ai mua vé số|của chó hả?!',0,2.2,0]]],
+   idle(t,dt){ts.forEach((m,i)=>m.rotation.z=Math.sin(t*3+i)*.18);hang.rotation.z=Math.sin(t*2)*.04;w1.position.x=-3+((t*.8)%6);w2.position.x=3-((t*.6)%6);w1.position.y=Math.abs(Math.sin(t*6))*.05;w2.position.y=Math.abs(Math.sin(t*6+1))*.05;dog.position.y=Math.abs(Math.sin(t*4))*.03;et-=dt;if(et<0){et=.9;emoji('🎫',SX+(Math.random()-.5)*1.6,1.8,LZ+.3,.6)}},
+   async rescue(){bubble('Trúng độc đắc rồi!',SX,2.4,LZ,1.4);await wait(.6);SFX.combo();pop3d('TRÚNG SỐ!',SX,2.8,LZ,'#ffd23f',2);burst(SX,2,LZ,[0xffc300,0xff7ab8,0x2fa84f,0x2a6fdb]);emoji('💰',SX+3.1,2.2,LZ,1.1);
+    await tw(.7,k=>{K.position.x=SX+3.1+Math.sin(k*30)*.1;K.position.y=Math.abs(Math.sin(k*18))*.3});K.position.y=0;
+    dog.rotation.set(0,Math.PI,0);SFX.whoosh();await tw(.8,k=>dog.position.set(SX-16*k*k,0,LZ))},
+   cleanup(){}}})()];
 let wag=12,hop=0;
 (function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05)*TS,t=clock.elapsedTime;
   for(let i=T.length-1;i>=0;i--){const a=T[i];a.t+=dt;const k=Math.min(a.t/a.d,1);a.f(k);if(k>=1){T.splice(i,1);a.r()}}
-  tail.rotation.y=Math.sin(t*wag)*.6;arm.rotation.z=Math.sin(t*3)*.35;chef.position.y=Math.abs(Math.sin(t*2))*.04;wheels.forEach(w=>w.rotation.x-=dt*14);
+  tail.rotation.y=Math.sin(t*wag)*.6;arm.rotation.z=Math.sin(t*3)*.35;chef.position.y=Math.abs(Math.sin(t*2))*.04+cb.y;wheels.forEach(w=>w.rotation.x-=dt*14);
   ears.forEach((e,i)=>e.rotation.z=Math.sin(t*5+i)*.08);
-  lants.forEach((g,i)=>g.rotation.z=Math.sin(t*1.4+i*1.3)*.09);
+  lants.forEach((g,i)=>g.rotation.z=Math.sin(t*1.4+i*1.3)*.09*lamp.a);
   warm.intensity=.6+Math.sin(t*7)*.03;
   steam.forEach((m,i)=>{const f=(t*.45+i/5)%1;m.position.set(Math.sin(t*2+i)*.1,.5+f*.9,Math.cos(t*2+i)*.1);m.material.opacity=.6*(1-f)});
   potSteam.forEach((m,i)=>{const f=(t*.3+i/4)%1;m.position.set(-3.6+Math.sin(t*1.5+i*2)*.15,2+f*1.2,-2.4);m.scale.setScalar(.6+f);m.material.opacity=.5*(1-f)});
   shake*=.9;const sx=(Math.random()-.5)*shake*.35,sy=(Math.random()-.5)*shake*.2;
   const ck=CV.k,sz=8.6+Math.max(9,Math.min(24,6.5/(.414*(cam.aspect||1.7))));let px=lerp(camBase.x,0,ck)+Math.sin(t*.4)*.25,py=lerp(camBase.y,6,ck)+Math.sin(t*.3)*.08,pz=lerp(camBase.z,sz,ck),lx=0,ly=lerp(.2,.4,ck),lz=lerp(-.5,7.4,ck);const cw=CIN.w;
-  if(cw>0){px=lerp(px,CIN.p[0],cw);py=lerp(py,CIN.p[1],cw);pz=lerp(pz,CIN.p[2],cw);lx=lerp(lx,CIN.l[0],cw);ly=lerp(ly,CIN.l[1],cw);lz=lerp(lz,CIN.l[2],cw)}
+  if(cw>0){px=lerp(px,CIN.p[0],cw);py=lerp(py,CIN.p[1],cw);pz=lerp(pz,CIN.p[2],cw);lx=lerp(lx,CIN.l[0],cw);ly=lerp(ly,CIN.l[1],cw);lz=lerp(lz,CIN.l[2],cw);
+    const af=1+(Math.min(2.1,Math.max(1,1.3/(cam.aspect||1.7)))-1)*cw;px=lx+(px-lx)*af;py=ly+(py-ly)*af;pz=lz+(pz-lz)*af}   /* màn hình dọc (điện thoại): lùi máy quay để thấy đủ nhân vật */
   cam.position.set(px+sx,py+sy,pz);cam.lookAt(lx,ly,lz);if(cw>0||cam.fov!==45){cam.fov=lerp(45,CIN.fov,cw);cam.updateProjectionMatrix();cam.rotation.z+=CIN.roll*cw}
-  cartoonTick(t,dt);R.render(S,cam)})();
+  cartoonTick(t,dt);occTick();occEase();bubTick();chef.rotation.y+=cb.ry;R.render(S,cam)})();
 
 /* ================= Luật chơi: 30 câu, câu sai quay lại ôn cho tới khi đúng ================= */
 let order,pos,score,lost,streak,missed,retry,review,cur,busy=true,best=0,byRule={},hints=0,fixDone=null;
@@ -539,9 +664,7 @@ const shuf=a=>{for(let j=a.length-1;j>0;j--){const r=Math.floor(Math.random()*(j
 function hud(){const n=order.length;$('no').textContent=review?`📚 Ôn lại ${Math.min(pos+1,n)}/${n}`:`Câu ${Math.min(pos+1,n)}/${n}`;
   $('sc').textContent='🍜 '+score+(streak>2?' 🔥'+streak:'');$('lo').textContent='🐶 Bị bắt: '+lost;$('bar').style.width=pos/n*100+'%'}
 function lock(b){busy=b;$('a').disabled=$('go').disabled=b}
-function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(t.replace(/(\d),(\d)/g,'$1 phẩy $2').replace(/=\s*\?/g,' bằng bao nhiêu').replace(/([×:])\s*\?/g,'$1 ô trống ').replace(/\?/g,' ô trống ').replace(/(\d+)\/(\d+)/g,'$1 phần $2').replace(/×/g,' nhân ').replace(/\s:\s/g,' chia ').replace(/\+/g,' cộng ').replace(/=/g,' bằng ').replace(/\bcm\b/g,'xăng-ti-mét'));
-  u.lang='vi-VN';u.rate=.92;speechSynthesis.speak(u)}catch(e){}}
+function speak(t){VO.sayQ(t)}
 async function ask(){
   cur=Q[order[pos]];hud();$('q').textContent=cur[0];$('a').value='';
   const ci=(pos+review)%SHIRT.length;$('who').textContent=(review?`${NAMES[ci]} quay lại hỏi lần nữa`:`${NAMES[ci]} hỏi`)+` · Dạng ${cur[3]}: ${RULES[cur[3]].n}`;
@@ -550,23 +673,34 @@ async function ask(){
   body.material.color.setHex(SHIRT[ci]);hat.material.color.setHex(HAT[(pos+review)%HAT.length]);
   SFX.bell();
   mouth.scale.set(1,1,1);await tw(.7,k=>{C.position.x=lerp(10,CX,ease(k));const p=Math.abs(Math.sin(k*Math.PI*5));C.position.y=p*.12;squash(C,(1-p)*.05-p*.03)});C.position.y=0;await tw(.28,k=>squash(C,Math.sin(k*Math.PI)*.16));C.scale.setScalar(1);
-  lock(false);$('a').focus();
+  lock(false);$('a').focus();VO.cust=ci;if(VO.on)speak(cur[0]);
 }
+
+/* ===== Ăn mừng khi đúng: 7 màn khác nhau, chọn ngẫu nhiên (không lặp liền nhau; chuỗi dài thì ưu tiên màn hoành tráng) ===== */
+let lastCel=-1;
+const CELEB=[
+ async()=>{const hs=dog.position.y;await tw(.7,k=>{const p=Math.abs(Math.sin(k*Math.PI*2));C.position.y=p*.25;squash(C,(1-p)*.1-p*.06);dog.position.y=hs+p*.5});C.position.y=0;C.scale.setScalar(1);dog.position.y=hs},
+ async()=>{SFX.whoosh();pop3d('Chuẩn vị!',-1.8,3.5,-3,'#ffd23f',1.6);await tw(.9,k=>{cb.y=Math.sin(k*Math.PI)*1.1;cb.ry=k*Math.PI*4});cb.y=0;cb.ry=0;burst(-1.8,1.6,-2.4,[0xffc300,0xffffff,0xd6402b]);emoji('👨‍🍳',-1.8,3.1,-2.6,1.1)},
+ async()=>{SFX.clink();await tw(1,k=>{C.rotation.y=k*Math.PI*2;C.position.y=Math.abs(Math.sin(k*Math.PI*3))*.4;hat.position.y=2.15+Math.sin(k*Math.PI)*1;hat.rotation.z=k*Math.PI*4});C.rotation.y=0;C.position.y=0;hat.position.y=2.15;hat.rotation.z=0;pop3d('Yeah!',CX,3.1,.6,'#ffffff',1.4)},
+ async()=>{const hs=dog.position.y;SFX.bark();SFX.whoosh();await tw(.9,k=>{dog.position.y=hs+Math.sin(k*Math.PI)*1.1;dog.rotation.z=-k*Math.PI*2});dog.rotation.z=0;dog.position.y=hs;pop3d('Gâu!',DH.x,2.6,DH.z,'#ffd23f',1.4);emoji('🐶',DH.x,2.2,DH.z,1)},
+ async()=>{SFX.combo();for(let i=0;i<8;i++){const a=i/8*Math.PI*2;setTimeout(()=>emoji('⭐',CX+Math.cos(a)*1.3,2.2+Math.sin(a)*.7,.5,.8),i*80)}[0,1,2].forEach(i=>setTimeout(()=>burst(CX-2.5+i*2.5,3+i%2,0,[0xffc300,0xd6402b,0x2fa84f,0x2a6fdb,0xff7ab8]),i*250));await wait(1.1)},
+ async()=>{SFX.clink();pop3d('Hay quá!',0,3.6,-2.5,'#ff8a7a',1.6);await tw(1.2,k=>{lamp.a=1+Math.sin(k*Math.PI)*5});lamp.a=1;burst(0,4.4,-3,[0xffc300,0xd6402b,0xffffff])},
+ async()=>{SFX.yum();const hs=dog.position.y;await tw(1.1,k=>{const p=Math.abs(Math.sin(k*Math.PI*3));C.position.y=p*.3;dog.position.y=hs+(1-p)*0+Math.abs(Math.sin(k*Math.PI*3+1))*.4;cb.y=Math.abs(Math.sin(k*Math.PI*3+2))*.35;cb.ry=Math.sin(k*Math.PI*6)*.4});C.position.y=0;dog.position.y=hs;cb.y=0;cb.ry=0;emoji('🎉',0,3.2,0,1.3);burst(0,2.4,0,[0xffc300,0xd6402b,0x2fa84f,0xff7ab8])}];
+function celebrate(){let k;const big=streak>=5&&Math.random()<.6?[3,4,5,6]:null;do{k=big?pickL(big):Math.random()*CELEB.length|0}while(k===lastCel&&CELEB.length>1);lastCel=k;return CELEB[k]()}
 async function serve(){
   say('✅ Đúng rồi! Bưng phở ra bàn nào 🍜');
-  SFX.ok(streak);SFX.whoosh();flash('ok');popChip('sc');wag=26;
+  SFX.ok(streak);SFX.whoosh();flash('ok');popChip('sc');wag=26;bubble(pickL(HL),-1.8,3.6,-3,1.1,'chef');
   const a=B.position.clone(),b=new THREE.Vector3(CX,1.05,.6);
   await tw(.9,k=>{B.position.lerpVectors(a,b,k);B.position.y+=Math.sin(k*Math.PI)*1.1;B.rotation.z=Math.sin(k*Math.PI*3)*.25*(1-k)});B.rotation.z=0;
   SFX.clink();SFX.sizzle();burst(CX,1.6,.6,[0xffc300,0xd6402b,0x2fa84f,0x2a6fdb]);emoji('😋',CX,2.4,.2,1.2);emoji('🍜',CX-.6,1.8,.8,.8);mouth.scale.set(1.8,3.5,1);pop3d('+1 🍜',CX,2.9,.6);
-  say('😋 Khách: “Phở ngon quá!”  💡 Nhớ: '+RULES[cur[3]].mn);SFX.yum();
+  const rl=pickL(CL);say('😋 Khách: “'+rl+'”  💡 Nhớ: '+RULES[cur[3]].mn);SFX.yum();const vp=bubble(rl,CX,2.9,.6,1.4,'cust');
   if(streak===3||streak===5||streak===8||streak===12||streak===20){banner('🔥 COMBO x'+streak+'!');SFX.combo();emoji('🔥',DH.x,2.4,DH.z,1.2)}
-  const hs=dog.position.y;SFX.bark();
-  await tw(.7,k=>{const p=Math.abs(Math.sin(k*Math.PI*2));C.position.y=p*.25;squash(C,(1-p)*.1-p*.06);dog.position.y=hs+p*.5});C.position.y=0;C.scale.setScalar(1);dog.position.y=hs;wag=12;
+  SFX.bark();await Promise.all([celebrate(),vp]);C.scale.setScalar(1);wag=12;
 }
-const cap=t=>{say(t);$('sub').textContent=t};
+const cap=t=>{say(t);$('sub').textContent=t;const m=t.match(/(Racing Boy|Cậu Vàng|Anh Hai)\s*:\s*“(.*)”/);if(m)VO.say(m[1]==='Racing Boy'?'rb':m[1]==='Cậu Vàng'?'dog':'chef',m[2])};
 async function steal(){
   const cl=document.body.classList,DX=-2.4,stop=DX+3.2,sp_=v=>{TS=skipC?5:v};skipC=false;TS=1;
-  say(`❌ Sai rồi! Đáp án đúng: ${cur[1]}. ${cur[2]}`);SFX.bad();flash('bad');jolt();popChip('lo');emoji('😢',CX,2.4,.2,1.2);mouth.scale.set(.6,2.4,1);pop3d('Ối!',CX,2.9,.6,'#ff8a7a');
+  say(`❌ Sai rồi! Đáp án đúng: ${cur[1]}. ${cur[2]}`);SFX.bad();flash('bad');jolt();popChip('lo');emoji('😢',CX,2.4,.2,1.2);mouth.scale.set(.6,2.4,1);pop3d('Ối!',CX,2.9,.6,'#ff8a7a');VO.say('cust','Ối! Sai rồi!');
   await wait(.5);
   /* Cảnh 1 · máy quay thấp bám theo Cậu Vàng chạy ra đường */
   street.visible=true;cl.add('cine');cut([cam.position.x,cam.position.y,cam.position.z],[0,.2,-.5],45,0);CIN.w=1;
@@ -584,7 +718,7 @@ async function steal(){
   await Promise.all([tw(1.3,k=>{K.position.x=lerp(16,stop,ease(k));shake=Math.max(shake,k*.8)}),shot([DX-4.4,.45,LZ+.3],[DX+6,1,LZ],34,.02,1.3,k=>k)]);
   SFX.screech();jolt();burst(stop,.3,LZ,[0xbba488,0xd9c7a8]);puff(stop+1.3,.5,LZ);
   /* Cảnh 4 · góc ngang, quay chậm: Cậu Vàng bị tóm lên xe */
-  cap('🏎️ Racing Boy: “Bắt Cậu Vàng nè, vroom vroom!”');SFX.yelp();emoji('❗',DX,2.5,LZ,1.1);
+  cap('🏎️ Racing Boy: “'+pickL(['Bắt Cậu Vàng nè, vroom vroom!','Hố hố, Cậu Vàng là của tui!','Chó này tui bắt đi làm công nha!','Tới số rồi nhóc, lên xe!'])+'”');SFX.yelp();emoji('❗',DX,2.5,LZ,1.1);
   cut([-1.2,1.3,LZ+5],[-.8,1,LZ],40,0);sp_(.3);
   const s=dog.position.clone();
   await Promise.all([tw(.5,k=>dog.position.set(lerp(s.x,K.position.x+.55,k),Math.sin(k*Math.PI)*1.2+lerp(0,.9,k),LZ)),shot([-2.2,1.6,LZ+5.4],[-1,1,LZ],34,-.02,.5,k=>k)]);
@@ -598,29 +732,29 @@ async function steal(){
   K.position.x=30;cl.remove('fast');skipC=false;TS=1;CIN.roll=0;
   await playScene(pickScene());
 }
-function pickScene(){let k;do{k=Math.random()*SCENES.length|0}while(k===SC.last&&SCENES.length>1);SC.last=k;return SCENES[k]}
+let bag=[];function pickScene(){if(!bag.length){bag=SCENES.map((_,i)=>i);for(let j=bag.length-1;j>0;j--){const r=Math.random()*(j+1)|0;[bag[j],bag[r]]=[bag[r],bag[j]]}if(bag[bag.length-1]===SC.last&&bag.length>1)bag.unshift(bag.pop())}const k=bag.pop();SC.last=k;return SCENES[k]}
 async function playScene(sc){
   const cl=document.body.classList;SC.cur=sc;SC.run=false;stage.visible=true;SCENES.forEach(s=>s.g.visible=s===sc);
   S.add(dog);dog.scale.setScalar(1);dog.rotation.set(0,0,0);sc.setup();
   cap('⏳ Một lát sau, ở một góc phố…');cut([SX+7,2.8,LZ+9],[SX,1,LZ],42,.03);SC.run=true;
   await shot([SX+.8,1.9,LZ+7.4],[SX,.8,LZ],42,0,1.3);
-  for(const l of sc.lines){cap(l[0]);bubble(l[1][0],SX+l[1][1],l[1][2],LZ+l[1][3],1.8);SFX.bark();await wait(1.8)}
+  for(const l of sc.lines){const m=l[0].match(/(Racing Boy|Cậu Vàng)[^“]*“(.*)”/),w=m&&m[1]==='Cậu Vàng'?'dog':'rb',tx=m?m[2]:l[1][0];cap('');SFX.bark();await bubble(tx,SX+l[1][1],l[1][2],LZ+l[1][3],1.5,w)}
   await shot([SX+.2,1.1,LZ+6.2],[SX,-.2,LZ],46,0,.9);
   cl.remove('cine');cl.add('rsc');cap('');
 }
-function taunt(){const Q=['Sai rồi, hahaha!','Gõ lại nào~','Chưa đúng nha!','Hehe, cố lên!'];SFX.yelp();pop3d(Q[Math.random()*Q.length|0],SX+2.6,2.9,LZ,'#ff8a7a',1.7);if(Math.random()<.5)bubble('Ẳng! Gõ đúng|giùm tui với!',SX,2.1,LZ-.2,1.6)}
+function taunt(){const Q=['Sai rồi, hahaha!','Gõ lại nào~','Chưa đúng nha!','Hehe, cố lên!'];SFX.yelp();{const q=Q[Math.random()*Q.length|0];pop3d(q,SX+2.6,2.9,LZ,'#ff8a7a',1.7);VO.say('rb',q)}if(Math.random()<.65)bubble(pickL(['Ẳng! Gõ đúng giùm tui với!','Cứu tui với Anh Hai ơi!','Gõ lại nhanh lên nè!','Tui sắp xỉu rồi nè!']),SX,2.1,LZ-.2,1.8,'dog')}
 async function rescue(){
   const cl=document.body.classList,sc=SC.cur;cl.remove('rsc');cl.add('cine');SC.run=false;skipC=false;TS=1;
-  cap('🎉 Gõ đúng rồi! Giải cứu Cậu Vàng!');
+  cap('🎉 Gõ đúng rồi! Giải cứu Cậu Vàng!');VO.say('chef','Đúng rồi! Giải cứu Cậu Vàng thôi!');
   await sc.rescue();
   stage.visible=false;sc.cleanup();K.position.set(30,0,DH.z);K.rotation.y=-Math.PI/2;SC.cur=null;
   S.add(dog);dog.scale.setScalar(1);dog.rotation.set(0,-1.1,0);dog.position.copy(DH);
-  cap('');say('🐶 Cậu Vàng thoát nạn, chạy một mạch về quán!');SFX.bark();emoji('🐶',DH.x,2.2,DH.z,1);cl.remove('cine');
+  cap('');say('🐶 Cậu Vàng thoát nạn, chạy một mạch về quán!');SFX.bark();VO.say('dog','Gâu gâu! Cảm ơn Anh Hai!');emoji('🐶',DH.x,2.2,DH.z,1);cl.remove('cine');
   await Promise.all([tw(1.1,k=>CIN.w=1-ease(k)),tw(1.1,k=>CV.k=1-ease(k))]);
   CIN.w=0;CIN.roll=0;CV.k=0;street.visible=false;
 }
 async function submit(){
-  if(busy)return;const v=norm($('a').value);if(!v)return;lock(true);SFX.init();SFX.click();try{speechSynthesis.cancel()}catch(e){}
+  if(busy)return;const v=norm($('a').value);if(!v)return;lock(true);SFX.init();SFX.click();VO.cancel();
   const k=cur[3],ok=v===norm(cur[1]);if(!review){byRule[k].n++;if(ok)byRule[k].ok++}
   if(ok){if(!review)score++;streak++;best=Math.max(best,streak);hud();await serve()}
   else{lost++;streak=0;if(!review)missed.push(cur);if(!retry.includes(order[pos]))retry.push(order[pos]);hud();await steal();await fixIt();await rescue()}
@@ -637,8 +771,8 @@ $('rulesIntro').innerHTML=$('rulesCheat').innerHTML=rulesHtml();
 function fixIt(){return new Promise(res=>{
   $('fq').textContent=cur[0];
   $('fs').innerHTML=(cur[4]||[]).map(s=>`<div class="stp">${s}</div>`).join('');
-  $('fr').innerHTML=`Dạng ${cur[3]}: ${RULES[cur[3]].tip}<br>🧠 <b>${RULES[cur[3]].mn}</b><br>👉 Đáp án đúng: <b style="font-size:22px">${cur[1]}</b>`;
-  $('fa').value='';$('fh').textContent='';$('fix').querySelector('h2').textContent='🆘 Giải cứu Cậu Vàng! Gõ lại đáp án đúng nhé';$('fix').classList.add('rescue');$('fix').classList.remove('h');setTimeout(()=>$('fa').focus(),80);
+  $('fr').innerHTML=`👉 Đáp án đúng: <b style="font-size:22px">${cur[1]}</b><br>Dạng ${cur[3]}: ${RULES[cur[3]].tip}<br>🧠 <b>${RULES[cur[3]].mn}</b>`;
+  $('fa').value='';$('fh').textContent='';$('fix').querySelector('h2').textContent='🆘 Giải cứu Cậu Vàng! Gõ lại đáp án đúng nhé';$('fix').classList.add('rescue');$('fix').classList.remove('h');setTimeout(()=>$('fa').focus({preventScroll:true}),80);
   fixDone=()=>{$('fix').classList.add('h');$('fix').classList.remove('rescue');fixDone=null;res()};
 })}
 $('ff').onsubmit=e=>{e.preventDefault();
@@ -670,6 +804,7 @@ function begin(){
 }
 /* nút điều khiển */
 function syncBtn(){$('snd').textContent=SFX.snd?'🔊':'🔇';$('snd').classList.toggle('off',!SFX.snd);$('mus').classList.toggle('off',!SFX.mus||!SFX.snd)}
+$('vo').onclick=()=>{SFX.click();VO.toggle();$('vo').classList.toggle('off',!VO.on)};$('vo').classList.toggle('off',!VO.on);
 $('snd').onclick=()=>{SFX.toggleSnd();syncBtn()};$('mus').onclick=()=>{SFX.toggleMus();syncBtn()};syncBtn();
 $('sl').onclick=()=>{if(cur)speak(cur[0]);$('a').focus()};
 $('sla').onclick=()=>{const a=$('a');if(a.disabled)return;a.value+=',';SFX.tick();a.focus()};
