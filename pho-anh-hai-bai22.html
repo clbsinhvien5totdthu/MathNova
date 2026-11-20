@@ -113,13 +113,47 @@ details.rd{margin-top:12px}details.rd summary{cursor:pointer;font-size:18px;font
 #vo.off{opacity:.45;text-decoration:line-through}
 @media(max-width:560px){#f{flex-wrap:wrap}#a{order:-1;flex:1 1 100%;min-width:100%}#go{flex:1 1 auto}}
 #panel,#fix.rescue{bottom:var(--kb,0px)}
+
+/* ===== nâng cấp: hình đặt tính, trạng thái nhớ, chế độ ôn ===== */
+.ld{display:flex;gap:10px;align-items:flex-start;font:700 20px ui-monospace,Consolas,monospace;background:#fff;border:2px dashed #c9b48a;border-radius:12px;padding:8px 12px;margin:6px 0;overflow-x:auto}
+.ldl{white-space:pre;line-height:1.35;color:var(--ink)}.ldl .fin{color:#2fa84f}.ld .cm{color:var(--red)}.ld .z{color:#b9a27a;font-style:normal}
+.ldr{border-left:3px solid var(--ink);padding-left:10px;white-space:pre}.ldr .dv{border-bottom:3px solid var(--ink);padding-bottom:2px;min-width:2em}.ldr .qt{color:var(--red)}
+.stp.hl{background:#fff3c4;border-color:var(--gold)}
+.chip{display:block;margin:0 0 6px;font-weight:800;font-size:14px}.chip.ok{color:#1f8a3b}.chip.mid{color:#b27a00}.chip.bad{color:var(--red)}
+#kinds{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.kd{padding:6px 12px;font-size:14px;background:#2a6fdb}
+#startF{width:100%;margin-top:6px;background:linear-gradient(#4f93f0,#2a6fdb)}
+#ftools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}#ftools button{padding:6px 12px;font-size:14px}
+#fs .stp,#fs{max-height:none}
+#vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 58%,rgba(45,22,5,.30) 100%)}
+#fix #ff{flex-wrap:nowrap!important}#fix #fa{flex:1 1 0;min-width:0;width:auto;box-sizing:border-box;font-size:20px;padding:8px 12px}#fix #ff button{flex:none;padding:8px 12px}
+#fix.rescue .box{max-height:70vh}#fix.rescue #ff{position:static;padding:0}#fix.rescue #fbot{position:sticky;bottom:-12px;background:var(--cream);padding:6px 0 2px;z-index:1}
+@media (max-height:560px){#fix.rescue{align-items:stretch;justify-content:flex-end;padding:6px;background:linear-gradient(to left,rgba(40,20,5,.7),rgba(40,20,5,.05) 72%)}
+#fix.rescue .box{max-width:min(480px,58vw);max-height:calc(100vh - 12px);margin:0 0 0 auto;padding:8px 10px}#fix.rescue h2{font-size:15px}.ld{font-size:16px;padding:5px 8px}#fix.rescue #fbot{bottom:-8px}
+#fa{font-size:18px!important;padding:6px 10px!important}#ftools button{padding:4px 10px;font-size:13px}.tipline{font-size:13px}}
+body.cine #vig{background:radial-gradient(ellipse at 50% 50%,transparent 48%,rgba(0,0,0,.45) 100%)}
+
+#co,#sh{background:#fff3c4}
+.mb{background:#fff7d6;border:2px dashed var(--ink);border-radius:14px;padding:8px 12px;margin:8px 0;font-weight:700;font-size:14px;text-align:center}
+#startQ{width:100%;margin-top:6px;background:linear-gradient(#35c27a,#1f9a5a)}
+#shopBtn{width:100%;margin-top:6px;background:linear-gradient(#b86bff,#8a3fd6)}
+#shop,#chest{z-index:9}
+.hg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:10px 0}
+.hc{border:3px solid var(--ink);border-radius:16px;padding:8px;text-align:center;background:#fff;display:flex;flex-direction:column;gap:6px;align-items:center}
+.hc.on{background:#fff3c4;box-shadow:0 0 0 3px #ffc300}
+.he{font-size:40px;line-height:1}
+.hc button{padding:5px 8px;font-size:13px;width:100%}
+.hc button:disabled{filter:grayscale(1);opacity:.5;cursor:not-allowed}
+.cbig{font-size:110px;line-height:1.1;cursor:pointer;animation:cwob 1s infinite;user-select:none;outline:none}
+.cbig.open{animation:cpop .6s}
+@keyframes cwob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) scale(1.06)}}
+@keyframes cpop{0%{transform:scale(.4) rotate(-30deg)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<canvas id="c"></canvas><div id="vig"></div>
 <div id="flash"></div><div id="combo"></div><div id="speed"></div><div id="bubs"></div><div id="lbt" class="lb"></div><div id="lbb" class="lb"><span id="sub"></span><i id="skp">⏩ chạm để tua nhanh</i></div>
-<div id="hud"><span id="no">Câu 1/20</span><span id="sc">🍜 0</span><span id="lo">🐶 Bị bắt: 0</span>
-  <div id="tools"><button id="cheatBtn" type="button" aria-label="Bảng ghi nhớ" title="Bảng ghi nhớ">📖</button><button id="snd" type="button" aria-label="Bật/tắt âm thanh" title="Âm thanh">🔊</button><button id="vo" type="button" aria-label="Bật/tắt lồng tiếng" title="Lồng tiếng nhân vật">🎙️</button><button id="mus" type="button" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">🎵</button></div>
+<div id="hud"><span id="no">Câu 1/20</span><span id="sc">🍜 0</span><span id="lo">🐶 Bị bắt: 0</span><span id="co">🪙 0</span><span id="sh" style="display:none">🛡️ 0</span>
+  <div id="tools"><button id="cheatBtn" type="button" aria-label="Bảng ghi nhớ" title="Bảng ghi nhớ">📖</button><button id="snd" type="button" aria-label="Bật/tắt âm thanh" title="Âm thanh">🔊</button><button id="vo" type="button" aria-label="Bật/tắt lồng tiếng" title="Lồng tiếng nhân vật">🎙️</button><button id="mus" type="button" aria-label="Bật/tắt nhạc nền" title="Nhạc nền">🎵</button><button id="fast" type="button" aria-label="Cảnh ngắn" title="Cảnh ngắn: tua nhanh các màn hài">⚡</button></div>
   <i><u id="bar"></u></i></div>
 <div id="panel">
   <div id="bub"><small id="who">Khách hàng</small><p id="q"></p></div>
@@ -134,23 +168,24 @@ details.rd{margin-top:12px}details.rd summary{cursor:pointer;font-size:18px;font
     <li>Khách hỏi một câu, bạn <b>tự gõ đáp án</b> (không có A B C D).</li>
     <li>✅ Đúng: bạn bưng tô phở nóng hổi cho Khách.</li>
     <li>❌ Sai: <b>Cậu Vàng</b> chạy ra đường và bị <b>Racing Boy</b> bắt đi mất!</li>
-    <li>🧠 Sai thì xem <b>cách làm từng bước</b> rồi <b>gõ lại đáp án đúng</b> để nhớ. Hết 20 câu, các câu sai quay lại để <b>ôn lại</b> cho tới khi đúng hết.</li>
+    <li>🧠 Sai thì em <b>tự điền các ô ▢</b> trong từng bước (bí thì bấm <b>👁 Xem bài mẫu</b> với số khác; <b>game không hiện đáp án, chỉ hiện cách giải</b>), rồi sau vài câu sẽ gặp <b>bài tương tự với số mới</b> để chắc chắn đã hiểu, không chép lại được đáp án.</li>
     <li>💡 Bí quá bấm nút <b>💡</b> để xem gợi ý, bấm <b>📖</b> (góc phải) để xem lại bảng ghi nhớ bất cứ lúc nào.</li>
     <li>🔥 Đúng liên tiếp để nhận <b>combo</b>. Chỉ gõ số; số thập phân gõ dạng <b>3,25</b> (dấu phẩy hay dấu chấm đều được).</li>
     <li>🎙️ <b>Lồng tiếng</b>: Anh Hai, khách, Racing Boy và Cậu Vàng đều có giọng riêng (nút 🎙️ để bật/tắt). Nút 🗣️ để nghe lại câu hỏi.</li>
+    <li>🔁 <b>Học thông minh</b>: sai thì Cậu Vàng bị bắt, em tự làm theo các bước có <b>ô trống ▢</b> (không hiện đáp án), rồi gặp lại <b>bài tương tự số mới</b> sau vài câu. Game nhớ dạng em còn yếu để <b>Ôn trọng tâm</b>. Nút <b>⚡</b> rút ngắn các màn hài.</li>
     <li>🎬 Sai thì Cậu Vàng gặp <b>một trong 8 kết cục hài ngẫu nhiên</b>; đúng thì có nhiều màn ăn mừng khác nhau. 🔊 Âm thanh &amp; nhạc nền tắt ở nút góc phải.</li>
   </ul>
-  <button id="start">Mở quán! 🎉</button>
+  <div id="metaBar" class="mb"></div><button id="start">Mở quán! 🎉 (làm trọn ca)</button><button id="startQ" type="button">⚡ Ca nhanh 5 câu (chơi thử cho vui)</button><button id="startF" type="button">🎯 Ôn trọng tâm</button><button id="shopBtn" type="button">🛍️ Mũ cho Cậu Vàng</button><div id="kinds"></div><div id="prog"></div>
   <details class="rd"><summary class="ttl">📖 Ghi nhớ nhanh: 4 dạng của Bài 22</summary><div id="rulesIntro"></div></details>
 </div></div>
-<div id="end" class="ov h"></div>
+<div id="end" class="ov h"></div><div id="shop" class="ov h"><div class="box" id="shopBox"></div></div><div id="chest" class="ov h"><div class="box" id="chestBox" style="text-align:center"></div></div>
 <div id="cheat" class="ov h"><div class="box"><h2 class="ttl">📖 Bảng ghi nhớ · Bài 22</h2><div id="rulesCheat"></div><button id="cheatX" type="button" style="width:100%;margin-top:8px">Đã nhớ, chơi tiếp!</button></div></div>
-<div id="fix" class="ov h"><div class="box"><h2 class="ttl" style="color:var(--red)">🧠 Xem cách làm rồi gõ lại nhé</h2><p id="fq" style="font-weight:700;margin:4px 0"></p><div id="fs"></div><p id="fr" class="tipline"></p><form id="ff" style="display:flex;gap:8px;margin-top:10px"><input id="fa" autocomplete="off" inputmode="decimal" aria-label="Gõ lại đáp án đúng" placeholder="Gõ lại đáp án" style="flex:1;min-width:0;font:inherit;font-size:22px;font-weight:700;padding:10px 14px;border-radius:14px;border:3px solid var(--ink);background:#fff"><button type="button" id="fc" aria-label="Dấu phẩy" style="padding:10px 14px">,</button><button id="fg">Đã nhớ ✅</button></form><p id="fh" style="margin:6px 0 0;min-height:1.3em;font-weight:700;color:var(--red)"></p></div></div>
+<div id="fix" class="ov h"><div class="box"><h2 class="ttl" style="color:var(--red)">🧠 Xem cách làm rồi gõ lại nhé</h2><p id="fq" style="font-weight:700;margin:4px 0"></p><p id="fr" class="tipline"></p><div id="fs"></div><div id="ld"></div><div id="fbot"><div id="ftools"><button type="button" id="fnext">👁 Xem bài mẫu</button><button type="button" id="fsay" style="background:#2a6fdb">🔊 Nghe cách làm</button><button type="button" id="fskip" style="display:none;background:#8a7a5a">⏭️ Để lát làm lại</button><button type="button" id="fpk" style="display:none">Đã hiểu ✅</button></div><form id="ff" style="display:flex;gap:8px;margin-top:8px"><input id="fa" autocomplete="off" inputmode="decimal" aria-label="Gõ lại đáp án đúng" placeholder="Gõ đáp án của em" style="flex:1;min-width:0;font:inherit;font-size:22px;font-weight:700;padding:10px 14px;border-radius:14px;border:3px solid var(--ink);background:#fff"><button type="button" id="fc" aria-label="Dấu phẩy" style="padding:10px 14px">,</button><button id="fg">Kiểm tra ✅</button></form><p id="fh" style="margin:6px 0 0;min-height:1.3em;font-weight:700;color:var(--red)"></p></div></div></div>
 
 <script>
 /* ================= ÂM THANH: tự tổng hợp bằng WebAudio (không cần file) ================= */
 const SFX=(()=>{
-let ctx,master,mg,nb,timer,step=0,nxt=0,muted=false,music=true;
+let ctx,master,mg,nb,timer,step=0,nxt=0,muted=false,music=true,comp,conv,rg,ambSrc,ambF,ambG,ambKind="",inten=0,tens=false;
 try{muted=localStorage.getItem('pho-mute')==='1';music=localStorage.getItem('pho-music')!=='0'}catch(e){}
 const F=n=>261.63*Math.pow(2,n/12);
 const CH={C:[0,4,7],Am:[-3,0,4],F:[-7,-3,0],G:[-5,-1,2]},BR={C:-12,Am:-15,F:-19,G:-17};
@@ -164,8 +199,10 @@ function init(){
   if(ctx){if(ctx.state==='suspended')ctx.resume();return}
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   try{ctx=new AC()}catch(e){ctx=null;return}
-  master=ctx.createGain();master.gain.value=muted?0:.9;master.connect(ctx.destination);
+  master=ctx.createGain();master.gain.value=muted?0:.9;
+  try{comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.knee.value=20;comp.ratio.value=3.5;comp.attack.value=.004;comp.release.value=.22;master.connect(comp);comp.connect(ctx.destination)}catch(e){master.connect(ctx.destination)}
   mg=ctx.createGain();mg.gain.value=.3;mg.connect(master);
+  try{const n=ctx.sampleRate*1.5|0,ir=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.6)}conv=ctx.createConvolver();conv.buffer=ir;rg=ctx.createGain();rg.gain.value=.2;mg.connect(rg);rg.connect(conv);conv.connect(master)}catch(e){}
   nb=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   if(music)startMusic();
 }
@@ -193,12 +230,22 @@ function sched(){if(!ctx||!music||muted)return;
     if(bar===3&&sec!==3&&(st===5||st===7))noise(.08,{v:.18,t,f:2600,q:.7,dest:mg});
     if(st===0&&bar===0)noise(.6,{v:.09,t,f:6000,type:'highpass',dest:mg});
     noise(.04,{v:st&1?.11:.06,t,f:7000,type:'highpass',dest:mg});
-    nxt+=.26;step=(step+1)%128}}
+    if(inten>0&&st%2===1)noise(.05,{v:.06+inten*.02,t,f:8000,type:'highpass',dest:mg});
+    if(inten>1&&(st===2||st===6))tone(F((m!=null?m:0)+12),.12,{v:.09,t,dest:mg});
+    if(tens&&st===0&&bar%2===0)tone(F(CH[ch][0]-12),1.1,{type:'sawtooth',v:.06,t,lp:420,dest:mg});
+    ambTick(t);nxt+=.26*(1-.07*Math.min(inten,2));step=(step+1)%128}}
 function startMusic(){if(!ctx||timer)return;nxt=ctx.currentTime+.1;timer=setInterval(sched,120)}
 function stopMusic(){clearInterval(timer);timer=null}
 document.addEventListener('visibilitychange',()=>{if(!ctx)return;document.hidden?ctx.suspend():(!muted&&ctx.resume())});
+function honk(t=0){tone(430,.12,{type:'square',v:.045,t,lp:1400});tone(540,.12,{type:'square',v:.045,t,lp:1400})}
+function ambTick(t){if(ambKind==='shop'){if(Math.random()<.05)noise(.35,{v:.03,t,f:6200,type:'highpass'});if(Math.random()<.03)tone(1900+Math.random()*500,.08,{v:.025,t})}else if(ambKind==='street'){if(Math.random()<.08)honk(t)}}
+function amb(kind){ambKind=kind;if(!ctx)return;if(!ambSrc){try{ambSrc=ctx.createBufferSource();ambSrc.buffer=nb;ambSrc.loop=true;ambF=ctx.createBiquadFilter();ambF.type='bandpass';ambG=ctx.createGain();ambG.gain.value=0;ambSrc.connect(ambF);ambF.connect(ambG);ambG.connect(master);ambSrc.start()}catch(e){ambSrc=null;return}}
+  const now=ctx.currentTime;if(kind==='street'){ambF.frequency.setTargetAtTime(380,now,.3);ambF.Q.value=.6;ambG.gain.setTargetAtTime(.07,now,.3)}else if(kind==='shop'){ambF.frequency.setTargetAtTime(900,now,.3);ambF.Q.value=.4;ambG.gain.setTargetAtTime(.022,now,.3)}else ambG.gain.setTargetAtTime(0,now,.3)}
 const S={
  init,
+ inten(n){inten=n|0},tension(on){tens=!!on;if(mg&&ctx)mg.gain.setTargetAtTime(on?.18:.3,ctx.currentTime,.2)},duck(on){if(mg&&ctx)mg.gain.setTargetAtTime(on?.09:(tens?.18:.3),ctx.currentTime,.06)},amb,
+ ping(){tone(1568,.16,{v:.09});tone(2093,.12,{v:.05,t:.06})},ting(n=0){tone(1320+(n%5)*110,.22,{v:.1});tone(2640+(n%5)*220,.12,{v:.04,t:.02})},honk(){honk(0)},
+ twin(){[0,7,12].forEach((x,i)=>tone(F(x+12),.18,{type:'triangle',v:.14,t:i*.08}))},
  tick(){tone(620+Math.random()*260,.04,{type:'triangle',v:.06})},
  click(){tone(900,.06,{type:'square',v:.06})},
  bell(){tone(1318,.9,{v:.15});tone(1760,1,{v:.12,t:.12});noise(.12,{v:.04,f:6000,type:'highpass'})},
@@ -258,30 +305,37 @@ function steps(A,s,b){
  q=q.replace(/,$/,'');
  return {lines:out,q};
 }
-const mk=(q,n,s,why,rule,st)=>[q,fm(n,s),why,rule,st||[]];
+const mk=(q,n,s,why,rule,st,meta)=>[q,fm(n,s),why,rule,st||[],meta||null];
 const NG=[[23,4,575,2],[15,8,1875,3],[882,36,245,1],[26,8,325,2],[6,25,24,2],[9,4,225,2],[7,5,14,1],[3,4,75,2],[21,8,2625,3],[9,8,1125,3],[33,4,825,2],[18,5,36,1],[2,5,4,1],[12,8,15,1]];
 const DG=[[57,95,6,0],[18,45,4,0],[36,75,48,1],[9,15,6,0],[21,35,6,0],[14,35,4,0],[30,75,4,0],[12,25,48,1]];
 const g22a=()=>{const s=pick([1,2]),Q=NZ(11,299),m=pick([2,3,4,5,6,7,8,9,12,15,19]),A=Q*m;
- return mk(`Tính: ${fm(A,s)} : ${m} = ?`,Q,s,`Chia phần nguyên trước. Chia xong phần nguyên thì viết dấu phẩy vào thương rồi chia tiếp. Kết quả ${fm(Q,s)}.`,'A',steps(A,s,m).lines)};
-const g22b=x=>mk(`Tính: ${x[0]} : ${x[1]} = ?`,x[2],x[3],`${x[0]} chưa chia hết cho ${x[1]}: viết dấu phẩy vào thương, thêm 0 vào số dư rồi chia tiếp. Kết quả ${fm(x[2],x[3])}.`,'B',steps(x[0],0,x[1]).lines);
-const g22c=x=>mk(`Tính: ${x[0]} : ${fm(x[1],1)} = ?`,x[2],x[3],`Nhân cả số bị chia và số chia với 10 để số chia là số tự nhiên: ${x[0]*10} : ${x[1]} = ${fm(x[2],x[3])}.`,'C',[`Nhân cả hai số với 10: ${x[0]} × 10 = ${x[0]*10}; ${fm(x[1],1)} × 10 = ${x[1]}`,...steps(x[0]*10,0,x[1]).lines]);
+ return mk(`Tính: ${fm(A,s)} : ${m} = ?`,Q,s,`Chia phần nguyên trước. Chia xong phần nguyên thì viết dấu phẩy vào thương rồi chia tiếp. Kết quả ${fm(Q,s)}.`,'A',steps(A,s,m).lines,{A,s,b:m})};
+const g22b=x=>mk(`Tính: ${x[0]} : ${x[1]} = ?`,x[2],x[3],`${x[0]} chưa chia hết cho ${x[1]}: viết dấu phẩy vào thương, thêm 0 vào số dư rồi chia tiếp. Kết quả ${fm(x[2],x[3])}.`,'B',steps(x[0],0,x[1]).lines,{A:x[0],s:0,b:x[1]});
+const g22c=x=>mk(`Tính: ${x[0]} : ${fm(x[1],1)} = ?`,x[2],x[3],`Nhân cả số bị chia và số chia với 10 để số chia là số tự nhiên: ${x[0]*10} : ${x[1]} = ${fm(x[2],x[3])}.`,'C',[`Nhân cả hai số với 10: ${x[0]} × 10 = ${x[0]*10}; ${fm(x[1],1)} × 10 = ${x[1]}`,...steps(x[0]*10,0,x[1]).lines],{A:x[0]*10,s:0,b:x[1]});
 const f22=[
 ['Biết 7 657 : 31 = 247. Không đặt tính, hãy tính 765,7 : 31.','24,7','765,7 bé hơn 7 657 mười lần nên thương cũng bé hơn mười lần: 247 : 10 = 24,7.','D',['7 657 → 765,7 là giảm 10 lần','Số chia 31 giữ nguyên ⇒ thương giảm 10 lần: 247 : 10 = 24,7']],
 ['Biết 7 657 : 31 = 247. Không đặt tính, hãy tính 76,57 : 31.','2,47','76,57 bé hơn 7 657 một trăm lần nên thương cũng bé hơn một trăm lần: 247 : 100 = 2,47.','D',['7 657 → 76,57 là giảm 100 lần','Số chia 31 giữ nguyên ⇒ thương giảm 100 lần: 247 : 100 = 2,47']],
 ['Biết 7 657 : 31 = 247. Không đặt tính, hãy tính 7,657 : 31.','0,247','7,657 bé hơn 7 657 một nghìn lần nên thương cũng bé hơn một nghìn lần: 247 : 1000 = 0,247.','D',['7 657 → 7,657 là giảm 1000 lần','Số chia 31 giữ nguyên ⇒ thương giảm 1000 lần: 247 : 1000 = 0,247']],
 ['Biết 570 : 95 = 6. Hãy tính 57 : 9,5.','6','Khi nhân cả số bị chia và số chia với cùng một số khác 0 thì thương không đổi: 57 : 9,5 = 570 : 95 = 6.','D',['57 × 10 = 570 và 9,5 × 10 = 95','Nhân cả hai số với cùng số 10 ⇒ thương không đổi: 57 : 9,5 = 6']]];
-return()=>{
+const main=()=>{
  const ng=sh(NG),wi=ng.findIndex(x=>x[0]<=33&&x[0]>x[1]),w2=ng.splice(wi,1)[0];
  const dg=sh(DG),w3=dg.find(x=>x[3]===0),dr=dg.filter(x=>x!==w3);
  const Qw=NZ(101,999),m=R(2,9),sw=steps(w2[0],0,w2[1]);
   const list=[g22a(),g22a(),g22a(),g22a(),g22a(),...ng.slice(0,5).map(g22b),...dr.slice(0,3).map(g22c),
-  mk(`Anh Hai chia đều ${fm(Qw*m,2)} kg hành lá vào ${m} túi. Hỏi mỗi túi đựng bao nhiêu ki-lô-gam hành lá?`,Qw,2,`Lấy ${fm(Qw*m,2)} : ${m}. Chia phần nguyên rồi viết dấu phẩy vào thương, chia tiếp phần thập phân: ${fm(Qw,2)} (kg).`,'A',steps(Qw*m,2,m).lines),
-  mk(`Quán có ${w2[0]} lít nước dùng, rót đều vào ${w2[1]} ấm. Hỏi mỗi ấm đựng bao nhiêu lít nước dùng?`,w2[2],w2[3],`${w2[0]} : ${w2[1]}: chưa chia hết nên viết dấu phẩy vào thương, thêm 0 vào số dư rồi chia tiếp. Kết quả ${fm(w2[2],w2[3])} (lít).`,'B',sw.lines),
-  mk(`Quán có ${w3[0]} lít nước dùng, rót vào các bình, mỗi bình chứa ${fm(w3[1],1)} lít. Hỏi cần bao nhiêu bình để rót hết?`,w3[2],0,`Nhân cả số bị chia và số chia với 10: ${w3[0]*10} : ${w3[1]} = ${w3[2]} (bình).`,'C',[`Nhân cả hai số với 10: ${w3[0]} × 10 = ${w3[0]*10}; ${fm(w3[1],1)} × 10 = ${w3[1]}`,...steps(w3[0]*10,0,w3[1]).lines]),
+  mk(`Anh Hai chia đều ${fm(Qw*m,2)} kg hành lá vào ${m} túi. Hỏi mỗi túi đựng bao nhiêu ki-lô-gam hành lá?`,Qw,2,`Lấy ${fm(Qw*m,2)} : ${m}. Chia phần nguyên rồi viết dấu phẩy vào thương, chia tiếp phần thập phân: ${fm(Qw,2)} (kg).`,'A',steps(Qw*m,2,m).lines,{A:Qw*m,s:2,b:m}),
+  mk(`Quán có ${w2[0]} lít nước dùng, rót đều vào ${w2[1]} ấm. Hỏi mỗi ấm đựng bao nhiêu lít nước dùng?`,w2[2],w2[3],`${w2[0]} : ${w2[1]}: chưa chia hết nên viết dấu phẩy vào thương, thêm 0 vào số dư rồi chia tiếp. Kết quả ${fm(w2[2],w2[3])} (lít).`,'B',sw.lines,{A:w2[0],s:0,b:w2[1]}),
+  mk(`Quán có ${w3[0]} lít nước dùng, rót vào các bình, mỗi bình chứa ${fm(w3[1],1)} lít. Hỏi cần bao nhiêu bình để rót hết?`,w3[2],0,`Nhân cả số bị chia và số chia với 10: ${w3[0]*10} : ${w3[1]} = ${w3[2]} (bình).`,'C',[`Nhân cả hai số với 10: ${w3[0]} × 10 = ${w3[0]*10}; ${fm(w3[1],1)} × 10 = ${w3[1]}`,...steps(w3[0]*10,0,w3[1]).lines],{A:w3[0]*10,s:0,b:w3[1]}),
   ...f22];
  /* sắp theo thứ tự dạng bài A → B → C → D cho dễ học, trong mỗi dạng thì xáo trộn */
  return ['A','B','C','D'].flatMap(k=>sh(list.filter(x=>x[3]===k)));
-}})();
+};
+const grp=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const gD=()=>{if(Math.random()<.5){const b=pick([12,15,18,24,25,31,35,42,45,52]),q=NZ(101,999),A=b*q,k=pick([1,2,3]);
+  return mk(`Biết ${grp(A)} : ${b} = ${q}. Không đặt tính, hãy tính ${fm(A,k)} : ${b}.`,q,k,`${fm(A,k)} bé hơn ${grp(A)} ${['mười','một trăm','một nghìn'][k-1]} lần, số chia giữ nguyên nên thương cũng bé hơn ${['mười','một trăm','một nghìn'][k-1]} lần: ${q} : ${Math.pow(10,k)} = ${fm(q,k)}.`,'D',[`${grp(A)} → ${fm(A,k)} là giảm ${Math.pow(10,k)} lần`,`Số chia ${b} giữ nguyên ⇒ thương giảm ${Math.pow(10,k)} lần: ${q} : ${Math.pow(10,k)} = ${fm(q,k)}`])}
+  const b=pick([15,25,35,45,65,75,85,95]),q=pick([2,3,4,5,6,7,8,9,12,14,16]),A=b*q;
+  return mk(`Biết ${grp(A)} : ${b} = ${q}. Hãy tính ${fm(A,1)} : ${fm(b,1)}.`,q,0,`Nhân cả số bị chia và số chia với 10 thì thương không đổi: ${fm(A,1)} : ${fm(b,1)} = ${grp(A)} : ${b} = ${q}.`,'D',[`${fm(A,1)} × 10 = ${grp(A)}; ${fm(b,1)} × 10 = ${b}`,`Nhân cả hai số với 10 thì thương không đổi: ${grp(A)} : ${b} = ${q}`])};
+main.one=k=>k==='A'?g22a():k==='B'?g22b(pick(NG)):k==='C'?g22c(pick(DG)):gD();
+return main})();
 
 const Q=genQ();
 const norm=s=>{const n=s.replace(/[−–]/g,'-').replace(/\s/g,'').replace(/,/g,'.').replace(/[^\d.-]/g,'');const f=parseFloat(n);return isNaN(f)?n:String(Math.round(f*1e9)/1e9)};
@@ -291,7 +345,7 @@ function noThree(){ // bản giả rỗng để logic game vẫn chạy khi khô
   class V{constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z}set(x,y,z){this.x=x;this.y=y;this.z=z;return this}copy(v){return this.set(v.x,v.y,v.z)}clone(){return new V(this.x,this.y,this.z)}setScalar(s){return this.set(s,s,s)}lerpVectors(a,b,k){return this.set(a.x+(b.x-a.x)*k,a.y+(b.y-a.y)*k,a.z+(b.z-a.z)*k)}}
   class O{constructor(g,m){this.position=new V;this.rotation=new V;this.scale=new V(1,1,1);this.material=m||{color:{setHex(){}},opacity:1}}add(){}remove(){}lookAt(){}updateProjectionMatrix(){}}
   class Clk{constructor(){this.t=performance.now();this.elapsedTime=0}getDelta(){const n=performance.now(),d=(n-this.t)/1e3;this.t=n;this.elapsedTime+=d;return d}}
-  return new Proxy({},{get:(_,k)=>k==='Vector3'?V:k==='Clock'?Clk:k==='WebGLRenderer'?class{constructor(){this.shadowMap={}}setPixelRatio(){}setSize(){}render(){}}:/Geometry$/.test(k)?class{}:/Material$/.test(k)?class{constructor(o){Object.assign(this,o,{color:{setHex(){}}})}}:k==='CanvasTexture'||k==='Color'?class{}:/Light$/.test(k)?class extends O{constructor(){super();this.shadow={camera:{}}}}:O});
+  return new Proxy({},{get:(_,k)=>k==='Vector3'?V:k==='Clock'?Clk:k==='WebGLRenderer'?class{constructor(){this.shadowMap={}}setPixelRatio(){}setSize(){}render(){}}:/Geometry$/.test(k)?class{}:/Material$/.test(k)?class{constructor(o){Object.assign(this,o,{color:{setHex(){}}})}}:k==='CanvasTexture'?class{}:k==='Color'?class{setRGB(){return this}setHex(){return this}copy(){return this}lerp(){return this}}:/Light$/.test(k)?class extends O{constructor(){super();this.shadow={camera:{}}}}:O});
 }
 
 function go(){
@@ -309,10 +363,10 @@ const VO=(()=>{let on=true,pend=null,cust=0;try{on=localStorage.getItem('pho-vo'
  const clean=t=>t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu,'').replace(/[“”‘’"]/g,'').replace(/\|/g,' ').replace(/…/g,'...').trim();
  const math=t=>clean(t).replace(/(\d),(\d)/g,'$1 phẩy $2').replace(/=\s*\?/g,' bằng bao nhiêu').replace(/([×:])\s*\?/g,'$1 ô trống ').replace(/\?/g,' ô trống ').replace(/(\d+)\/(\d+)/g,'$1 phần $2').replace(/×/g,' nhân ').replace(/\s:\s/g,' chia ').replace(/\+/g,' cộng ').replace(/=/g,' bằng ').replace(/\bcm\b/g,'xăng-ti-mét');
  function say(k,text,o={}){const w=who(k),txt=o.math?math(text):clean(text),est=Math.min(o.math?12000:7000,Math.max(o.min||0,700+txt.length*(on&&ok?70:55)));
-  return new Promise(res=>{if(pend)pend();let fin=false,tm;const done=()=>{if(fin)return;fin=true;pend=null;clearTimeout(tm);res()};pend=done;
+  return new Promise(res=>{if(pend)pend();let fin=false,tm;const done=()=>{if(fin)return;fin=true;pend=null;clearTimeout(tm);try{SFX.duck(false)}catch(e){}res()};pend=done;
    if(!on||!ok||!txt){tm=setTimeout(done,o.silent===false?0:est);return}
    tm=setTimeout(done,est*1.6+1000);
-   try{ss.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='vi-VN';u.pitch=w.p;u.rate=o.rate||w.r;if(vs.length)u.voice=vs[w.v%vs.length];u.onend=u.onerror=done;ss.speak(u)}catch(e){done()}})}
+   try{ss.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='vi-VN';u.pitch=w.p;u.rate=o.rate||w.r;if(vs.length)u.voice=vs[w.v%vs.length];u.onend=u.onerror=done;try{SFX.duck(true)}catch(e){}ss.speak(u)}catch(e){done()}})}
  return{say,sayQ:t=>say('cust',t,{math:true,rate:.92}),who,cancel(){try{ss&&ss.cancel()}catch(e){}if(pend)pend()},get on(){return on},toggle(){on=!on;try{localStorage.setItem('pho-vo',on?'1':'0')}catch(e){}if(!on)VO.cancel();return on},set cust(i){cust=i}}})();
 const pickL=a=>a[Math.random()*a.length|0];
 const CL=['Phở ngon quá trời!','Nước dùng ngọt thanh luôn!','Ăn là ghiền nha!','Tuyệt cú mèo!','Cho thêm tô nữa đi anh Hai!','Thơm lừng cả quán!'],HL=['Phở nóng tới liền!','Giỏi lắm, đúng rồi nè!','Hai tô nữa ra liền!','Toán giỏi, phở ngon!','Cẩn thận nóng nha!'];
@@ -320,7 +374,8 @@ var THREE=window.THREE||noThree();
 let R,flat=!window.THREE;
 try{R=new THREE.WebGLRenderer({canvas:$('c'),antialias:true})}catch(e){THREE=noThree();R=new THREE.WebGLRenderer();flat=true}
 if(flat){$('fb').textContent='⚠️ Không tải được đồ họa 3D — bạn vẫn chơi bình thường!'}
-R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;try{R.shadowMap.type=THREE.PCFSoftShadowMap}catch(e){}
+let ctxLost=false;try{R.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();ctxLost=true;$('fb').textContent='⚠️ Đồ họa tạm dừng (máy thiếu bộ nhớ), đang khôi phục…'});R.domElement.addEventListener('webglcontextrestored',()=>{ctxLost=false;$('fb').textContent='';fit()})}catch(e){}
 const S=new THREE.Scene();S.background=new THREE.Color(0xffe3b0);S.fog=new THREE.Fog(0xffe3b0,22,48);
 const cam=new THREE.PerspectiveCamera(45,1,.1,100);
 const camBase={x:0,y:4,z:9.5};let shake=0,occT=0,occ=0,occN=0;
@@ -329,19 +384,19 @@ function fit(){const w=innerWidth,h=innerHeight,a=w/h;R.setSize(w,h,false);cam.a
   camBase.z=Math.max(9.5,13.5/a);cam.position.set(0,4,camBase.z);cam.lookAt(0,.2,-.5);cam.updateProjectionMatrix();applyView()}
 addEventListener('resize',fit);fit();
 try{const vv=window.visualViewport;if(vv){const kb=()=>document.documentElement.style.setProperty('--kb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}}catch(e){}
-S.add(new THREE.HemisphereLight(0xfff4e0,0xc8a070,1));
+const HLm=new THREE.HemisphereLight(0xfff4e0,0xc8a070,1);S.add(HLm);
 const L=new THREE.DirectionalLight(0xffffff,.65);L.position.set(4,8,6);L.castShadow=true;
-Object.assign(L.shadow.camera,{left:-10,right:10,top:10,bottom:-10});S.add(L);
+Object.assign(L.shadow.camera,{left:-10,right:10,top:10,bottom:-10});if(L.shadow.mapSize){L.shadow.mapSize.set(2048,2048);L.shadow.bias=-.0006}S.add(L);
 const warm=new THREE.PointLight(0xffb347,.6,16);warm.position.set(0,4.2,0);S.add(warm);
 
 /* ===== Phong cách hoạt hình: tô màu 3 bậc (toon) + viền đậm quanh mỗi vật ===== */
 const GR=(()=>{const g=new THREE.DataTexture(new Uint8Array([150,205,255]),3,1,THREE.LuminanceFormat);g.minFilter=g.magFilter=THREE.NearestFilter;g.needsUpdate=true;return g})();
 const M=c=>new THREE.MeshToonMaterial({color:c,gradientMap:GR});
-const INK=new THREE.MeshBasicMaterial({color:0x3b2412,side:THREE.BackSide});
+const INK=new THREE.MeshBasicMaterial({color:0x3b2412,side:THREE.BackSide});INK.userData={keep:1};const OUTL=[];
 function mesh(g,c,x,y,z,p){const m=new THREE.Mesh(g,M(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(p||S).add(m);
   if(g.computeBoundingBox){g.computeBoundingBox();const bb=g.boundingBox,d=bb.getSize(new THREE.Vector3()),mx=Math.max(d.x,d.y,d.z);
     if(mx>=.2&&mx<=7){const th=.035,sx=1+2*th/Math.max(d.x,.25),sy=1+2*th/Math.max(d.y,.25),sz=1+2*th/Math.max(d.z,.25),o=new THREE.Mesh(g,INK),c0=bb.getCenter(new THREE.Vector3());
-      o.scale.set(sx,sy,sz);o.position.set(c0.x*(1-sx),c0.y*(1-sy),c0.z*(1-sz));m.add(o)}}
+      o.scale.set(sx,sy,sz);o.position.set(c0.x*(1-sx),c0.y*(1-sy),c0.z*(1-sz));m.add(o);OUTL.push(o)}}
   return m}
 const bx=(w,h,d,c,x,y,z,p)=>mesh(new THREE.BoxGeometry(w,h,d),c,x,y,z,p);
 const cy=(rt,rb,h,c,x,y,z,p)=>mesh(new THREE.CylinderGeometry(rt,rb,h,24),c,x,y,z,p);
@@ -378,9 +433,10 @@ const menu=new THREE.Mesh(new THREE.PlaneGeometry(2.3,1.7),new THREE.MeshBasicMa
 menu.position.set(-6.4,3.1,-3.42);S.add(menu);
 /* biển hiệu + đèn lồng đung đưa */
 const sign=new THREE.Mesh(new THREE.PlaneGeometry(5,1.25),new THREE.MeshBasicMaterial({map:lab('PHỞ ANH HAI','#fffdf6')}));sign.position.set(0,3.7,-3.4);S.add(sign);
+const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xffb347,transparent:true,opacity:.32,depthWrite:false,blending:THREE.AdditiveBlending}));halo.scale.set(7.2,2.6,1);halo.position.set(0,3.7,-3.3);S.add(halo);
 const lants=[-7.2,-3.9,3.9,7.2].map((x,i)=>{const g=new THREE.Group();g.position.set(x,4.9,-3.1);S.add(g);
   bx(.04,.7,.04,0x333333,0,-.35,0,g);sp(.32,0xd6402b,0,-.9,0,g).scale.set(1,1.15,1);cy(.12,.12,.1,0xffc300,0,-.6,0,g);cy(.12,.12,.1,0xffc300,0,-1.22,0,g);
-  const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,opacity:.8,depthWrite:false}));gl.scale.set(1.8,1.8,1);gl.position.set(0,-.9,.2);g.add(gl);
+  const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,opacity:.8,depthWrite:false}));gl.scale.set(1.8,1.8,1);gl.position.set(0,-.9,.2);g.add(gl);g.userData=g.userData||{};g.userData.gl=gl;
   const tl=new THREE.Mesh(new THREE.PlaneGeometry(.04,.5),new THREE.MeshBasicMaterial({color:0xffc300}));tl.position.set(0,-1.5,0);g.add(tl);return g});
 /* quầy bếp + nồi nước dùng */
 bx(6.2,1.1,1.4,0x8a4b25,-2,.55,-2.4);bx(6.4,.12,1.6,0xa0612e,-2,1.12,-2.4);
@@ -415,6 +471,13 @@ const NAMES=['Chú Tư','Cô Ba','Bác Năm','Chị Sáu','Anh Bảy'];
 const body=cy(.45,.5,.9,SHIRT[0],0,1.0,0,C),hat=mesh(new THREE.ConeGeometry(.62,.35,24),HAT[0],0,2.15,0,C);
 sp(.32,0xf1c27d,0,1.75,0,C);face(C,1.8,.26);const mouth=bx(.16,.035,.03,0x7a2e1d,0,1.65,.3,C);sp(.07,0xf4a6a0,-.22,1.7,.22,C);sp(.07,0xf4a6a0,.22,1.7,.22,C);
 C.position.set(10,0,-.8);
+const legsC=[-1,1].map(q=>cy(.13,.13,.58,0x3a3a4a,q*.2,.29,0,C));[-1,1].forEach(q=>bx(.24,.1,.36,0x2b2b2b,q*.2,.06,.08,C));
+const ACC={gl:new THREE.Group(),bun:new THREE.Group(),cap:new THREE.Group(),sc:new THREE.Group()};Object.values(ACC).forEach(g=>{g.visible=false;C.add(g)});
+[-1,1].forEach(q=>mesh(new THREE.TorusGeometry(.085,.016,6,14),0x222222,q*.13,1.82,.3,ACC.gl));bx(.1,.02,.02,0x222222,0,1.82,.31,ACC.gl);
+sp(.13,0x2a1a10,0,2.05,-.12,ACC.bun);sp(.33,0x2a1a10,0,1.86,-.05,ACC.bun);
+mesh(new THREE.SphereGeometry(.34,16,10,0,Math.PI*2,0,Math.PI/2),0x2a6fdb,0,1.9,0,ACC.cap);bx(.34,.04,.3,0x2a6fdb,0,1.9,.36,ACC.cap);
+cy(.34,.34,.14,0xe74c3c,0,1.52,0,ACC.sc);
+function dress(ci){const v=ci%5;hat.visible=v===0||v===1||v===4;ACC.gl.visible=v===1||v===4;ACC.bun.visible=v===2;ACC.cap.visible=v===3;ACC.sc.visible=v===4}
 
 /* ===== Cậu Vàng (mũi quay về +x) ===== */
 const dog=new THREE.Group();S.add(dog);const DH=new THREE.Vector3(-3.4,0,2.2);
@@ -473,13 +536,26 @@ wire(-9,3.4,1.5,3.4,5.9);wire(1.5,3.3,8.5,3.4,5.8);wire(-9,3.2,8.5,3.1,6.1,.55);
 
 
 /* ===== Tween + hiệu ứng + vòng lặp ===== */
+const TODS=[[0xffe3b0,0xffe3b0,0xfff4e0,0xc8a070,1,.65,0xffffff,.6,0xffffff,.55],[0xcfeeff,0xe3f5ff,0xffffff,0xd8c090,1.1,.8,0xffffff,.4,0xffffff,.4],[0xffb98a,0xffc7a0,0xffd8b0,0xa86a58,.9,.62,0xffb070,.7,0xffc090,.85],[0x1b2447,0x1b2447,0x8ea0d8,0x40344c,.6,.38,0x9ab0ff,1.1,0x5a6aa8,1.6]];
+const rgb=h=>[(h>>16&255)/255,(h>>8&255)/255,(h&255)/255],mixc=(a,b,k)=>{a=rgb(a);b=rgb(b);return[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k]};
+let todK=0,todTarget=0,warmBase=.6,fAcc=0,fN=0,qLv=2;
+function todApply(dt,t){todK+=(todTarget-todK)*Math.min(1,dt*.7);if(flat)return;
+ const x=Math.min(2.999,todK*3),i=x|0,k=x-i,A=TODS[i],Bt=TODS[i+1]||A,n=(a,b)=>a+(b-a)*k;
+ const sky=mixc(A[0],Bt[0],k),fog=mixc(A[1],Bt[1],k),hs=mixc(A[2],Bt[2],k),hg=mixc(A[3],Bt[3],k),lc=mixc(A[6],Bt[6],k),wn=mixc(A[8],Bt[8],k);
+ S.background.setRGB(sky[0],sky[1],sky[2]);if(S.fog&&S.fog.color)S.fog.color.setRGB(fog[0],fog[1],fog[2]);
+ HLm.color.setRGB(hs[0],hs[1],hs[2]);HLm.groundColor.setRGB(hg[0],hg[1],hg[2]);HLm.intensity=n(A[4],Bt[4]);L.color.setRGB(lc[0],lc[1],lc[2]);L.intensity=n(A[5],Bt[5]);warmBase=n(A[7],Bt[7]);
+ view.material.color.setRGB(wn[0],wn[1],wn[2]);const gl=Math.min(1,n(A[9],Bt[9])*.55);lants.forEach(g=>{if(g.userData.gl)g.userData.gl.material.opacity=gl});
+ const fl=.94+.06*Math.sin(t*2.1)-(Math.random()<.004?.25:0);sign.material.color.setRGB(fl,fl,fl);halo.material.opacity=(.22+.18*todK)*(fl>.8?1:.6)}
+function perfTick(d){if(flat||d>.5)return;fAcc+=d;if(++fN<90)return;const avg=fAcc/fN;fAcc=0;fN=0;if(avg>.034&&qLv>0){qLv--;
+  if(qLv===1){R.setPixelRatio(Math.min(devicePixelRatio,1.25))}else{R.setPixelRatio(1);R.shadowMap.enabled=false;OUTL.forEach(o=>o.visible=false);if(S.traverse)S.traverse(o=>{if(o.material&&!Array.isArray(o.material))o.material.needsUpdate=true})}fit()}}
 const T=[];const clock=new THREE.Clock();const cb={y:0,ry:0},lamp={a:1};
 const tw=(d,f)=>new Promise(r=>T.push({d,t:0,f,r}));
 const lerp=(a,b,k)=>a+(b-a)*k,ease=k=>1-(1-k)*(1-k),wait=s=>tw(s,()=>{});
+function rm(o){S.remove(o);if(!o||!o.traverse)return;o.traverse(n=>{if(n.isSprite===undefined&&n.geometry&&n.geometry.dispose)n.geometry.dispose();const m=n.material;if(m){(Array.isArray(m)?m:[m]).forEach(mm=>{if(mm===INK||(mm.userData&&mm.userData.keep))return;if(mm.map&&mm.map.dispose&&!(mm.map.userData&&mm.map.userData.keep))mm.map.dispose();if(mm.dispose)mm.dispose()})}})}
 function burst(x,y,z,cols){const ps=[...Array(26)].map(()=>({m:bx(.12,.12,.12,cols[Math.random()*cols.length|0],x,y,z),v:[(Math.random()-.5)*5,Math.random()*5+2,(Math.random()-.5)*3]}));
-  tw(1,k=>ps.forEach(p=>{p.m.position.set(x+p.v[0]*k,y+p.v[1]*k-7*k*k,z+p.v[2]*k);p.m.rotation.x=k*9})).then(()=>ps.forEach(p=>S.remove(p.m)))}
+  tw(1,k=>ps.forEach(p=>{p.m.position.set(x+p.v[0]*k,y+p.v[1]*k-7*k*k,z+p.v[2]*k);p.m.rotation.x=k*9})).then(()=>ps.forEach(p=>rm(p.m)))}
 function emoji(e,x,y,z,sc=1){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex(128,128,(g)=>{g.font='96px serif';g.textAlign='center';g.textBaseline='middle';g.fillText(e,64,70)}),transparent:true}));
-  s.scale.set(sc,sc,1);s.position.set(x,y,z);S.add(s);tw(1.1,k=>{s.position.y=y+k*1.4;s.material.opacity=k<.6?1:1-(k-.6)/.4}).then(()=>S.remove(s))}
+  s.scale.set(sc,sc,1);s.position.set(x,y,z);S.add(s);tw(1.1,k=>{s.position.y=y+k*1.4;s.material.opacity=k<.6?1:1-(k-.6)/.4}).then(()=>rm(s))}
 function flash(c){const f=$('flash');f.className='';void f.offsetWidth;f.className=c}
 function popChip(id){const e=$(id);e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}
 function banner(t){const b=$('combo');b.textContent=t;b.classList.remove('on');void b.offsetWidth;b.classList.add('on')}
@@ -487,12 +563,15 @@ function jolt(){shake=1;document.body.classList.remove('shake');void document.bo
 /* ===== Hoạt hình thêm: chớp mắt, nhún nhảy, chữ +1 bay lên, bụi lấp lánh, khói xe ===== */
 const squash=(g,a)=>g.scale.set(1+a,1-a,1+a);
 function pop3d(txt,x,y,z,col='#ffd23f',sc=1.6){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex(256,128,(g)=>{g.font='800 84px "Baloo 2",sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=14;g.strokeStyle='#3b2412';g.lineJoin='round';g.strokeText(txt,128,68);g.fillStyle=col;g.fillText(txt,128,68)}),transparent:true,depthTest:false}));
-  s.position.set(x,y,z);S.add(s);tw(1.2,k=>{const pk=k<.2?k/.2*1.25:1.25-.25*Math.min(1,(k-.2)*5);s.scale.set(sc*pk,sc/2*pk,1);s.position.y=y+(1-(1-k)*(1-k))*1.3;s.material.opacity=k<.7?1:1-(k-.7)/.3}).then(()=>S.remove(s))}
+  s.position.set(x,y,z);S.add(s);tw(1.2,k=>{const pk=k<.2?k/.2*1.25:1.25-.25*Math.min(1,(k-.2)*5);s.scale.set(sc*pk,sc/2*pk,1);s.position.y=y+(1-(1-k)*(1-k))*1.3;s.material.opacity=k<.7?1:1-(k-.7)/.3}).then(()=>rm(s))}
 const smokeTex=tex(64,64,(g)=>{const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(235,230,220,.9)');r.addColorStop(1,'rgba(235,230,220,0)');g.fillStyle=r;g.fillRect(0,0,64,64)});
-function puff(x,y,z){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false}));s.position.set(x,y,z);s.scale.set(.3,.3,1);S.add(s);tw(.7,k=>{s.scale.setScalar(.3+k*1.1);s.position.y=y+k*.5;s.material.opacity=.8*(1-k)}).then(()=>S.remove(s))}
+function puff(x,y,z){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false}));s.position.set(x,y,z);s.scale.set(.3,.3,1);S.add(s);tw(.7,k=>{s.scale.setScalar(.3+k*1.1);s.position.y=y+k*.5;s.material.opacity=.8*(1-k)}).then(()=>rm(s))}
+smokeTex.userData={keep:1};glowTex.userData={keep:1};
+const mkSteam=(p,n)=>[...Array(n)].map(()=>{const q=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false,opacity:0}));p.add(q);return q});
+steam.forEach(m=>m.visible=false);potSteam.forEach(m=>m.visible=false);const steamS=mkSteam(B,7),potS=mkSteam(S,6);
 const dust=[...Array(22)].map(()=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,depthWrite:false,opacity:.4}));s.scale.setScalar(.14+Math.random()*.16);s.userData={ph:Math.random()*6.28,sp:.08+Math.random()*.12,x:(Math.random()-.5)*16,z:-3+Math.random()*7};S.add(s);return s});
 let nbk=2,lastKx=99,pfT=0;
-function cartoonTick(t,dt){
+let lastCx=10;function cartoonTick(t,dt){const mv=Math.abs(C.position.x-lastCx);lastCx=C.position.x;const wk=mv>.003?Math.sin(t*16)*.55:0;legsC[0].rotation.x=wk;legsC[1].rotation.x=-wk;
   nbk-=dt;if(nbk<0){nbk=2.2+Math.random()*2.6;EYES.forEach(e=>e.scale.y=.1);setTimeout(()=>EYES.forEach(e=>e.scale.y=1),120)}
   C.rotation.z=Math.abs(C.position.x-CX)<.05?Math.sin(t*2.2)*.035:0;
   chef.rotation.y=Math.sin(t*.7)*.3;chef.scale.y=1+Math.sin(t*3.1)*.012;
@@ -521,9 +600,9 @@ function limits(){const cl=document.body.classList,vh=innerHeight;let top=$('hud
   else if(!$('panel').classList.contains('h')){bot=$('bub').getBoundingClientRect().top-16}
   if(bot<top+50)bot=top+50;return[top,bot]}
 function bubble(txt,x,y,z,dur=2,who='chef'){const w=VO.who(who),el=document.createElement('div');el.className='db';el.innerHTML=(w.n?`<b style="color:${w.c}">${w.n}</b>`:'')+'<span></span>';el.lastChild.textContent=txt.replace(/\|/g,' ');$('bubs').appendChild(el);
-  const o={el,x,y,z};BUBS.push(o);const sp_=VO.say(who,txt,{min:dur*1000});
+  const o={el,x,y,z};BUBS.push(o);const sp_=fastCine?Promise.resolve():VO.say(who,txt,{min:dur*1000});
   return Promise.all([sp_,wait(dur)]).then(()=>{el.classList.add('out');setTimeout(()=>{el.remove();const i=BUBS.indexOf(o);if(i>=0)BUBS.splice(i,1)},260)})}
-function bubTick(){if(!BUBS.length)return;const vw=innerWidth,[tp,bt]=limits();
+function bubTick(){if(!BUBS.length)return;const [tp,bt]=limits(),vw=(!$('fix').classList.contains('h')&&innerHeight<=560)?Math.max(160,$('fix').querySelector('.box').getBoundingClientRect().left-8):innerWidth;
   BUBS.forEach(o=>{const w=o.el.offsetWidth,h=o.el.offsetHeight,p=proj(o.x,o.y,o.z);let px=p?p.x:vw/2,py=p?p.y:tp+(bt-tp)*.35;
    o.el.style.left=Math.max(8,Math.min(vw-w-8,px-w/2))+'px';o.el.style.top=Math.max(tp,Math.min(bt-h,py-h-14))+'px'})}
 function occTick(){if(flat||(occN++&7))return;const cl=document.body.classList;let o=0;
@@ -641,14 +720,15 @@ const SCENES=[
     dog.rotation.set(0,Math.PI,0);SFX.whoosh();await tw(.8,k=>dog.position.set(SX-16*k*k,0,LZ))},
    cleanup(){}}})()];
 let wag=12,hop=0;
-(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05)*TS,t=clock.elapsedTime;
+(function loop(){requestAnimationFrame(loop);if(document.hidden||ctxLost){clock.getDelta();return}
+  const dt0=clock.getDelta(),dt=Math.min(dt0,.05)*TS,t=clock.elapsedTime;perfTick(dt0);todApply(Math.min(dt0,.05),t);
   for(let i=T.length-1;i>=0;i--){const a=T[i];a.t+=dt;const k=Math.min(a.t/a.d,1);a.f(k);if(k>=1){T.splice(i,1);a.r()}}
   tail.rotation.y=Math.sin(t*wag)*.6;arm.rotation.z=Math.sin(t*3)*.35;chef.position.y=Math.abs(Math.sin(t*2))*.04+cb.y;wheels.forEach(w=>w.rotation.x-=dt*14);
   ears.forEach((e,i)=>e.rotation.z=Math.sin(t*5+i)*.08);
   lants.forEach((g,i)=>g.rotation.z=Math.sin(t*1.4+i*1.3)*.09*lamp.a);
-  warm.intensity=.6+Math.sin(t*7)*.03;
-  steam.forEach((m,i)=>{const f=(t*.45+i/5)%1;m.position.set(Math.sin(t*2+i)*.1,.5+f*.9,Math.cos(t*2+i)*.1);m.material.opacity=.6*(1-f)});
-  potSteam.forEach((m,i)=>{const f=(t*.3+i/4)%1;m.position.set(-3.6+Math.sin(t*1.5+i*2)*.15,2+f*1.2,-2.4);m.scale.setScalar(.6+f);m.material.opacity=.5*(1-f)});
+  warm.intensity=warmBase+Math.sin(t*7)*.03;
+  steamS.forEach((q,i)=>{const f=(t*.4+i/7)%1;q.position.set(Math.sin(t*1.6+i*1.9)*.12,.55+f*1.1,Math.cos(t*1.3+i)*.08);q.scale.setScalar(.25+f*.55);q.material.opacity=.5*Math.sin(f*Math.PI)});
+  potS.forEach((q,i)=>{const f=(t*.3+i/6)%1;q.position.set(-3.6+Math.sin(t*1.5+i*2)*.2,2+f*1.6,-2.4);q.scale.setScalar(.5+f*1.1);q.material.opacity=.4*Math.sin(f*Math.PI)});
   shake*=.9;const sx=(Math.random()-.5)*shake*.35,sy=(Math.random()-.5)*shake*.2;
   const ck=CV.k,sz=8.6+Math.max(9,Math.min(24,6.5/(.414*(cam.aspect||1.7))));let px=lerp(camBase.x,0,ck)+Math.sin(t*.4)*.25,py=lerp(camBase.y,6,ck)+Math.sin(t*.3)*.08,pz=lerp(camBase.z,sz,ck),lx=0,ly=lerp(.2,.4,ck),lz=lerp(-.5,7.4,ck);const cw=CIN.w;
   if(cw>0){px=lerp(px,CIN.p[0],cw);py=lerp(py,CIN.p[1],cw);pz=lerp(pz,CIN.p[2],cw);lx=lerp(lx,CIN.l[0],cw);ly=lerp(ly,CIN.l[1],cw);lz=lerp(lz,CIN.l[2],cw);
@@ -656,24 +736,78 @@ let wag=12,hop=0;
   cam.position.set(px+sx,py+sy,pz);cam.lookAt(lx,ly,lz);if(cw>0||cam.fov!==45){cam.fov=lerp(45,CIN.fov,cw);cam.updateProjectionMatrix();cam.rotation.z+=CIN.roll*cw}
   cartoonTick(t,dt);occTick();occEase();bubTick();chef.rotation.y+=cb.ry;R.render(S,cam)})();
 
-/* ================= Luật chơi: 30 câu, câu sai quay lại ôn cho tới khi đúng ================= */
-let order,pos,score,lost,streak,missed,retry,review,cur,busy=true,best=0,byRule={},hints=0,fixDone=null;
-const NQ=()=>Q.length;
+/* ================= Luật chơi nâng cấp: học tập thích ứng (bài tương tự · gợi ý 3 bậc · chẩn đoán lỗi · trí nhớ dài hạn) ================= */
+const GID='toan5-bai22',GTITLE='Phở Anh Hai · Toán 5 Bài 22',FRAC=',';
+const KEYS=Object.keys(RULES),vnum=x=>String(x).replace('.',',');
+let meta=null;
+let queue=[],pos=0,score=0,lost=0,streak=0,best=0,hints=0,missed=[],byRule={},miscon={},cur=null,item=null,busy=true,
+    fixDone=null,qT0=0,hintLv=0,peeked=false,times=[],twinN=0,twinOK=0,mode='full',baseN=1,doneBase=0,modeName='',dg=null,stuck={},fastCine=false;
+try{fastCine=localStorage.getItem('pho-fast')==='1'}catch(e){}
+const mkBy=()=>Object.fromEntries(KEYS.map(k=>[k,{n:0,ok:0,tw:0,twok:0}]));
+/* ---- trí nhớ dài hạn: mức nhớ từng dạng được lưu trên máy để lần sau ôn đúng chỗ yếu ---- */
+const PKEY='pho-prog-'+GID;
+const prog=(()=>{let d={rules:{},sess:0,last:0};try{const s=JSON.parse(localStorage.getItem(PKEY)||'null');if(s&&typeof s==='object')d=Object.assign(d,s)}catch(e){}
+  if(!d.rules||typeof d.rules!=='object')d.rules={};KEYS.forEach(k=>{if(!d.rules[k]||typeof d.rules[k].ema!=='number')d.rules[k]={n:0,ema:.5}});return d})();
+const saveProg=()=>{try{localStorage.setItem(PKEY,JSON.stringify(prog))}catch(e){}};
+const emaUp=(k,ok)=>{const r=prog.rules[k];r.ema=r.n?r.ema*.7+.3*(ok?1:0):(ok?1:0);r.n++};
+const isWeak=k=>prog.rules[k].n>=2&&prog.rules[k].ema<.75;
+const NQ=()=>baseN;
 const say=t=>$('fb').textContent=t;
 const shuf=a=>{for(let j=a.length-1;j>0;j--){const r=Math.floor(Math.random()*(j+1));[a[j],a[r]]=[a[r],a[j]]}return a};
-function hud(){const n=order.length;$('no').textContent=review?`📚 Ôn lại ${Math.min(pos+1,n)}/${n}`:`Câu ${Math.min(pos+1,n)}/${n}`;
-  $('sc').textContent='🍜 '+score+(streak>2?' 🔥'+streak:'');$('lo').textContent='🐶 Bị bắt: '+lost;$('bar').style.width=pos/n*100+'%'}
-function lock(b){busy=b;$('a').disabled=$('go').disabled=b}
+function hud(){const n=Math.max(1,baseN),i=Math.min(doneBase+1,n);
+  $('no').textContent=item&&item.tw?'🔁 Bài tương tự (số mới)':(mode==='full'?`Câu ${i}/${n}`:`${modeName} ${i}/${n}`);
+  $('sc').textContent='🍜 '+score+(streak>2?' 🔥'+streak:'');$('lo').textContent='🐶 Bị bắt: '+lost;$('bar').style.width=Math.min(100,doneBase/n*100)+'%';if(meta)meta.draw()}
+function lock(b){busy=b;$('a').disabled=$('go').disabled=b;$('hint').disabled=b}
 function speak(t){VO.sayQ(t)}
+const val=s=>{const n=norm(String(s));if(n.includes('/')){const[a,b]=n.split('/').map(Number);return b?a/b:NaN}return parseFloat(n)};
+/* ---- ước lượng nhanh (nếu câu có số liệu) để học sinh tự kiểm tra vị trí dấu phẩy ---- */
+function estText(c){const m=c&&c[5];if(!m)return'';const D=m.A/Math.pow(10,m.s),qv=D/m.b;if(!isFinite(qv)||qv<=0)return'';
+  const lo=Math.pow(10,Math.floor(Math.log10(qv))),near=Number(qv.toPrecision(1));
+  return `Ước lượng: ${vnum(Math.round(D*100)/100)} : ${m.b} gần bằng ${vnum(near)}, nên thương nằm giữa ${vnum(lo)} và ${vnum(Math.round(lo*10*1e6)/1e6)}.`}
+/* ---- chẩn đoán lỗi sai: đoán em đang hiểu nhầm ở đâu để nhắc đúng chỗ ---- */
+const MIS={format:'Gõ sai dạng số',comma:'Đặt sai dấu phẩy',zero:'Nhầm số chữ số 0',noscale:'Quên nhân cả hai số với 10, 100…',noscaleD:'Nhầm khi tính nhẩm (dịch dấu phẩy)',nocont:'Chưa chia tiếp phần dư',early:'Dừng chia khi chưa hết dư',swap:'Chia ngược số bị chia và số chia',arith:'Nhầm một bước tính',other:'Chưa rõ nguyên nhân'};
+function diagnose(c,raw){
+  const u=val(raw),a=val(c[1]),m=c[5],k=c[3];
+  if(!isFinite(u))return{tag:'format',msg:'Em hãy gõ một số (số thập phân gõ như 3,25).'};
+  const est=estText(c),r=a?u/a:NaN,pw=[10,100,1000,.1,.01,.001].find(p=>Math.abs(r/p-1)<1e-7);
+  if(pw){
+    if(k==='C'&&pw<1)return{tag:'noscale',msg:'Số chia là số thập phân: phải nhân cả số bị chia và số chia với 10 (100…) rồi mới chia. Có vẻ em quên bước này.'};
+    if(k==='D')return{tag:'noscaleD',msg:'Số bị chia giảm bao nhiêu lần (số chia giữ nguyên) thì thương giảm bấy nhiêu lần. Em đếm lại số lần giảm nhé.'};
+    if(!/[,.]/.test(String(c[1]))&&!/[,.]/.test(String(raw)))return{tag:'zero',msg:`Các chữ số đúng nhưng em nhầm số chữ số 0: đáp án của em ${pw>1?'lớn':'bé'} hơn ${pw>1?pw:1/pw} lần. Em đếm lại số chữ số 0 nhé.`};
+    return{tag:'comma',msg:`Các chữ số đúng nhưng dấu phẩy đặt sai chỗ (đáp án của em ${pw>1?'lớn':'bé'} hơn ${pw>1?pw:1/pw} lần). ${est}`}}
+  if(m&&k==='B'&&Number.isInteger(u)&&u===Math.floor(a)&&a!==u)return{tag:'nocont',msg:'Còn dư mà em đã dừng. Hãy viết dấu phẩy vào thương, thêm 0 vào số dư rồi chia tiếp.'};
+  if(m&&u<a&&String(a).startsWith(String(u))&&String(u).includes('.'))return{tag:'early',msg:'Em dừng sớm: số dư chưa bằng 0. Thêm 0 vào số dư và chia tiếp cho đến khi hết dư.'};
+  if(a&&Math.abs(u*a-1)<1e-7)return{tag:'swap',msg:'Em chia ngược rồi: phải lấy số bị chia chia cho số chia.'};
+  if(a&&Math.abs(u-a)/Math.max(1,Math.abs(a))<.25)return{tag:'arith',msg:'Gần đúng rồi! Có một bước tính nhỏ bị nhầm. Em thử kiểm tra: thương × số chia phải bằng số bị chia. '+est};
+  return{tag:'other',msg:'Chưa đúng. Em làm theo các bước bên dưới nhé. '+est}}
+/* ---- hình đặt tính chia (như sách giáo khoa) dựng từ số liệu của câu; chỉ hiện nếu khớp đáp án ---- */
+function ldHtml(A,s,b,ans){
+  while(s>0&&A%10===0){A/=10;s--}
+  const str=String(A).padStart(s+1,'0'),L=str.length-s,all=str.split('').map(Number);let r=0;const cur=[],qd=[];
+  for(let i=0;i<all.length;i++){const c=r*10+all[i];cur.push(c);qd.push(Math.floor(c/b));r=c%b}
+  let z=0;while(r!==0&&z<4){all.push(0);const c=r*10;cur.push(c);qd.push(Math.floor(c/b));r=c%b;z++}
+  const comma=s>0||z>0,col=i=>i+((comma&&i>=L)?1:0);
+  let q='',st=false;for(let i=0;i<qd.length;i++){if(i===L&&comma){if(!st){q+='0';st=true}q+=','}if(!st&&qd[i]===0&&i<L-1)continue;st=true;q+=qd[i]}
+  if(q.replace(/,/g,'.')!==String(val(ans))&&Number(q.replace(',','.'))!==val(ans))return'';
+  const W=col(all.length-1)+1;let first=cur.findIndex((c,i)=>c>=b&&i>=0);if(first<0)first=0;
+  const mk=(txt,i,cls='')=>{const e=col(i)+1;return`<div class="${cls}">${' '.repeat(Math.max(0,e-txt.length))}${txt}</div>`};
+  let top='';for(let i=0;i<all.length;i++){if(comma&&i===L)top+='<b class="cm">,</b>';top+=(i>=str.length?`<i class="z">0</i>`:all[i])}
+  let rows='';for(let i=first+1;i<all.length;i++)rows+=mk(String(cur[i]),i);rows+=mk('0',all.length-1,'fin');
+  return`<div class="ld"><div class="ldl"><div class="top">${top}</div>${rows}</div><div class="ldr"><div class="dv">${b}</div><div class="qt">${q.replace(',','<b class="cm">,</b>')}</div></div></div>`}
+/* ---- phép thử lại bằng phép nhân (thói quen kiểm tra kết quả) ---- */
+function checkText(c){const m=c&&c[5];if(!m)return'';const a=String(c[1]);const qs=(a.split(',')[1]||'').length,Qi=Number(a.replace(',','')),prod=Qi*m.b;
+  const pd=String(prod).padStart(qs+1,'0'),ip=pd.slice(0,pd.length-qs),fp=qs?pd.slice(-qs).replace(/0+$/,''):'';
+  return`Thử lại: ${a} × ${m.b} = ${ip+(fp?','+fp:'')} ✔ (thương × số chia = số bị chia)`}
 async function ask(){
-  cur=Q[order[pos]];hud();$('q').textContent=cur[0];$('a').value='';
-  const ci=(pos+review)%SHIRT.length;$('who').textContent=(review?`${NAMES[ci]} quay lại hỏi lần nữa`:`${NAMES[ci]} hỏi`)+` · Dạng ${cur[3]}: ${RULES[cur[3]].n}`;
+  item=queue[pos];cur=item.q;hintLv=0;peeked=false;dg=null;model=null;fwrong=0;hud();$('q').textContent=cur[0];$('a').value='';$('hint').textContent='💡';
+  const ci=(pos+doneBase)%SHIRT.length;
+  $('who').textContent=(item.tw?`${NAMES[ci]} hỏi bài tương tự (số mới)`:`${NAMES[ci]} hỏi`)+` · Dạng ${cur[3]}: ${RULES[cur[3]].n}`;
   const bub=$('bub');bub.style.animation='none';void bub.offsetWidth;bub.style.animation='';
   B.position.copy(HOME);B.visible=true;
-  body.material.color.setHex(SHIRT[ci]);hat.material.color.setHex(HAT[(pos+review)%HAT.length]);
-  SFX.bell();
+  body.material.color.setHex(SHIRT[ci]);hat.material.color.setHex(HAT[(pos+doneBase)%HAT.length]);dress(ci);
+  todTarget=Math.min(1,doneBase/Math.max(1,baseN));SFX.bell();SFX.inten(streak>=6?2:streak>=3?1:0);
   mouth.scale.set(1,1,1);await tw(.7,k=>{C.position.x=lerp(10,CX,ease(k));const p=Math.abs(Math.sin(k*Math.PI*5));C.position.y=p*.12;squash(C,(1-p)*.05-p*.03)});C.position.y=0;await tw(.28,k=>squash(C,Math.sin(k*Math.PI)*.16));C.scale.setScalar(1);
-  lock(false);$('a').focus();VO.cust=ci;if(VO.on)speak(cur[0]);
+  lock(false);$('a').focus();VO.cust=ci;qT0=performance.now();if(VO.on)speak(cur[0]);
 }
 
 /* ===== Ăn mừng khi đúng: 7 màn khác nhau, chọn ngẫu nhiên (không lặp liền nhau; chuỗi dài thì ưu tiên màn hoành tráng) ===== */
@@ -699,8 +833,8 @@ async function serve(){
 }
 const cap=t=>{say(t);$('sub').textContent=t;const m=t.match(/(Racing Boy|Cậu Vàng|Anh Hai)\s*:\s*“(.*)”/);if(m)VO.say(m[1]==='Racing Boy'?'rb':m[1]==='Cậu Vàng'?'dog':'chef',m[2])};
 async function steal(){
-  const cl=document.body.classList,DX=-2.4,stop=DX+3.2,sp_=v=>{TS=skipC?5:v};skipC=false;TS=1;
-  say(`❌ Sai rồi! Đáp án đúng: ${cur[1]}. ${cur[2]}`);SFX.bad();flash('bad');jolt();popChip('lo');emoji('😢',CX,2.4,.2,1.2);mouth.scale.set(.6,2.4,1);pop3d('Ối!',CX,2.9,.6,'#ff8a7a');VO.say('cust','Ối! Sai rồi!');
+  const cl=document.body.classList,DX=-2.4,stop=DX+3.2,sp_=v=>{TS=skipC?5:(fastCine?Math.max(v,2.2):v)};skipC=false;TS=fastCine?2.2:1;SFX.amb('street');
+  say('❌ '+(dg?dg.msg:'Chưa đúng rồi!'));SFX.bad();flash('bad');jolt();popChip('lo');emoji('😢',CX,2.4,.2,1.2);mouth.scale.set(.6,2.4,1);pop3d('Ối!',CX,2.9,.6,'#ff8a7a');VO.say('cust','Ối! Sai rồi!');
   await wait(.5);
   /* Cảnh 1 · máy quay thấp bám theo Cậu Vàng chạy ra đường */
   street.visible=true;cl.add('cine');cut([cam.position.x,cam.position.y,cam.position.z],[0,.2,-.5],45,0);CIN.w=1;
@@ -729,7 +863,7 @@ async function steal(){
   const c0=CIN.p.slice();
   await tw(1.6,k=>{const x=lerp(stop,-16,k*k),b=Math.min(1,k*4);K.position.x=x;CIN.p=[lerp(c0[0],x+5,b),lerp(c0[1],1.3,b),lerp(c0[2],LZ+4.6,b)];CIN.l=[x-1.5,.9,LZ];CIN.roll=.05*k});
   /* Cảnh 6 · Một lát sau… cảnh hài ngẫu nhiên, chờ người chơi gõ lại đáp án để giải cứu */
-  K.position.x=30;cl.remove('fast');skipC=false;TS=1;CIN.roll=0;
+  K.position.x=30;cl.remove('fast');skipC=false;TS=fastCine?2.2:1;CIN.roll=0;
   await playScene(pickScene());
 }
 let bag=[];function pickScene(){if(!bag.length){bag=SCENES.map((_,i)=>i);for(let j=bag.length-1;j>0;j--){const r=Math.random()*(j+1)|0;[bag[j],bag[r]]=[bag[r],bag[j]]}if(bag[bag.length-1]===SC.last&&bag.length>1)bag.unshift(bag.pop())}const k=bag.pop();SC.last=k;return SCENES[k]}
@@ -738,81 +872,236 @@ async function playScene(sc){
   S.add(dog);dog.scale.setScalar(1);dog.rotation.set(0,0,0);sc.setup();
   cap('⏳ Một lát sau, ở một góc phố…');cut([SX+7,2.8,LZ+9],[SX,1,LZ],42,.03);SC.run=true;
   await shot([SX+.8,1.9,LZ+7.4],[SX,.8,LZ],42,0,1.3);
-  for(const l of sc.lines){const m=l[0].match(/(Racing Boy|Cậu Vàng)[^“]*“(.*)”/),w=m&&m[1]==='Cậu Vàng'?'dog':'rb',tx=m?m[2]:l[1][0];cap('');SFX.bark();await bubble(tx,SX+l[1][1],l[1][2],LZ+l[1][3],1.5,w)}
+  for(const l of (fastCine?sc.lines.slice(0,1):sc.lines)){const m=l[0].match(/(Racing Boy|Cậu Vàng)[^“]*“(.*)”/),w=m&&m[1]==='Cậu Vàng'?'dog':'rb',tx=m?m[2]:l[1][0];cap('');SFX.bark();await bubble(tx,SX+l[1][1],l[1][2],LZ+l[1][3],1.5,w)}
   await shot([SX+.2,1.1,LZ+6.2],[SX,-.2,LZ],46,0,.9);
   cl.remove('cine');cl.add('rsc');cap('');
 }
 function taunt(){const Q=['Sai rồi, hahaha!','Gõ lại nào~','Chưa đúng nha!','Hehe, cố lên!'];SFX.yelp();{const q=Q[Math.random()*Q.length|0];pop3d(q,SX+2.6,2.9,LZ,'#ff8a7a',1.7);VO.say('rb',q)}if(Math.random()<.65)bubble(pickL(['Ẳng! Gõ đúng giùm tui với!','Cứu tui với Anh Hai ơi!','Gõ lại nhanh lên nè!','Tui sắp xỉu rồi nè!']),SX,2.1,LZ-.2,1.8,'dog')}
 async function rescue(){
-  const cl=document.body.classList,sc=SC.cur;cl.remove('rsc');cl.add('cine');SC.run=false;skipC=false;TS=1;
+  const cl=document.body.classList,sc=SC.cur;cl.remove('rsc');cl.add('cine');SC.run=false;skipC=false;TS=fastCine?2.2:1;
   cap('🎉 Gõ đúng rồi! Giải cứu Cậu Vàng!');VO.say('chef','Đúng rồi! Giải cứu Cậu Vàng thôi!');
   await sc.rescue();
   stage.visible=false;sc.cleanup();K.position.set(30,0,DH.z);K.rotation.y=-Math.PI/2;SC.cur=null;
   S.add(dog);dog.scale.setScalar(1);dog.rotation.set(0,-1.1,0);dog.position.copy(DH);
   cap('');say('🐶 Cậu Vàng thoát nạn, chạy một mạch về quán!');SFX.bark();VO.say('dog','Gâu gâu! Cảm ơn Anh Hai!');emoji('🐶',DH.x,2.2,DH.z,1);cl.remove('cine');
   await Promise.all([tw(1.1,k=>CIN.w=1-ease(k)),tw(1.1,k=>CV.k=1-ease(k))]);
-  CIN.w=0;CIN.roll=0;CV.k=0;street.visible=false;
+  CIN.w=0;CIN.roll=0;CV.k=0;street.visible=false;TS=1;SFX.amb('shop');
+}
+/* ---- bài tương tự: sai thì sau 2–3 câu quay lại một bài CÙNG DẠNG nhưng SỐ MỚI (không thể chép lại đáp án vừa xem) ---- */
+function scheduleTwin(k,it){
+  const ch=(it.ch||0)+1;if(ch>2){stuck[k]=1;return}
+  let tq=null;
+  if(typeof genQ==='function'&&genQ.one){for(let t=0;t<8&&!tq;t++){let c=null;try{c=genQ.one(k)}catch(e){}if(c&&c[0]!==it.q[0])tq=c}}
+  const gap=Math.min(Math.max(0,queue.length-pos-1),2+(Math.random()*2|0));
+  queue.splice(pos+1+gap,0,{q:tq||it.q,tw:1,ch,k});
 }
 async function submit(){
-  if(busy)return;const v=norm($('a').value);if(!v)return;lock(true);SFX.init();SFX.click();VO.cancel();
-  const k=cur[3],ok=v===norm(cur[1]);if(!review){byRule[k].n++;if(ok)byRule[k].ok++}
-  if(ok){if(!review)score++;streak++;best=Math.max(best,streak);hud();await serve()}
-  else{lost++;streak=0;if(!review)missed.push(cur);if(!retry.includes(order[pos]))retry.push(order[pos]);hud();await steal();await fixIt();await rescue()}
+  if(busy)return;const raw=$('a').value,v=norm(raw);if(!v)return;lock(true);SFX.init();SFX.click();VO.cancel();
+  const k=cur[3],ok=v===norm(cur[1]),first=!item.tw,assisted=hintLv>=3||peeked;
+  times.push((performance.now()-qT0)/1000);
+  if(first){byRule[k].n++;const good=ok&&!assisted;if(good)byRule[k].ok++;emaUp(k,good)}
+  else{byRule[k].tw++;twinN++;if(ok&&!assisted){byRule[k].twok++;twinOK++}}
+  if(ok){
+    streak++;best=Math.max(best,streak);if(first){doneBase++;if(!assisted)score++}
+    if(assisted)scheduleTwin(k,item);
+    hud();SFX.inten(streak>=6?2:streak>=3?1:0);meta.onCorrect(first,assisted);await serve();await meta.afterCorrect();
+  }else{
+    const shd=meta.useShield();if(!shd){lost++;streak=0}SFX.inten(0);dg=diagnose(cur,raw);miscon[dg.tag]=(miscon[dg.tag]||0)+1;
+    if(first){missed.push(cur);doneBase++}
+    if(shd){hud();banner('🛡️ KHIÊN BẢO VỆ!');meta.shieldFx();const pr=fixIt(dg);$('fix').querySelector('h2').textContent='🛡️ Khiên đã cứu Cậu Vàng! Xem cách làm rồi gõ lại nhé';await pr;scheduleTwin(k,item)}
+    else{hud();await steal();await fixIt(dg);await rescue();scheduleTwin(k,item)}
+  }
   await wait(.6);await tw(.5,k=>C.position.x=lerp(CX,10,k));B.visible=false;pos++;hud();
-  if(pos<order.length)return ask();
-  if(!retry.length)return finish();
-  review++;order=shuf(retry);retry=[];pos=0;
-  say(`📚 Ôn lại ${order.length} câu đã sai nhé!`);banner('📚 Ôn lại!');await wait(1.4);ask();
+  if(pos<queue.length)return ask();
+  finish();meta.onEnd();return;
 }
-
 const rulesHtml=()=>Object.keys(RULES).map(k=>{const r=RULES[k],ex={A:'34,5 : 5 = 6,9 (chia 34 : 5 = 6 dư 4 → viết phẩy → 45 : 5 = 9)',B:'23 : 4 = 5,75 (dư 3 → 30 : 4 = 7 dư 2 → 20 : 4 = 5)',C:'36 : 7,5 → 360 : 75 = 4,8',D:'7 657 : 31 = 247 ⇒ 76,57 : 31 = 2,47 (giảm 100 lần)'}[k];
   return `<div class="rl"><b class="k">${k}</b><b>${r.n}</b><br>${r.tip}<span class="mn">🧠 ${r.mn}</span><span class="ex">Ví dụ: ${ex}</span></div>`}).join('');
 $('rulesIntro').innerHTML=$('rulesCheat').innerHTML=rulesHtml();
-function fixIt(){return new Promise(res=>{
-  $('fq').textContent=cur[0];
-  $('fs').innerHTML=(cur[4]||[]).map(s=>`<div class="stp">${s}</div>`).join('');
-  $('fr').innerHTML=`👉 Đáp án đúng: <b style="font-size:22px">${cur[1]}</b><br>Dạng ${cur[3]}: ${RULES[cur[3]].tip}<br>🧠 <b>${RULES[cur[3]].mn}</b>`;
-  $('fa').value='';$('fh').textContent='';$('fix').querySelector('h2').textContent='🆘 Giải cứu Cậu Vàng! Gõ lại đáp án đúng nhé';$('fix').classList.add('rescue');$('fix').classList.remove('h');setTimeout(()=>$('fa').focus({preventScroll:true}),80);
-  fixDone=()=>{$('fix').classList.add('h');$('fix').classList.remove('rescue');fixDone=null;res()};
+/* ---- bảng "Giải cứu": KHÔNG hiện đáp án, chỉ hiện CÁCH GIẢI (các bước có ô trống ▢ + bài mẫu cùng dạng với số khác) ---- */
+let fstage=0,fpeek=false,reading=false,fwrong=0,model=null;
+const SAFE_FULL=false;
+const maskStep=s=>String(s).replace(/=\s*[\d.,\s]+?(\s*\(dư\s*\d+\))?(?=$|[.;:])/g,(m0,g)=>'= ▢'+(g?' (dư ▢)':''));
+const plain=s=>String(s);
+function mkModel(){if(model)return;if(typeof genQ==='function'&&genQ.one){for(let t=0;t<12&&!model;t++){let c=null;try{c=genQ.one(cur[3])}catch(e){}if(c&&c[0]!==cur[0]&&String(c[1])!==String(cur[1]))model=c}}}
+function modelHtml(){const k=cur[3],bg='background:#eaf6ff;border-color:#7fb4e6';
+  if(!model)return`<div class="stp" style="${bg}">📘 Cách làm: ${RULES[k].tip}</div>`;
+  return`<div class="stp" style="${bg}"><b>📘 Bài mẫu cùng dạng (số khác):</b> ${model[0]}</div>`+(model[4]||[]).map(s=>`<div class="stp" style="${bg}">${plain(s)}</div>`).join('')+`<div class="stp" style="${bg}">✅ Bài mẫu ra kết quả: <b>${model[1]}</b>. Em làm tương tự với số của mình nhé.</div>`}
+function renderFix(){
+  const steps=cur[4]&&cur[4].length?cur[4]:[RULES[cur[3]].tip],open=SAFE_FULL&&fstage>=2;
+  $('fs').innerHTML=steps.map(s=>`<div class="stp">${open?plain(s):maskStep(s)}</div>`).join('');
+  $('ld').innerHTML=(fstage>=1||fpeek)?modelHtml():'';
+  const mn=`🧠 <b>${RULES[cur[3]].mn}</b>`;let fr='';
+  if(fpeek)fr=`${mn}<br>Em đọc bài mẫu rồi tự điền các ô <b>▢</b> của bài mình nhé.`;
+  else if(fstage===0)fr=`${dg?dg.msg:''}<br>👉 Em tự điền các ô <b>▢</b> trong từng bước rồi gõ đáp án. Bí thì bấm <b>👁 Xem bài mẫu</b> (game không hiện đáp án, chỉ hiện cách làm).`;
+  else if(fstage===1)fr=`Đây là bài mẫu cùng dạng nhưng số khác. Em làm tương tự với số của mình rồi gõ đáp án nhé.<br>${mn}`;
+  else fr=`${SAFE_FULL?'Các bước của bài em đã hiện đủ (chưa có kết quả cuối). Em ghép lại rồi gõ đáp án nhé.':'Em đối chiếu từng bước với bài mẫu rồi thử lại nhé.'}<br>${mn}`;
+  $('fr').innerHTML=fr;$('fnext').style.display=(fpeek||fstage>=2)?'none':'';
+  $('fskip').style.display=(!fpeek&&fwrong>=4)?'':'none';
+}
+function fixIt(d){return new Promise(res=>{
+  fpeek=false;fstage=0;fwrong=0;model=null;mkModel();$('fq').textContent=cur[0];$('fa').value='';$('fh').textContent='';
+  $('fix').querySelector('h2').textContent='🆘 Giải cứu Cậu Vàng! Tự làm theo các bước nhé';
+  $('ff').style.display='flex';$('fpk').style.display='none';renderFix();SFX.tension(true);
+  $('fix').classList.add('rescue');$('fix').classList.remove('h');setTimeout(()=>$('fa').focus({preventScroll:true}),60);
+  fixDone=()=>{$('fix').classList.add('h');$('fix').classList.remove('rescue');fixDone=null;SFX.tension(false);res()};
 })}
-$('ff').onsubmit=e=>{e.preventDefault();
-  if(norm($('fa').value)===norm(cur[1])){SFX.ok(0);flash('ok');fixDone&&fixDone()}
-  else{SFX.bad();$('fh').textContent='Chưa đúng. Nhìn đáp án phía trên rồi gõ lại nhé!';const a=$('fa');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad');taunt()}};
+$('ff').onsubmit=e=>{e.preventDefault();if(!fixDone)return;
+  if(norm($('fa').value)===norm(cur[1])){SFX.ok(0);flash('ok');const ck=checkText(cur);if(ck)$('fr').innerHTML='✅ '+ck;$('ff').style.display='none';$('fskip').style.display='none';setTimeout(()=>{fixDone&&fixDone()},ck?1600:300)}
+  else{SFX.bad();fwrong++;fstage=Math.min(2,fstage+1);$('fh').textContent=fstage===1?'Chưa đúng. Mình cho em xem bài mẫu rồi, làm tương tự nhé!':'Chưa đúng. Em đọc kỹ từng bước rồi thử lại nhé, đừng vội!';
+    const a=$('fa');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad');renderFix();taunt()}};
 $('fc').onclick=()=>{$('fa').value+=',';SFX.tick();$('fa').focus()};
-$('hint').onclick=()=>{if(!cur||busy)return;hints++;SFX.click();say('💡 Dạng '+cur[3]+': '+RULES[cur[3]].tip);$('a').focus()};
+$('fnext').onclick=()=>{if(fixDone&&fstage<2){fstage++;renderFix();SFX.ting(fstage)}};
+$('fskip').onclick=()=>{if(fixDone){stuck[cur[3]]=1;SFX.click();fixDone()}};
+$('fsay').onclick=async()=>{if(reading)return;if(fstage<1&&!fpeek){$('fh').textContent='Bấm 👁 Xem bài mẫu trước, rồi mình đọc cho nghe nhé.';return}
+  reading=true;const rows=[...$('ld').children];if(SAFE_FULL&&fstage>=2)rows.unshift(...$('fs').children);
+  for(let i=0;i<rows.length;i++){rows.forEach(r=>r.classList.remove('hl'));rows[i].classList.add('hl');SFX.ting(i);await VO.say('chef',rows[i].textContent,{math:true,rate:.9,min:900})}
+  rows.forEach(r=>r.classList.remove('hl'));reading=false};
+function peek(){fpeek=true;peeked=true;mkModel();$('fq').textContent=cur[0];$('fix').querySelector('h2').textContent='📖 Cách làm (bài mẫu số khác)';
+  $('ff').style.display='none';$('fpk').style.display='';renderFix();$('fix').classList.add('rescue');$('fix').classList.remove('h')}
+$('fpk').onclick=()=>{$('fix').classList.add('h');$('fix').classList.remove('rescue');fpeek=false;if(!busy)$('a').focus()};
+/* ---- gợi ý 3 bậc: (1) nhắc quy tắc + ước lượng → (2) cho bước đầu → (3) xem cả lời giải (câu đó sẽ được hỏi lại bằng số mới) ---- */
+$('hint').onclick=()=>{if(!cur||busy)return;hints++;hintLv=Math.min(3,hintLv+1);SFX.ping();const k=cur[3],st=(cur[4]||[])[0];
+  if(hintLv===1){say('💡 Dạng '+k+': '+RULES[k].tip+' '+estText(cur));$('hint').textContent='💡1'}
+  else if(hintLv===2){say('💡 Bước đầu tiên: '+plain(st||RULES[k].mn));$('hint').textContent='💡2'}
+  else{say('📖 Mình cho em xem bài mẫu số khác. Em tự làm bài của mình nhé, rồi mình sẽ hỏi lại bằng số mới.');peek();$('hint').textContent='📖'}
+  $('a').focus()};
 $('cheatBtn').onclick=()=>{SFX.click();$('cheat').classList.remove('h')};
 $('cheatX').onclick=()=>{$('cheat').classList.add('h');if(!busy)$('a').focus()};
+function buildQueue(m,kk){
+  const gen=typeof genQ==='function';
+  if(m==='full'){if(gen)Q.splice(0,Q.length,...genQ());return Q.map(q=>({q}))}
+  const n=m==='quick'?5:m==='focus'?10:8,out=[];
+  const w=KEYS.map(k=>1+(1-prog.rules[k].ema)*3+(isWeak(k)?2:0));
+  const pickK=()=>{if(m==='kind')return kk;let s=w.reduce((a,b)=>a+b,0),x=Math.random()*s;for(let i=0;i<KEYS.length;i++){x-=w[i];if(x<=0)return KEYS[i]}return KEYS[0]};
+  if(gen&&genQ.one){for(let i=0;i<n;i++){const k=pickK();let c=null;for(let t=0;t<8&&!c;t++){const x=genQ.one(k);if(!out.some(o=>o.q[0]===x[0]))c=x}out.push({q:c||genQ.one(k)})}return out}
+  let pool=shuf(Q.slice()).filter(q=>m==='kind'?q[3]===kk:true);
+  if(m==='focus')pool.sort((a,b)=>prog.rules[a[3]].ema-prog.rules[b[3]].ema);
+  return pool.slice(0,n).map(q=>({q}))}
+function begin(m='full',kk=null){
+  SFX.init();SFX.click();mode=m;modeName=m==='quick'?'⚡ Ca nhanh':m==='focus'?'🎯 Ôn trọng tâm':m==='kind'?`🎯 Dạng ${kk}`:'';
+  queue=buildQueue(m,kk);baseN=queue.length;pos=0;doneBase=0;score=0;lost=0;streak=0;best=0;hints=0;missed=[];miscon={};times=[];twinN=0;twinOK=0;stuck={};byRule=mkBy();item=null;
+  $('intro').classList.add('h');$('end').classList.add('h');SFX.amb('shop');todTarget=0;if(meta)meta.begin();ask()}
 function finish(){
-  const N=NQ(),p=score/N,t=p>=.9?'Chủ quán Phở Anh Hai 🏆':p>=.7?'Đầu bếp giỏi 👨‍🍳':p>=.5?'Phụ bếp chăm chỉ 🍳':'Khách quen cần luyện thêm 💪';
-  const st=p>=.9?3:p>=.7?2:p>=.5?1:0;
-  const ks=Object.keys(RULES),weak=ks.filter(k=>byRule[k].n&&byRule[k].ok/byRule[k].n<.7);
+  const N=Math.max(1,baseN),p=score/N,t=p>=.9?'Chủ quán Phở Anh Hai 🏆':p>=.7?'Đầu bếp giỏi 👨‍🍳':p>=.5?'Phụ bếp chăm chỉ 🍳':'Khách quen cần luyện thêm 💪';
+  const st=p>=.9?3:p>=.7?2:p>=.5?1:0,avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):0;
+  const status=k=>{const r=byRule[k];if(!r.n&&!r.tw)return null;const fr=r.n?r.ok/r.n:0;
+    if(stuck[k])return{c:'bad',t:'🔴 Chưa vững: xem lại bảng ghi nhớ'};
+    if(fr>=.75)return{c:'ok',t:'✅ Vững'};
+    if(r.twok>0)return{c:'mid',t:'🟡 Đã tự sửa được lỗi'};
+    return{c:'bad',t:'🔴 Cần luyện thêm'}};
+  const sts=Object.fromEntries(KEYS.map(k=>[k,status(k)])),weak=KEYS.filter(k=>sts[k]&&sts[k].c==='bad');
+  prog.sess++;prog.last=Date.now();saveProg();
+  const misL=Object.entries(miscon).filter(([k])=>k!=='other').sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<span class="stp" style="display:block">⚠️ ${MIS[k]||k} (${n} lần)</span>`).join('');
   $('end').innerHTML=`<div class="box"><div class="stars">${[0,1,2].map(i=>`<b style="animation-delay:${.3+i*.25}s;opacity:${i<st?1:.25}">⭐</b>`).join('')}</div><h2 class="ttl" style="text-align:center;font-size:28px">Hết ca! ${t}</h2>
-    <div class="stat"><span>🍜 Đúng ngay lần đầu: ${score}/${N}</span><span>🐶 Bị bắt: ${lost} lần</span><span>🔥 Chuỗi dài nhất: ${best}</span>${review?`<span>📚 Ôn lại ${review} vòng</span>`:''}${hints?`<span>💡 Dùng gợi ý: ${hints}</span>`:''}</div>
-    <b>Mức nhớ từng dạng:</b>`+ks.map(k=>{const r=byRule[k],pc=r.n?Math.round(r.ok/r.n*100):0;return `<div class="mast"><span style="width:150px">${k}. ${RULES[k].n}</span><i><u style="width:${pc}%"></u></i><span>${r.ok}/${r.n}</span></div>`}).join('')+
-    (weak.length?`<p class="tipline">🎯 Nên ôn thêm: ${weak.map(k=>`Dạng ${k} (${RULES[k].mn})`).join(' · ')}</p>`:'<p class="tipline">🎉 Bạn nhớ cả 4 dạng rất tốt!</p>')+
-    (missed.length?`<b>Các câu đã từng sai (xem lại cách làm):</b>`+missed.map(q=>`<div class="rv">${q[0]}<br><b>Đáp án: ${q[1]}</b> — ${q[2]}${(q[4]||[]).length?'<br>'+q[4].map(s=>`<span class="stp" style="display:block">${s}</span>`).join(''):''}</div>`).join(''):'<p>Không sai câu nào, Cậu Vàng an toàn 🎉</p>')+
-    `<h3 class="ttl" style="margin:12px 0 0">📖 Bảng ghi nhớ</h3>${rulesHtml()}<p><button id="again">Chơi lại 🔄</button></p></div>`;
-  $('end').classList.remove('h');$('again').onclick=begin;
-  SFX.fanfare();if(st===0)setTimeout(SFX.sad,1200);
+    <div class="stat"><span>🍜 Đúng ngay lần đầu: ${score}/${N}</span><span>🐶 Bị bắt: ${lost} lần</span><span>🔥 Chuỗi dài nhất: ${best}</span>${twinN?`<span>🔁 Bài tương tự đúng: ${twinOK}/${twinN}</span>`:''}${hints?`<span>💡 Dùng gợi ý: ${hints}</span>`:''}${avg?`<span>⏱️ Trung bình ${avg} giây/câu</span>`:''}</div>
+    <b>Mức nhớ từng dạng trong ca này:</b>`+KEYS.map(k=>{const r=byRule[k],s=sts[k],pc=r.n?Math.round(r.ok/r.n*100):0;return r.n||r.tw?`<div class="mast"><span style="width:150px">${k}. ${RULES[k].n}</span><i><u style="width:${pc}%"></u></i><span>${r.ok}/${r.n}</span></div><div class="chip ${s.c}">${s.t}</div>`:''}).join('')+
+    (misL?`<b>Em hay nhầm ở chỗ nào?</b>${misL}`:'')+
+    (weak.length?`<p class="tipline">🎯 Nên ôn thêm: ${weak.map(k=>`Dạng ${k} (${RULES[k].mn})`).join(' · ')}. Lần sau bấm <b>Ôn trọng tâm</b> nhé!</p>`:'<p class="tipline">🎉 Em nhớ các dạng rất tốt!</p>')+
+    `<b>Mức nhớ tích lũy (${prog.sess} lần chơi):</b>`+KEYS.map(k=>`<div class="mast"><span style="width:150px">${k}</span><i><u style="width:${Math.round(prog.rules[k].ema*100)}%"></u></i><span>${Math.round(prog.rules[k].ema*100)}%</span></div>`).join('')+
+    (missed.length?`<b>Các câu đã từng sai (xem lại cách làm, rồi tự làm lại nhé):</b>`+missed.map(q=>`<div class="rv">${q[0]}<br><span class="stp" style="display:block">Dạng ${q[3]}: ${RULES[q[3]].n} — ${RULES[q[3]].tip}</span><span class="stp" style="display:block">🧠 ${RULES[q[3]].mn}</span></div>`).join(''):'')+
+    `<h3 class="ttl" style="margin:12px 0 0">📖 Bảng ghi nhớ</h3>${rulesHtml()}<p style="display:flex;gap:8px;flex-wrap:wrap"><button id="again" style="flex:1">Chơi lại 🔄</button><button id="againF" style="flex:1;background:#2a6fdb">🎯 Ôn trọng tâm</button></p></div>`;
+  $('end').classList.remove('h');$('again').onclick=()=>begin('full');$('againF').onclick=()=>begin('focus');
+  SFX.amb('off');SFX.inten(0);SFX.fanfare();if(st===0)setTimeout(SFX.sad,1200);
   [0,.5,1].forEach(d=>setTimeout(()=>burst(CX-2+d*3,2,0,[0xffc300,0xd6402b,0x2fa84f,0x2a6fdb,0xff7ab8]),d*600));
-  try{parent.postMessage({type:'pho-done',id:'toan5-bai22',title:'Phở Anh Hai · Toán 5 Bài 22',score,total:N,lost,review,hints,byRule,missed:missed.map(q=>q[0].slice(0,60))},'*')}catch(e){}
+  try{parent.postMessage({type:'pho-done',id:'toan5-bai22',title:'Phở Anh Hai · Toán 5 Bài 22',score,total:N,lost,review:twinN,hints,byRule,mode,twin:{n:twinN,ok:twinOK},miscon,avgSec:avg,ruleNames:Object.fromEntries(KEYS.map(k=>[k,RULES[k].n])),weak,missed:missed.map(q=>q[0].slice(0,60))},'*')}catch(e){}
 }
-function begin(){
-  SFX.init();SFX.click();
-  Q.splice(0,Q.length,...genQ());order=[...Q.keys()];pos=0;score=0;lost=0;streak=0;best=0;missed=[];retry=[];review=0;hints=0;byRule={A:{n:0,ok:0},B:{n:0,ok:0},C:{n:0,ok:0},D:{n:0,ok:0}};
-  $('intro').classList.add('h');$('end').classList.add('h');ask();
-}
+function renderIntro(){
+  if(meta)meta.intro();
+  const weak=KEYS.filter(isWeak);
+  $('prog').innerHTML=prog.sess?`<b>📈 Mức nhớ của em (tích lũy ${prog.sess} lần chơi):</b>`+KEYS.map(k=>`<div class="mast"><span style="width:150px">${k}. ${RULES[k].n}</span><i><u style="width:${Math.round(prog.rules[k].ema*100)}%"></u></i><span>${Math.round(prog.rules[k].ema*100)}%</span></div>`).join(''):'<p class="tipline">🌱 Lần đầu chơi? Bấm “Mở quán” để làm trọn ca. Game sẽ nhớ dạng nào em còn yếu để lần sau ôn đúng chỗ.</p>';
+  $('startF').textContent=weak.length?`🎯 Ôn trọng tâm: dạng ${weak.join(', ')}`:'🎯 Ôn trọng tâm (10 câu)';
+  $('kinds').innerHTML=KEYS.map(k=>`<button type="button" class="kd" data-k="${k}" title="${RULES[k].n}">Luyện dạng ${k}</button>`).join('');
+  [...$('kinds').children].forEach(b=>b.onclick=()=>begin('kind',b.dataset.k))}
 /* nút điều khiển */
-function syncBtn(){$('snd').textContent=SFX.snd?'🔊':'🔇';$('snd').classList.toggle('off',!SFX.snd);$('mus').classList.toggle('off',!SFX.mus||!SFX.snd)}
+function syncBtn(){$('snd').textContent=SFX.snd?'🔊':'🔇';$('snd').classList.toggle('off',!SFX.snd);$('mus').classList.toggle('off',!SFX.mus||!SFX.snd);$('fast').classList.toggle('off',!fastCine)}
 $('vo').onclick=()=>{SFX.click();VO.toggle();$('vo').classList.toggle('off',!VO.on)};$('vo').classList.toggle('off',!VO.on);
+$('fast').onclick=()=>{fastCine=!fastCine;try{localStorage.setItem('pho-fast',fastCine?'1':'0')}catch(e){}SFX.click();syncBtn();say(fastCine?'⚡ Cảnh ngắn: tua nhanh các màn hài để có thêm thời gian luyện.':'🎬 Đã bật lại đầy đủ các màn hài.')};
 $('snd').onclick=()=>{SFX.toggleSnd();syncBtn()};$('mus').onclick=()=>{SFX.toggleMus();syncBtn()};syncBtn();
 $('sl').onclick=()=>{if(cur)speak(cur[0]);$('a').focus()};
 $('sla').onclick=()=>{const a=$('a');if(a.disabled)return;a.value+=',';SFX.tick();a.focus()};
 $('a').addEventListener('input',()=>SFX.tick());
-$('start').onclick=begin;
+$('start').onclick=()=>begin('full');$('startF').onclick=()=>begin('focus');$('startQ').onclick=()=>begin('quick');$('shopBtn').onclick=()=>meta.shop();
+/* ===== Lớp "cuốn hút": xu phở, rương bí ẩn, khiên, mũ cho Cậu Vàng, chuỗi ngày, ca nhanh 5 câu ===== */
+meta=(()=>{
+ const KEY='pho-meta-v1',HATS=[
+  {id:'party',n:'Nón sinh nhật',e:'🥳',p:30},{id:'chef',n:'Mũ đầu bếp',e:'👨‍🍳',p:50},{id:'shades',n:'Kính râm ngầu',e:'😎',p:70},
+  {id:'cowboy',n:'Mũ cao bồi',e:'🤠',p:90},{id:'wizard',n:'Mũ phù thủy',e:'🧙',p:120},{id:'crown',n:'Vương miện',e:'👑',p:180}];
+ const RANKS=[[0,'Phụ bếp tập sự 🍳'],[150,'Đầu bếp nhí 👨‍🍳'],[500,'Bếp phó 🥘'],[1200,'Bếp trưởng 🏅'],[2500,'Huyền thoại phở 🏆']];
+ let d={coins:0,total:0,owned:[],hat:'',shield:0,days:0,last:''};
+ try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&typeof s==='object')d=Object.assign(d,s)}catch(e){}
+ if(!Array.isArray(d.owned))d.owned=[];
+ ['coins','total','shield','days'].forEach(k=>{if(typeof d[k]!=='number'||!isFinite(d[k]))d[k]=0});
+ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+ let sess=0,good=0,x2=0,lastChest=0,hatG=null;
+ const ds=t=>t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();
+ const rank=()=>{let r=RANKS[0][1];RANKS.forEach(x=>{if(d.total>=x[0])r=x[1]});return r};
+ const tryS=f=>{try{f()}catch(e){}};
+ function wear(id){
+  if(flat||typeof dog==='undefined')return;
+  if(hatG){dog.remove(hatG);hatG=null}
+  if(!id)return;
+  const g=new THREE.Group();dog.add(g);hatG=g;
+  if(id==='party'){cy(0,.2,.6,0xff4fa3,.7,1.48,0,g);sp(.07,0xffd23f,.7,1.82,0,g);cy(.2,.2,.05,0x2a6fdb,.7,1.22,0,g)}
+  else if(id==='chef'){cy(.22,.22,.1,0xeeeeee,.7,1.22,0,g);cy(.2,.2,.28,0xffffff,.7,1.38,0,g);sp(.27,0xffffff,.7,1.66,0,g);sp(.15,0xffffff,.5,1.6,.12,g);sp(.15,0xffffff,.5,1.6,-.12,g)}
+  else if(id==='shades'){bx(.06,.14,.52,0x111111,1.06,1.06,0,g);bx(.4,.05,.05,0x111111,.86,1.07,.24,g);bx(.4,.05,.05,0x111111,.86,1.07,-.24,g)}
+  else if(id==='cowboy'){cy(.44,.44,.06,0x8a5a2b,.7,1.2,0,g);cy(.22,.25,.3,0x8a5a2b,.7,1.38,0,g);cy(.255,.255,.06,0x3b2412,.7,1.27,0,g)}
+  else if(id==='wizard'){cy(.34,.34,.05,0x5b3cc4,.7,1.2,0,g);cy(0,.27,.85,0x5b3cc4,.7,1.64,0,g);sp(.07,0xffd23f,.7,2.08,0,g);sp(.05,0xffd23f,.78,1.5,.2,g)}
+  else if(id==='crown'){cy(.27,.27,.14,0xffc300,.7,1.25,0,g);for(let i=0;i<5;i++){const a=i/5*Math.PI*2;bx(.07,.17,.07,0xffc300,.7+Math.cos(a)*.25,1.4,Math.sin(a)*.25,g);sp(.04,0xd6402b,.7+Math.cos(a)*.25,1.52,Math.sin(a)*.25,g)}}
+ }
+ function draw(){const c=$('co');if(c)c.textContent='🪙 '+d.coins+(x2>0?' ×2':'');const s=$('sh');if(s){s.style.display=d.shield>0?'':'none';s.textContent='🛡️ '+d.shield}}
+ function award(n,txt){d.coins+=n;d.total+=n;sess+=n;save();draw();popChip('co');tryS(()=>pop3d('+'+n+' 🪙',CX,3.6,.6,'#ffc300',1.3))}
+ function roll(){
+  const unowned=HATS.filter(h=>!d.owned.includes(h.id)),r=Math.random();
+  if(r<.18&&unowned.length){const h=unowned[Math.random()*unowned.length|0];d.owned.push(h.id);if(!d.hat){d.hat=h.id;wear(h.id)}save();return{icon:h.e,msg:`<b>Mũ mới: ${h.n}!</b><br>Cậu Vàng đội ngay cho ngầu 😎`}}
+  if(r<.38){d.shield++;save();draw();return{icon:'🛡️',msg:'<b>Khiên bảo vệ!</b><br>Lần sai tới, Cậu Vàng không bị bắt (em vẫn xem cách giải).'}}
+  if(r<.55){x2=3;draw();return{icon:'✨',msg:'<b>Xu nhân đôi!</b><br>3 câu đúng tới được gấp đôi xu.'}}
+  const n=20+(Math.random()*5|0)*8;d.coins+=n;d.total+=n;sess+=n;save();draw();return{icon:'🪙',msg:`<b>+${n} xu phở!</b>`}}
+ function chest(){return new Promise(res=>{
+  const o=$('chest'),b=$('chestBox');let opened=false;tryS(()=>SFX.combo());
+  b.innerHTML='<h2 class="ttl">🎁 Rương bí ẩn!</h2><div class="cbig" id="cbig" tabindex="0">🎁</div><p id="cmsg" style="font-size:18px;margin:6px 0">Chạm vào rương để mở!</p><button id="chestOK" type="button" style="display:none">Nhận thưởng ✅</button>';
+  o.classList.remove('h');
+  const open=()=>{if(opened)return;opened=true;const r=roll(),c=$('cbig');c.classList.add('open');c.textContent=r.icon;$('cmsg').innerHTML=r.msg;$('chestOK').style.display='';tryS(()=>SFX.ting(3));tryS(()=>SFX.ok(6));$('chestOK').focus()};
+  $('cbig').onclick=open;$('cbig').onkeydown=e=>{if(e.key==='Enter'||e.key===' ')open()};
+  $('chestOK').onclick=()=>{o.classList.add('h');res()};
+ })}
+ function shop(){
+  const o=$('shop'),b=$('shopBox');
+  const render=()=>{
+   b.innerHTML=`<h2 class="ttl" style="margin:0">🛍️ Mũ cho Cậu Vàng</h2><p class="tipline">${rank()} · 🪙 <b>${d.coins}</b> xu. Trả lời đúng để kiếm xu, mở rương để nhận mũ miễn phí!</p><div class="hg">`+
+   HATS.map(h=>{const own=d.owned.includes(h.id),on=d.hat===h.id;return `<div class="hc${on?' on':''}"><div class="he">${h.e}</div><b>${h.n}</b>`+(own?`<button type="button" data-a="eq" data-id="${h.id}">${on?'Đang đội ✓ (bỏ)':'Đội mũ'}</button>`:`<button type="button" data-a="buy" data-id="${h.id}"${d.coins<h.p?' disabled':''}>🪙 ${h.p}</button>`)+`</div>`}).join('')+
+   `</div><button id="shopX" type="button" style="width:100%">Xong rồi!</button>`;
+   [...b.querySelectorAll('.hc button')].forEach(bt=>bt.onclick=()=>{const id=bt.dataset.id,h=HATS.find(x=>x.id===id);
+    if(bt.dataset.a==='buy'){if(d.coins<h.p)return;d.coins-=h.p;d.owned.push(id);d.hat=id;wear(id);tryS(()=>SFX.ting(3))}
+    else{d.hat=d.hat===id?'':id;wear(d.hat);tryS(()=>SFX.click())}
+    save();draw();render()});
+   $('shopX').onclick=()=>{o.classList.add('h');tryS(()=>SFX.click())};
+  };
+  render();o.classList.remove('h');
+ }
+ wear(d.hat);
+ return{
+  draw,shop,
+  begin(){sess=0;good=0;x2=0;lastChest=0;const t=ds(new Date());
+   if(d.last!==t){d.days=(d.last===ds(new Date(Date.now()-864e5)))?d.days+1:1;d.last=t;const bn=10+Math.min(d.days,7)*5;d.coins+=bn;d.total+=bn;sess+=bn;save();
+    setTimeout(()=>tryS(()=>{banner(`🔥 Ngày thứ ${d.days}! +${bn} 🪙`);SFX.combo()}),1200)}
+   draw()},
+  intro(){const e=$('metaBar');if(!e)return;e.innerHTML=`<b>${rank()}</b> · 🪙 ${d.coins} xu · 🔥 chuỗi ${d.days} ngày${d.shield?` · 🛡️ ${d.shield}`:''}<br><span style="font-weight:600">Mỗi 4 câu đúng có 🎁 rương bí ẩn · vào chơi mỗi ngày được thêm xu</span>`;draw()},
+  onCorrect(first,assisted){let n=assisted?3:(first?10:6),fast=false;
+   if(!assisted){n+=Math.min(streak,6)*2;if(first&&(performance.now()-qT0)/1000<8){n+=5;fast=true}if(x2>0){n*=2;x2--}good++}
+   award(n);if(fast)tryS(()=>pop3d('⚡ NHANH TAY',CX-1.6,3.2,.6,'#4fd1ff',1.2))},
+  async afterCorrect(){if(good>0&&good%4===0&&lastChest!==good){lastChest=good;await wait(.3);await chest()}},
+  useShield(){if(d.shield>0){d.shield--;save();draw();return true}return false},
+  shieldFx(){tryS(()=>emoji('🛡️',DH.x,2.4,DH.z,1.3));tryS(()=>SFX.ting(3))},
+  onEnd(){const bx2=$('end').querySelector('.box');if(!bx2)return;
+   bx2.insertAdjacentHTML('afterbegin',`<div class="mb">🪙 Ca này em kiếm được <b>+${sess}</b> xu · tổng ${d.coins} xu · ${rank()}<br><button type="button" id="endShop" style="margin-top:6px;padding:6px 14px;background:linear-gradient(#b86bff,#8a3fd6)">🛍️ Mua mũ cho Cậu Vàng</button></div>`);
+   const bt=$('endShop');if(bt)bt.onclick=()=>shop()}
+ }})();
 $('f').onsubmit=e=>{e.preventDefault();submit()};
-order=[...Q.keys()];pos=0;score=0;lost=0;streak=0;missed=[];retry=[];review=0;byRule={A:{n:0,ok:0},B:{n:0,ok:0},C:{n:0,ok:0},D:{n:0,ok:0}};lock(true);
+queue=[];byRule=mkBy();lock(true);renderIntro();
+window.__phoDbg=()=>({cur,item,queue,pos,mode,baseN,doneBase,score,lost,hintLv,byRule,miscon,busy,twinN,twinOK,prog,fstage,fn:{ldHtml,maskStep,checkText,diagnose,estText},fixOpen:!$('fix').classList.contains('h'),dogKids:(typeof dog!=='undefined'&&dog&&dog.children?dog.children.length:-1),lost,streak});
 }
+
 </script>
 </body>
 </html>
